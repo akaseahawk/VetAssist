@@ -2,114 +2,159 @@
 
 **Wilcore Innovation Challenge | April 20–27, 2026**
 
-Want to help build something that actually matters? This is a one-week hackathon project
-with a clear goal, a working foundation, and specific roles where you can make a real contribution.
+Hey — I'm building something for the challenge and wanted to show you what it is
+before asking if you're interested in jumping in. Read this first, then decide.
+No pressure either way.
 
 ---
 
-## What is VetAssist?
+## What we're building
 
-VetAssist is an AI assistant that helps veterans navigate the VA benefits and forms process.
+**VetAssist** — an AI assistant that helps veterans figure out their VA benefits
+and complete the required paperwork.
 
-Right now, getting VA benefits is hard — not because veterans don't deserve them,
-but because the process is fragmented, confusing, and full of paper forms that ask
-for the same information over and over.
+Here's the short version of why it matters:
 
-VetAssist changes that. It:
+> The average VA disability claim takes **102 days** to process —
+> and that clock doesn't even start until the veteran figures out which forms to file.
+> Most of them are still paper.
 
-- Looks at a veteran's profile and figures out which benefits they likely qualify for
-- Tells them exactly which forms they need
-- Prefills every field it can from what it already knows
-- Asks plain-language follow-up questions for the rest
-- Handles forms that aren't fully digital (upload a scan — it extracts the context)
-- Produces a printable or email-ready output package
+VetAssist changes that. You open it, it looks at your profile, tells you which
+benefits you likely qualify for, shows you which forms you need, and prefills
+everything it already knows. For the rest, it asks you in plain language — one
+question at a time — like a conversation, not a questionnaire.
 
-It's not trying to replace VSOs or VA staff. It's trying to make sure veterans
-show up to those conversations already knowing what they need and having half the paperwork done.
+If you get a physical form in the mail (or at the VA office), you can photograph it
+and VetAssist will read it and extract what it needs. It handles the forms that
+aren't digital, which is a lot of them.
+
+The output is printable or email-ready. No re-entering the same name, SSN, and
+service dates on five different forms. Done once. Done right.
 
 ---
 
-## Why Wilcore should care
+## The demo flow (what judges will see)
 
-Wilcore is an SDVOSB (Service-Disabled Veteran-Owned Small Business) that works with the VA.
-This project directly serves the veteran population Wilcore was built to support,
-and it's exactly the kind of idea that could become a federal proposal.
+```mermaid
+flowchart LR
+    A[Select veteran profile] --> B[See likely benefits in seconds]
+    B --> C[See matching VA forms with fields prefilled]
+    C --> D{Any missing fields?}
+    D -- Yes --> E[Chat assistant asks in plain language]
+    D -- No --> F[Printable output ready]
+    E --> F
+```
 
-The Wilcore challenge rubric rewards:
-- **Impact (30%)** — veterans getting benefits faster, with less confusion
-- **Originality (25%)** — combining benefit discovery, form guidance, and AI-assisted completion in one tool
-- **Feasibility (20%)** — this works locally today, with a clear path to federal deployment
-- **Clarity (15%)** — the demo is one screen, easy to explain in 60 seconds
-- **Collaboration (10%)** — that's where you come in
+In the demo, we follow **Maria** — an Army veteran, two combat deployments,
+30% disability rating for PTSD. She knows she may have benefits she hasn't filed for.
+She opens VetAssist. In under two minutes, she knows exactly what she qualifies for,
+which forms she needs, and what to bring.
 
 ---
 
 ## What's already done
 
-```mermaid
-flowchart TD
-    A[Veteran selects profile] --> B[Eligibility engine runs]
-    B --> C[Matched forms identified]
-    C --> D[Known fields prefilled from profile]
-    D --> E{Missing fields?}
-    E -- Yes --> F[Chat assistant asks in plain language]
-    E -- No --> G[Output package generated]
-    F --> G
-```
+The foundation is built and running locally. Here's where things stand:
 
-As of today:
-
-- FastAPI backend running locally
-- 3 synthetic veteran profiles in JSON (no real PII)
+**Working today:**
+- FastAPI backend (Python, runs locally in one command)
+- 3 synthetic veteran profiles — different branches, disabilities, service histories
 - Rules-based eligibility engine for 5 VA benefit categories
-- Forms catalog with 5 real VA forms (field-level metadata, VA.gov links)
-- Field prefill logic — shows what's known vs. missing
-- Claude conversational assistant (live with API key, placeholder without)
-- Single-page HTML frontend — veteran selector, benefit badges, form table, chat
+- 5 real VA forms with field-level metadata and [VA.gov links](https://www.va.gov/vaforms/)
+- Field prefill logic — knows which fields it can fill vs. what to ask for
+- Claude conversational assistant (live with API key, graceful placeholder without)
+- Single-page HTML frontend — veteran selector, benefit badges, form breakdown, chat
+
+**Already in the repo:**
+- Mockup images of non-digitized VA forms (DD-214, 21-4142, 21-0781) in `forms_to_verify/`
+  to demonstrate the upload-and-extract concept in the video demo
+
+**Not built yet (intentionally):**
+- PDF output / printable package (deferred — doesn't affect the main demo)
+- Real document OCR (stubbed out — the concept shows clearly in the demo)
+- Authentication / database (not needed for a local MVP)
 
 ---
 
-## Where we need help
+## Where I need help — and where you specifically fit
 
-### Role 1 — Data & Eligibility Researcher
-**Time: ~4–6 hours over the week**
-
-You don't need to code. We need someone to:
-- Review our 5 benefit categories and verify the eligibility conditions are roughly accurate
-- Review our 5 VA forms and confirm the listed required fields match reality
-- Add 1–2 more benefit/form pairs if there's a clear gap (e.g. caregiver benefits, pension)
-- Write 2–3 sentences per benefit explaining it in plain language for the frontend
-- Help make sure we can defend the data in front of judges
-
-**What you'd own:** `data/benefits_rules.json` and `data/forms_catalog.json`
+I'm not going to give you a generic role. Here's where I actually need your skills.
 
 ---
 
-### Role 2 — Frontend / UX Polish
-**Time: ~4–8 hours**
+### Amy — Frontend & Accessibility
 
-We have a working single-page HTML UI. It's functional but plain. We need:
-- Visual polish — better layout, readable typography, color-coded status indicators
-- A "before / after" visual or simple explainer for the demo slide
-- Make the form field table easier to scan
-- Optional: a simple "Generate Package" button mockup (doesn't need to work — just look real)
-- Ensure the demo is visually presentable for a recorded video walkthrough
+**Your background:** Design system engineering lead, front-end engineer,
+accessibility specialist.
 
-**What you'd own:** `templates/index.html`
+This project needs you more than anyone else on the frontend.
+
+What the UI does right now: it's functional. Veteran selector, benefit badges,
+form table with prefill status, chat box. It works. It's not something you'd
+be proud to show at a presentation.
+
+**Where you'd make this project:**
+
+1. **Visual design pass on `templates/index.html`**
+   The entire UI is one HTML file with vanilla CSS — no framework, no build step.
+   Pull it up, make it look like something Wilcore would be proud to demo.
+   Key things that need love: the form field table (status colors for prefilled/missing),
+   the benefit badge layout, the overall page structure.
+
+2. **The "before / after" visual**
+   The strongest moment in our presentation will be a side-by-side: what a veteran
+   does today (Google, paper forms, confusion) vs. what VetAssist does.
+   You know how to make that land visually in a way that a judge remembers.
+
+3. **Accessibility baseline**
+   Since Wilcore has federal aspirations for this, judges will think about Section 508.
+   If you can add basic aria labels, focus states, and color contrast that holds up —
+   that's a credible signal that we've thought about this seriously.
+
+4. **Demo polish**
+   The recorded video demo needs to look good. Help make sure the UI is presentable
+   at screen-capture resolution.
+
+**Time ask:** 4–8 hours across the week, heavily weighted toward Wed–Thu.
+**What you'd own:** `templates/index.html`, visual design decisions, demo video polish.
 
 ---
 
-### Role 3 — Demo Story & Presentation Support
-**Time: ~3–5 hours**
+### Nick — Engineering
 
-This role doesn't require any coding at all. We need:
-- Help drafting the 20-minute presentation deck (problem → solution → impact → roadmap → team)
-- A before/after narrative script for the video demo
-- Quantifying impact: find 1–2 cited stats about veteran benefits friction, wait times, or application volume
-- Help frame the federal applicability story (VA contract potential, SDVOSB angle)
-- Proofread the README and submission materials
+**Your background:** Engineering lead.
 
-**What you'd own:** The presentation deck and video script
+The backend and core logic are in solid shape. What I need from an engineering lead
+is a second set of eyes on the architecture, help tightening the code, and a partner
+who can speak credibly to the CTO (Joe Niquette) when he asks the hard questions.
+
+**Where you'd add real value:**
+
+1. **Code review and hardening**
+   Look at `main.py`, `services/eligibility.py`, and `services/form_matcher.py`.
+   The eligibility logic is rules-based Python — it works, but there are edge cases
+   I'd want to talk through. Make sure the happy path is bulletproof for the demo.
+
+2. **The upload concept**
+   `POST /api/upload` currently returns a 501 with a clear explanation.
+   For the demo, it would be more impressive if we could show the concept working —
+   even a fake version where uploading the mockup image from `forms_to_verify/`
+   triggers a hardcoded response showing "I extracted these fields from your document."
+   This is maybe 2–3 hours of work and transforms the demo significantly.
+
+3. **Architecture defense**
+   When judges or Joe ask "how would this work at scale?" or "what would the federal
+   deployment look like?" — you're the person who can answer that credibly.
+   The `CLAUDE.md` file has the roadmap (local JSON → real VA API → Bedrock endpoint
+   on GovCloud). Help me stress-test that story.
+
+4. **Making sure it runs**
+   Before we record the demo video, do one full clean install on your machine
+   (`pip install -r requirements.txt` + `uvicorn main:app --reload`) and confirm
+   the happy path works end-to-end. Find anything broken and we fix it together.
+
+**Time ask:** 4–8 hours across the week.
+**What you'd own:** Code review, upload concept stub, architecture Q&A prep.
 
 ---
 
@@ -117,27 +162,44 @@ This role doesn't require any coding at all. We need:
 
 | Day | Goal |
 |-----|------|
-| Mon | Kick off, assign roles, run the app locally |
-| Tue–Wed | Parallel work: data review, UI polish, demo story |
-| Thu | Integration pass — make sure everything works together |
+| Mon Apr 20 | Challenge opens — decide if you're in, run the app locally |
+| Tue–Wed | Amy: UI pass. Nick: code review + upload stub |
+| Thu | Full demo run-through, catch anything broken |
 | Fri | Record video demo, finalize submission materials |
-| Weekend | Submit by Sunday 11:59 PM ET |
+| Mon Apr 27 | Deadline 11:59 PM ET |
 
 ---
 
-## How to get started
+## Getting it running (takes 3 minutes)
 
-1. Clone the repo: `git clone https://github.com/akaseahawk/VetAssist`
-2. Install dependencies: `pip install -r requirements.txt`
-3. Run: `uvicorn main:app --reload`
-4. Open: `http://localhost:8000`
-5. Pick a veteran and click through the flow
+```bash
+git clone https://github.com/akaseahawk/VetAssist
+cd VetAssist
+pip install -r requirements.txt
+uvicorn main:app --reload
+# open http://localhost:8000
+```
 
-No cloud accounts, no API keys needed to run the demo locally.
+No API key needed to run the app. The chat assistant shows a placeholder response
+without one — that's fine for initial review.
+
+---
+
+## Why Wilcore specifically should care about this
+
+Wilcore is an SDVOSB. We work with the VA. This project:
+- Directly serves the veteran population we exist to support
+- Maps to the challenge themes "Benefits at First Ask" and "Closing the Digital Divide"
+- Has a credible path from this demo to a Wilcore federal proposal
+- Could realistically become a real thing if it wins
+
+And honestly — it's a project worth doing. Veterans deserve better than a 102-day wait
+and a stack of paper forms they have to figure out alone.
 
 ---
 
 ## Questions?
 
-Reach out directly. This is a real project with a real deadline and a real shot at something
-that could help veterans — and potentially become a Wilcore proposal.
+Just message me. If you want to jump in, let me know which role fits and we'll
+divide and conquer. The deadline is tight but the scope is real and the foundation
+is already there.
