@@ -1,0 +1,20 @@
+# VetAssist — MVP dependencies
+# Keep this minimal. No database, no heavy frameworks.
+
+# Web framework
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+
+# Environment variable loading
+python-dotenv==1.0.1
+
+# Anthropic Claude API (used only if ANTHROPIC_API_KEY is set)
+# Remove this line if running fully offline / placeholder mode
+anthropic>=0.20.0
+
+# TODO (post-MVP additions — do not add to MVP):
+# pypdf             # for reading and filling PDF forms
+# pytesseract       # for OCR on scanned/flat PDF images
+# Pillow            # image processing for OCR pipeline
+# reportlab         # for generating printable output PDFs
+# boto3             # for AWS Bedrock endpoint in federal deployment

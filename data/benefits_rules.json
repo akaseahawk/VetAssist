@@ -1,0 +1,81 @@
+{
+  "benefits": [
+    {
+      "id": "healthcare_enrollment",
+      "title": "VA Health Care Enrollment",
+      "description": "Comprehensive medical, mental health, and preventive care through the VA health system.",
+      "rules": {
+        "require_honorable_discharge": true,
+        "require_min_service_days": 24,
+        "auto_qualify_if": [
+          "disability_rating_pct >= 50",
+          "combat_deployment == true",
+          "discharge_type == 'Honorable'"
+        ],
+        "exclude_if": [
+          "enrolled_va_healthcare == true"
+        ]
+      },
+      "likely_if": "honorable discharge AND (combat deployment OR disability rating OR income below threshold)",
+      "info_url": "https://www.va.gov/health-care/eligibility/"
+    },
+    {
+      "id": "disability_compensation",
+      "title": "VA Disability Compensation",
+      "description": "Monthly tax-free payment for veterans with service-connected physical or mental conditions.",
+      "rules": {
+        "require_honorable_discharge": true,
+        "require_service_connected_disability": true,
+        "auto_qualify_if": [
+          "service_connected_disability == true",
+          "receiving_disability_comp == false"
+        ]
+      },
+      "likely_if": "service-connected disability AND not yet receiving compensation",
+      "info_url": "https://www.va.gov/disability/"
+    },
+    {
+      "id": "ptsd_benefits",
+      "title": "PTSD / Mental Health Benefits",
+      "description": "Additional disability compensation and treatment for mental health conditions related to military service.",
+      "rules": {
+        "require_honorable_discharge": true,
+        "require_condition": "PTSD",
+        "auto_qualify_if": [
+          "combat_deployment == true",
+          "PTSD in disability_conditions"
+        ]
+      },
+      "likely_if": "combat deployment OR PTSD listed as a disability condition",
+      "info_url": "https://www.va.gov/disability/eligibility/ptsd/"
+    },
+    {
+      "id": "education_gi_bill",
+      "title": "GI Bill Education Benefits (Post-9/11)",
+      "description": "Tuition, housing, and book stipends for qualifying education programs for veterans who served after Sept. 10, 2001.",
+      "rules": {
+        "require_honorable_discharge": true,
+        "require_post_9_11_service": true,
+        "auto_qualify_if": [
+          "service_start >= '2001-09-11'"
+        ]
+      },
+      "likely_if": "service began after September 10, 2001 with honorable discharge",
+      "info_url": "https://www.va.gov/education/about-gi-bill-benefits/"
+    },
+    {
+      "id": "home_loan_guarantee",
+      "title": "VA Home Loan Guarantee",
+      "description": "Helps veterans purchase, build, or refinance a home with favorable terms and no private mortgage insurance.",
+      "rules": {
+        "require_honorable_discharge": true,
+        "require_min_service_days": 90,
+        "auto_qualify_if": [
+          "discharge_type == 'Honorable'"
+        ]
+      },
+      "likely_if": "honorable discharge with sufficient service length",
+      "info_url": "https://www.va.gov/housing-assistance/home-loans/"
+    }
+  ]
+}
