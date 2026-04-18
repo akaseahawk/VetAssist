@@ -58,6 +58,9 @@ VetAssist is a local-first AI assistant that:
 
 ### System Architecture
 
+> **CTO note:** Every layer is replaceable without touching the others. JSON → DB, Anthropic → Bedrock,
+> local → GovCloud. The MVP is the simplest credible version of the full architecture, not a throwaway.
+
 ```mermaid
 flowchart TD
     A[Veteran opens VetAssist] --> B[Load veteran profile\nsynthetic JSON or future VA data source]
@@ -125,8 +128,10 @@ flowchart LR
 
 ## Impact
 
-> CEO lens: This is a mission-aligned product for an SDVOSB that works directly with the VA.
-> A working prototype is a credible foundation for a Wilcore proposal.
+> **CEO lens:** Wilcore is an SDVOSB built to serve veterans. This project does exactly that — and it comes with a
+> credible path to a federal proposal. A working prototype today is a BD asset tomorrow. The before/after story
+> is memorable: veterans go from 102-day confusion to a guided 30-minute process. That's the kind of impact
+> that wins challenges and opens doors with VA program offices.
 
 - **Direct veteran impact:** Reduce time-to-submission from hours or days to under 30 minutes
 - **Reduction in incomplete submissions:** Prefilling known fields and guided follow-ups reduces errors that cause rejections
@@ -143,8 +148,10 @@ Quantified (conservative estimates):
 
 ## Feasibility
 
-> COO lens: This is a realistic one-week build. The scope is bounded, the dependencies are minimal,
-> and the demo path is clear.
+> **COO lens:** This is a bounded, realistic one-week build with a clear demo path. The scope is
+> intentionally constrained — no database, no cloud, no auth. Every dependency is justified.
+> The effort table below shows exactly what was built and what was deferred. If this moves past
+> the challenge, the roadmap is phased and each sprint has a defined deliverable.
 
 ### MVP is realistic because:
 - **No database** — JSON files for everything
@@ -267,8 +274,12 @@ flowchart LR
 
 ## Federal Applicability
 
-> CTO lens: The architecture is designed to be swappable. Claude via Anthropic API today;
-> Claude via AWS Bedrock on GovCloud tomorrow.
+> **CTO lens (primary):** The architecture is intentionally modular and swap-ready. The model layer
+> is abstracted in `services/claude_chat.py` — one environment variable switches from Anthropic direct
+> to AWS Bedrock. The data layer is JSON files today and PostgreSQL or DynamoDB tomorrow with no
+> service-layer changes. The eligibility engine is pure Python rules — no ML dependency, fully auditable,
+> easy to extend. The federal deployment path runs through Bedrock on AWS GovCloud (FedRAMP-authorized)
+> with a FISMA Low/Moderate ATO. Section 508 compliance is achievable in one sprint on the existing HTML.
 
 - **Primary agency:** Department of Veterans Affairs (VA)
   - Aligns with VA Digital Modernization Strategy and Benefits Modernization priorities
