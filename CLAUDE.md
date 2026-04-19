@@ -12,43 +12,168 @@ It helps veterans identify likely VA benefits, understand what forms they need,
 see which fields can be prefilled from their profile, and ask a conversational
 assistant for missing information.
 
+**VetAssist is a preparation tool — not a decision maker.**
+The VA and the veteran's VSO make all eligibility determinations.
+We help veterans know what to ask about and get their paperwork ready.
+
 ---
 
-## Intended architecture
+## Architecture overview
 
 ```
-main.py                 FastAPI app — all routes live here
+main.py                     FastAPI app — all routes live here
 services/
-  eligibility.py        Rules-based benefit matching (no ML, no API calls)
-  form_matcher.py       Maps benefits → forms, prefills fields from profile
-  claude_chat.py        Calls Anthropic Claude API (falls back to placeholder)
+  benefit_discovery.py      Claude-first benefit discovery; rules fallback
+  eligibility.py            Hardcoded rules engine (fallback mode only)
+  form_matcher.py           Maps benefits → forms, prefills fields from profile
+  claude_chat.py            Conversational assistant (Anthropic API or placeholder)
 data/
-  veterans.json         3 synthetic veteran profiles (no real PII)
-  benefits_rules.json   5 benefit definitions with eligibility rules
-  forms_catalog.json    5 VA form definitions with field metadata
+  veterans.json             3 synthetic veteran profiles (no real PII)
+  benefits_rules.json       5 benefit definitions used by the rules fallback
+  forms_catalog.json        5 VA form definitions with field metadata
+  branch_contacts.json      VSO contacts + branch-specific benefit notes
 templates/
-  index.html            Single-page frontend (vanilla JS, no framework)
+  index.html                Single-page frontend (vanilla JS, no framework)
+forms_to_verify/
+  README.md                 Explains the folder and mockup images
+  *.png                     Mockup images of non-digitized VA forms
 ```
 
-**The data layer is JSON files.** There is no database. Do not add one.
-This is correct for the MVP — it makes the project easy to run, easy to demo,
-and easy to explain to non-technical judges.
+**The data layer is JSON files.** There is no database.
+This is correct for the MVP — easy to run, demo, and explain to non-technical judges.
+
+---
+
+## Service interaction map
+
+```
+   SERVICE INTERACTION MAP
+   =======================
+   Read this before modifying any route.
+
+   HTTP Request
+        │
+        ▼
+   main.py (all routes)
+   ┌─────────────────────────────────────────────────────────────┐
+   │                                                             │
+   │  GET /api/eligibility/{id}                                  │
+   │  GET /api/forms/{id}                                        │
+   │  POST /api/chat                                             │
+   │                                                             │
+   │  All three of these call first:                             │
+   │  ┌─────────────────────────────────────────────────────┐   │
+   │  │  services/benefit_discovery.py                      │   │
+   │  │  discover_benefits(veteran)                         │   │
+   │  │                                                     │   │
+   │  │  ├── _discover_with_claude()   (if API key set)     │   │
+   │  │  │     anthropic.messages.create()                  │   │
+   │  │  │     parses JSON response                         │   │
+   │  │  │     merges with catalog metadata                 │   │
+   │  │  │     returns None on any failure → triggers fall  │   │
+   │  │  │                                                  │   │
+   │  │  └── _discover_with_rules()   (no key or failure)   │   │
+   │  │        services/eligibility.check_eligibility()     │   │
+   │  │        RULE_REGISTRY dict → per-benefit functions   │   │
+   │  └─────────────────────────────────────────────────────┘   │
+   │                                                             │
+   │  GET /api/forms and POST /api/chat also call:              │
+   │  ┌─────────────────────────────────────────────────────┐   │
+   │  │  services/form_matcher.py                           │   │
+   │  │  get_forms_for_benefits(eligible_ids, catalog)      │   │
+   │  │  prefill_fields(form, veteran)                      │   │
+   │  │  build_field_summary(prefilled_form)                │   │
+   │  └─────────────────────────────────────────────────────┘   │
+   │                                                             │
+   │  POST /api/chat also calls:                                 │
+   │  ┌─────────────────────────────────────────────────────┐   │
+   │  │  services/claude_chat.py                            │   │
+   │  │  chat(user_message, veteran, eligible_benefits,     │   │
+   │  │       missing_fields, verified_fields,              │   │
+   │  │       conversation_history, active_form)            │   │
+   │  │                                                     │   │
+   │  │  ├── builds system prompt from all context above    │   │
+   │  │  ├── loads branch_contacts.json for VSO info        │   │
+   │  │  └── anthropic.messages.create() or placeholder     │   │
+   │  └─────────────────────────────────────────────────────┘   │
+   │                                                             │
+   │  POST /api/upload (stub)                                    │
+   │  POST /api/generate-output (stub)                           │
+   │  GET /api/veterans                                          │
+   │  GET /api/veterans/{id}                                     │
+   │  GET /health                                                │
+   └─────────────────────────────────────────────────────────────┘
+        │
+        ▼
+   JSON response → templates/index.html (vanilla JS frontend)
+```
+
+---
+
+## How benefit discovery works
+
+This is the most important architectural decision in the project. Read carefully.
+
+### Default mode — Claude-first
+
+When `ANTHROPIC_API_KEY` is set in the environment:
+
+1. `benefit_discovery.py` sends the veteran's full profile to Claude
+2. Claude reviews it using its own knowledge of VA benefits — the same way
+   a knowledgeable VSO would reason about the case
+3. Claude returns a JSON list of benefits worth exploring, with plain-language
+   reasons specific to that veteran
+4. Results are merged with catalog metadata (titles, descriptions, VA.gov links)
+5. Everything is framed as "worth exploring" — never "eligible" or a determination
+
+**Why Claude and not rules for this?**
+VA benefit eligibility is nuanced. Rules change. Edge cases exist. A veteran's
+situation rarely fits neatly into simple if/else logic. Claude can reason across
+combinations of factors — branch, discharge type, combat history, specific conditions,
+income, dependents — and frame results as possibilities, not determinations.
+
+### Fallback mode — hardcoded rules engine
+
+When no API key is configured, or when Claude returns malformed output:
+
+1. `_discover_with_rules()` in benefit_discovery.py is called
+2. This calls `check_eligibility()` in `services/eligibility.py`
+3. The `RULE_REGISTRY` dict maps benefit IDs to pure Python rule functions
+4. Same "worth exploring" framing is applied to the output
+
+**What the fallback is for:**
+- Running locally without an API key (setup, development, offline demo)
+- Graceful degradation if the API is unreachable during the presentation
+
+**What the fallback is NOT for:**
+- The default path. Do not add hardcoded eligibility rules as a substitute for Claude.
+- The fallback is a safety net, not a design goal.
+
+### Framing — non-negotiable rules
+
+These apply in BOTH modes and cannot be relaxed:
+
+- Always say "worth exploring" — never "eligible" or "you qualify"
+- Always show disclaimer banner before benefit cards
+- Always include "Talk to your VSO or the VA to confirm" on every benefit
+- Always include a VA.gov "Learn more" link on every benefit card
+- VetAssist is a preparation tool. The VA makes the determination.
 
 ---
 
 ## What is real vs. what is a placeholder
 
-| Component | Status |
-|---|---|
-| Veteran profile loading | REAL — reads from data/veterans.json |
-| Eligibility engine | REAL — Python rules in services/eligibility.py |
-| Form field prefill | REAL — maps profile fields to form fields |
-| Conversational assistant | REAL if ANTHROPIC_API_KEY is set; PLACEHOLDER otherwise |
-| Document upload / OCR | PLACEHOLDER — endpoint exists, returns 501 |
-| PDF generation / output | PLACEHOLDER — endpoint exists, returns 501 |
-| VA API integration | PLACEHOLDER — uses local JSON instead |
-| Authentication | NOT IMPLEMENTED — not needed for MVP |
-| Database | NOT IMPLEMENTED — not needed for MVP |
+| Component | Status | Notes |
+|---|---|---|
+| Veteran profile loading | REAL | Reads from data/veterans.json |
+| Benefit discovery | REAL | Claude-first; rules fallback |
+| Form field prefill | REAL | Maps profile fields to form fields |
+| Conversational assistant | REAL (with API key) | Placeholder string without key |
+| Document upload / OCR | STUB | Endpoint exists, returns descriptive message |
+| PDF generation / output | STUB | Endpoint exists, returns descriptive message |
+| VA API integration | STUB | Uses local JSON instead |
+| Authentication | NOT IMPLEMENTED | Not needed for MVP |
+| Database | NOT IMPLEMENTED | Not needed for MVP |
 
 ---
 
@@ -60,6 +185,7 @@ and easy to explain to non-technical judges.
 - **No complex frontend framework.** One HTML file with vanilla JS.
 - **No overengineering.** If a feature is not needed for the main happy-path demo, skip it.
 - **Minimal dependencies.** Only what is in requirements.txt.
+- **No hardcoded eligibility decisions in the default path.** Claude drives it.
 
 ---
 
@@ -73,7 +199,8 @@ uvicorn main:app --reload
 # open http://localhost:8000
 ```
 
-The app runs without an API key — Claude responses will be placeholder strings.
+The app runs without an API key — benefit discovery falls back to the rules engine,
+and Claude chat responses show a placeholder message.
 
 ---
 
@@ -81,27 +208,73 @@ The app runs without an API key — Claude responses will be placeholder strings
 
 1. User opens http://localhost:8000
 2. Selects a veteran from the dropdown (e.g. Maria Sanchez)
-3. Clicks "Load Profile" — sees profile summary
-4. Sees eligible benefits highlighted in green
-5. Sees suggested VA forms with prefilled fields and missing fields identified
-6. Types a question in the chat box — receives a response from Claude (or placeholder)
-7. Can navigate to VA.gov info links for any form
+3. Clicks "Load Profile" — sees profile summary and appreciative greeting
+4. Sees disclaimer banner, then benefit cards with reasons and VA.gov links
+5. Sees suggested VA forms — tabs for each, with prefilled fields and missing fields
+6. Veteran edits any incorrect prefilled field using the Edit button
+7. Clicks "This looks right — Continue" to open the chat
+8. Types a question or answer — receives a response from Claude (or placeholder)
 
 This is the one flow to keep working. Do not break it.
 
 ---
 
-## What to build next (post-MVP)
+## Agentic future state (post-MVP — do not build now)
 
-These are clearly labeled as TODO in the code. Add them in order of priority:
+The current architecture has Claude running from its innate knowledge.
+This is intentional for the MVP — simpler, faster, no external dependencies.
 
-1. **Document upload + OCR** — Accept DD214 or flat PDF, extract text, merge into prefill context
+**What an agentic version would add:**
+
+```
+AGENTIC FUTURE STATE
+====================
+(Post-MVP — not in scope for the hackathon)
+
+   Veteran profile loaded
+          │
+          ▼
+   Benefit discovery agent spawned
+          │
+          ├── Tool: search VA.gov policy documents
+          │         (live eligibility rules, PACT Act updates)
+          │
+          ├── Tool: query VA Benefits API
+          │         (live claim status, existing awards)
+          │
+          ├── Tool: query VA Forms API
+          │         (current form versions, required fields)
+          │
+          └── Synthesize findings into "worth exploring" list
+
+   WHY this is post-MVP:
+   - Adds external API dependencies (VA API access, credentials)
+   - Adds latency (multiple tool calls per session)
+   - Adds failure modes (VA API downtime)
+   - Claude's innate knowledge is already strong for benefit categories
+   - The hackathon judges care about the demo flow, not live API calls
+
+   WHEN to build it:
+   - After VA API credentials are secured
+   - When the PACT Act or other legislative changes need live tracking
+   - When the app moves from MVP to a real VA pilot
+```
+
+**The right trigger for adding agents:**
+When Claude says "I'm uncertain about this specific regulation" — that's when
+you add a targeted search tool for that uncertainty. Not before.
+
+---
+
+## What to build next (post-MVP priority order)
+
+1. **Document upload + OCR** — Accept DD214 or flat PDF, extract text, merge into prefill
    - Tools: pytesseract (local), AWS Textract (cloud/federal)
-   - Endpoint: POST /api/upload
+   - Endpoint: POST /api/upload (stub already exists, Nick's task for the hackathon)
 
-2. **Printable output** — Generate a PDF package with prefilled fields, cover note, instructions
+2. **Printable output** — Generate a PDF package with prefilled fields, cover note, next steps
    - Tools: reportlab or weasyprint
-   - Endpoint: POST /api/generate-output
+   - Endpoint: POST /api/generate-output (stub already exists)
 
 3. **Multi-turn conversation history** — Persist chat turns server-side per session
 
@@ -115,6 +288,8 @@ These are clearly labeled as TODO in the code. Add them in order of priority:
 
 7. **Database** — Replace JSON files with PostgreSQL or DynamoDB once data grows
 
+8. **Agentic benefit discovery** — See agentic future state section above
+
 ---
 
 ## Notes for federal deployment path
@@ -125,3 +300,5 @@ These are clearly labeled as TODO in the code. Add them in order of priority:
 - Store no real veteran PII in the MVP — profile data is synthetic
 - Future: integrate with VA Identity Service or login.gov for authentication
 - Consider FISMA Low/Moderate ATO path for a VA pilot
+- The model abstraction in `services/claude_chat.py` is intentionally thin —
+  swapping to Bedrock is one environment variable and one SDK initialization change

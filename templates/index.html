@@ -378,16 +378,30 @@
     </div>
   </div>
 
-  <!-- STEP 2: Likely Benefits -->
+  <!-- STEP 2: Benefits Worth Exploring -->
   <div class="card hidden" id="card-benefits">
-    <h2><span class="step-num">2</span> Benefits You May Qualify For</h2>
-    <p class="section-note">
-      These are based on the information in your profile. Green = likely eligible.
-      Select a form below to start filling it out.
-      Your VSO can confirm final eligibility.
-    </p>
+    <h2><span class="step-num">2</span> Benefits Worth Exploring</h2>
+
+    <!-- Disclaimer — always visible, prominent but not alarming -->
+    <div id="benefit-disclaimer" style="
+      background:#fff8e1;
+      border-left:4px solid #f9a825;
+      border-radius:4px;
+      padding:0.65rem 0.9rem;
+      font-size:0.82rem;
+      color:#5d4037;
+      margin-bottom:0.85rem;
+      display:none;
+    ">
+      <strong>Important:</strong> These are possibilities worth exploring based on your profile —
+      <strong>not a determination of eligibility.</strong>
+      Please talk to your VSO or the VA to confirm what applies to your situation
+      before taking action. VetAssist helps you prepare — your VSO and the VA make the final call.
+      <span id="mode-badge" style="margin-left:0.5rem; font-size:0.75rem; color:#888;"></span>
+    </div>
+
+    <p class="section-note" id="benefit-spinner">Reviewing your profile...</p>
     <div class="benefit-grid" id="benefit-grid"></div>
-    <p class="note" id="benefit-spinner">Checking eligibility...</p>
   </div>
 
   <!-- STEP 3: Choose a Form -->
@@ -526,9 +540,11 @@ async function loadVeteran() {
   // Show profile summary
   renderProfile(state.veteran);
 
-  // Show benefits
+  // Show benefits — pass disclaimer text and mode badge from the API response
+  // WHY three args: renderBenefits() needs the disclaimer string and mode label
+  // from the backend, not just the benefit list, so it can show the right framing
   document.getElementById("benefit-spinner").classList.add("hidden");
-  renderBenefits(state.eligibilityResults);
+  renderBenefits(eligData.benefits || [], eligData.disclaimer || "", eligData.mode || "rules_fallback");
 
   // Load forms (prefill data) in the background
   const formsRes = await fetch(`/api/forms/${state.veteranId}`);
@@ -576,16 +592,70 @@ function renderProfile(v) {
 }
 
 // ---------------------------------------------------------------------------
-// Render: benefit eligibility badges
+// Render: benefits worth exploring
+// Each card shows: title, plain-language reason, VA.gov link, important note
 // ---------------------------------------------------------------------------
-function renderBenefits(benefits) {
+function renderBenefits(benefits, disclaimer, mode) {
+  // Show disclaimer banner
+  const disc = document.getElementById("benefit-disclaimer");
+  if (disc) disc.style.display = "block";
+
+  // Show mode badge so a developer or judge can see which mode is running
+  const badge = document.getElementById("mode-badge");
+  if (badge) {
+    badge.textContent = mode === "claude"
+      ? "(AI-powered suggestions)"
+      : "(Offline mode — general guidelines)";
+  }
+
   const grid = document.getElementById("benefit-grid");
+
+  if (!benefits || benefits.length === 0) {
+    grid.innerHTML = `<p style="color:#888; font-size:0.88rem;">
+      No specific benefits were identified based on your profile.
+      This does not mean you have no benefits — please speak with a VSO.
+    </p>`;
+    return;
+  }
+
+  // Each benefit gets a card (not just a badge) so the veteran can read the reason
+  // and click through to VA.gov before deciding whether to fill out a form
   grid.innerHTML = benefits.map(b => `
-    <div
-      class="benefit-badge ${b.eligible ? 'eligible' : 'ineligible'}"
-      title="${escHtml(b.reason)}"
-    >
-      ${b.eligible ? "✓" : "–"} ${escHtml(b.title)}
+    <div style="
+      background:#f1f8f1;
+      border:1.5px solid #a5d6a7;
+      border-radius:8px;
+      padding:0.85rem 1rem;
+      width:100%;
+      margin-bottom:0.5rem;
+    ">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:1rem;">
+        <div>
+          <div style="font-weight:700; color:#1b5e20; font-size:0.93rem; margin-bottom:0.25rem;">
+            ✓ ${escHtml(b.title)}
+          </div>
+          <div style="font-size:0.83rem; color:#2d4a2d; margin-bottom:0.4rem;">
+            ${escHtml(b.reason)}
+          </div>
+          <div style="font-size:0.78rem; color:#795548; font-style:italic;">
+            ${escHtml(b.important_note)}
+          </div>
+        </div>
+        ${b.info_url ? `
+          <a href="${escHtml(b.info_url)}" target="_blank" rel="noopener"
+             style="
+               white-space:nowrap;
+               font-size:0.78rem;
+               color:#1a3a6b;
+               text-decoration:none;
+               border:1px solid #1a3a6b;
+               border-radius:4px;
+               padding:0.25rem 0.6rem;
+               flex-shrink:0;
+             ">
+            Learn more ↗
+          </a>` : ""}
+      </div>
     </div>
   `).join("");
 }

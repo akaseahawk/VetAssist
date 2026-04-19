@@ -24,10 +24,6 @@ benefits you likely qualify for, shows you which forms you need, and prefills
 everything it already knows. For the rest, it asks you in plain language — one
 question at a time — like a conversation, not a questionnaire.
 
-If you get a physical form in the mail (or at the VA office), you can photograph it
-and VetAssist will read it and extract what it needs. It handles the forms that
-aren't digital, which is a lot of them.
-
 The output is printable or email-ready. No re-entering the same name, SSN, and
 service dates on five different forms. Done once. Done right.
 
@@ -35,14 +31,30 @@ service dates on five different forms. Done once. Done right.
 
 ## The demo flow (what judges will see)
 
-```mermaid
-flowchart LR
-    A[Select veteran profile] --> B[See likely benefits in seconds]
-    B --> C[See matching VA forms with fields prefilled]
-    C --> D{Any missing fields?}
-    D -- Yes --> E[Chat assistant asks in plain language]
-    D -- No --> F[Printable output ready]
-    E --> F
+```
+VETASSIST DEMO FLOW
+===================
+
+Step 1          Step 2          Step 3          Step 4          Step 5
+────────        ────────        ────────        ────────        ────────
+Select          Benefits        Choose          Confirm         Fill in
+Veteran         Worth           a Form          Your Info       the Gaps
+Profile         Exploring
+   │               │               │               │               │
+   ▼               ▼               ▼               ▼               ▼
+Veteran         Claude          Form tabs       Field table     Chat box
+dropdown        reads           appear for      with prefill    opens
+appears         profile         each benefit    status          
+                                                                
+Load            Disclaimer      Select          Edit button     Claude asks
+Profile         banner          VA form         on every        missing
+button          shown           (e.g.           prefilled       fields one
+                first           21-526EZ)       field           at a time
+                                                                
+                Benefit         Fields          "This looks     Veteran
+                cards with      prefilled       right —         answers
+                reason +        from profile    Continue"       in plain
+                VA.gov link     shown           gates chat      language
 ```
 
 In the demo, we follow **Maria** — an Army veteran, two combat deployments,
@@ -59,11 +71,13 @@ The foundation is built and running locally. Here's where things stand:
 **Working today:**
 - FastAPI backend (Python, runs locally in one command)
 - 3 synthetic veteran profiles — different branches, disabilities, service histories
-- Rules-based eligibility engine for 5 VA benefit categories
-- 5 real VA forms with field-level metadata and [VA.gov links](https://www.va.gov/vaforms/)
+- Claude-first eligibility — Claude reads each profile using its own VA knowledge
+  and surfaces what's worth exploring. Hardcoded rules engine kicks in as a fallback
+  when no API key is set. **No hardcoded decisions in the default path.**
+- 5 real VA forms with field-level metadata and VA.gov links
 - Field prefill logic — knows which fields it can fill vs. what to ask for
-- Claude conversational assistant (live with API key, graceful placeholder without)
-- Single-page HTML frontend — veteran selector, benefit badges, form breakdown, chat
+- Conversational Claude assistant (live with API key, graceful placeholder without)
+- Single-page HTML frontend with disclaimer banner, benefit cards, form tables, chat
 
 **Already in the repo:**
 - Mockup images of non-digitized VA forms (DD-214, 21-4142, 21-0781) in `forms_to_verify/`
@@ -84,77 +98,190 @@ I'm not going to give you a generic role. Here's where I actually need your skil
 
 ### Amy — Frontend & Accessibility
 
-**Your background:** Design system engineering lead, front-end engineer,
-accessibility specialist.
+**Your background:** Design System Engineering Lead, Front-end Engineer,
+Accessibility Specialist at Wilcore.
 
 This project needs you more than anyone else on the frontend.
 
-What the UI does right now: it's functional. Veteran selector, benefit badges,
-form table with prefill status, chat box. It works. It's not something you'd
-be proud to show at a presentation.
+What the UI does right now: it's functional. Veteran selector, benefit cards with
+disclaimers, form table with prefill status, chat box. It works.
+It's not something you'd be proud to show at a presentation.
+
+**Here's the UX flow you're working with:**
+
+```
+VERIFICATION UX FLOW
+====================
+(Amy's domain — Step 3 and 4 in the frontend)
+
+   Veteran lands on Step 3 — Field Table
+          │
+          │  Each prefilled field shows:
+          │  ┌──────────────────────────────────────┐
+          │  │ Field Name │ Value from Profile │ ✓ Known │ [Edit] │
+          │  └──────────────────────────────────────┘
+          │
+          │  Missing fields show:
+          │  ┌──────────────────────────────────────┐
+          │  │ Field Name │     —     │ ⚠ Needs answer │      │
+          │  └──────────────────────────────────────┘
+          │
+          ▼
+   Veteran clicks [Edit] on a prefilled field
+          │
+          │  Field becomes inline input:
+          │  ┌──────────────────────────────────┐
+          │  │ [  Current value       ] [Save]  │
+          │  └──────────────────────────────────┘
+          │
+          ▼
+   Veteran clicks [Save]  ──────────────────────┐
+          │                                      │
+          │  Status changes to: ✓ Confirmed      │
+          │  Edit button returns                 │
+          │                                      │ ← This is where a
+          ▼                                      │   green flash would
+   Veteran clicks                                │   land perfectly, Amy.
+   "✓ This looks right — Continue"               │   Short, reassuring.
+          │                                      │
+          ▼                                      │
+   Step 4 — Chat opens ◀────────────────────────┘
+          │
+          │  VetAssist greets the veteran
+          │  by name + branch
+          │
+          │  Asks missing fields ONE at a time
+          │
+          ▼
+   Veteran types answer → assistant confirms → next question
+```
 
 **Where you'd make this project:**
 
-1. **Visual design pass on `templates/index.html`**
+1. **Visual polish on `templates/index.html`**
    The entire UI is one HTML file with vanilla CSS — no framework, no build step.
    Pull it up, make it look like something Wilcore would be proud to demo.
-   Key things that need love: the form field table (status colors for prefilled/missing),
-   the benefit badge layout, the overall page structure.
+   - Priority 1: Edit → Save confirmation flash (brief green "✓ Saved" animation)
+   - Priority 2: Loading states (benefit spinner, form tab loading)
+   - Priority 3: Field table hierarchy — prefilled vs. missing should read instantly
+   - Priority 4: Paper form warning badge prominence (non-digitized forms need a
+     clear visual signal — veterans need to know they may need to print and mail)
 
-2. **The "before / after" visual**
+2. **The "before/after" designed visual**
    The strongest moment in our presentation will be a side-by-side: what a veteran
    does today (Google, paper forms, confusion) vs. what VetAssist does.
    You know how to make that land visually in a way that a judge remembers.
+   This is the most important non-code deliverable. Figma, Canva, or designed HTML —
+   whatever you're fastest in.
 
-3. **Accessibility baseline**
+3. **Section 508 accessibility baseline**
    Since Wilcore has federal aspirations for this, judges will think about Section 508.
-   If you can add basic aria labels, focus states, and color contrast that holds up —
+   If you can add basic aria labels, focus states, and WCAG AA color contrast —
    that's a credible signal that we've thought about this seriously.
+   - aria-label on all interactive elements (buttons, inputs, select)
+   - Visible focus ring on keyboard navigation
+   - Color contrast: VA blue (#1a3a6b) on white passes; double-check green status labels
 
-4. **Demo polish**
-   The recorded video demo needs to look good. Help make sure the UI is presentable
-   at screen-capture resolution.
+4. **Demo video resolution check**
+   The recorded video demo needs to look good at 1080p. Make sure nothing looks
+   blurry or misaligned at screen-capture resolution before we record.
 
 **Time ask:** 4–8 hours across the week, heavily weighted toward Wed–Thu.
-**What you'd own:** `templates/index.html`, visual design decisions, demo video polish.
+**What you'd own:** `templates/index.html` visual polish, before/after designed visual,
+accessibility baseline, demo video sign-off.
 
 ---
 
 ### Nick — Engineering
 
-**Your background:** Engineering lead.
+**Your background:** Engineering Lead at Wilcore.
 
 The backend and core logic are in solid shape. What I need from an engineering lead
 is a second set of eyes on the architecture, help tightening the code, and a partner
-who can speak credibly to the CTO (Joe Niquette) when he asks the hard questions.
+who can speak credibly to Joe (CTO) when he asks the hard questions.
 
 **Where you'd add real value:**
 
-1. **Code review and hardening**
-   Look at `main.py`, `services/eligibility.py`, and `services/form_matcher.py`.
-   The eligibility logic is rules-based Python — it works, but there are edge cases
-   I'd want to talk through. Make sure the happy path is bulletproof for the demo.
+1. **DD-214 upload stub — highest demo value, 2–3 hours**
 
-2. **The upload concept**
-   `POST /api/upload` currently returns a 501 with a clear explanation.
-   For the demo, it would be more impressive if we could show the concept working —
-   even a fake version where uploading the mockup image from `forms_to_verify/`
-   triggers a hardcoded response showing "I extracted these fields from your document."
-   This is maybe 2–3 hours of work and transforms the demo significantly.
+   `POST /api/upload` currently returns a descriptive not-implemented message.
+   For the demo, it would be significantly more impressive to show the concept working —
+   even a fake version.
 
-3. **Architecture defense**
+   Here's exactly what to build:
+
+   ```python
+   # In main.py, replace the upload stub body with:
+   #
+   # Accept any file upload (don't actually process it in the stub).
+   # Return hardcoded extracted fields that match the DD-214 mockup in forms_to_verify/.
+   # The frontend would merge these into the prefill context.
+   #
+   # WHY hardcoded: this is a demo stub. We're showing the concept,
+   # not the OCR pipeline. Real OCR comes post-MVP (AWS Textract).
+
+   from fastapi import UploadFile, File
+
+   @app.post("/api/upload")
+   async def upload_document(file: UploadFile = File(...)):
+       """
+       DEMO STUB — simulates DD-214 OCR extraction.
+       Returns hardcoded fields from the Maria Sanchez mockup.
+       Post-MVP: replace with real OCR (pytesseract or AWS Textract).
+       """
+       return {
+           "status": "extracted",
+           "filename": file.filename,
+           "extracted_fields": {
+               "full_name":      "Maria Sanchez",
+               "branch":         "Army",
+               "service_start":  "2003-06-15",
+               "service_end":    "2012-09-30",
+               "discharge_type": "Honorable",
+               "ssn_last4":      "****",
+               "mos":            "68W — Healthcare Specialist",
+           },
+           "note": (
+               "These fields were extracted from your document. "
+               "Please verify each one before continuing."
+           ),
+       }
+   ```
+
+   Then in `templates/index.html`, add an upload button near the profile card
+   that calls `POST /api/upload` and merges the returned fields into `state.verifiedFields`.
+   The field table should update immediately to show what was extracted.
+
+2. **Stress test eligibility edge cases**
+   - Malformed date strings in veteran profiles (e.g. `"service_start": null`)
+   - Missing profile fields that rules reference (e.g. no `disability_conditions` key)
+   - Veteran profile with 0% disability rating but `service_connected_disability: true`
+   - Claude returning non-JSON or partial JSON — does the fallback trigger correctly?
+
+   Run these with `python -c "..."` test calls to `discover_benefits()` directly.
+   Don't add a test framework — just confirm the happy path and the fallback are bulletproof.
+
+3. **Architecture defense — read CLAUDE.md first**
    When judges or Joe ask "how would this work at scale?" or "what would the federal
-   deployment look like?" — you're the person who can answer that credibly.
-   The `CLAUDE.md` file has the roadmap (local JSON → real VA API → Bedrock endpoint
-   on GovCloud). Help me stress-test that story.
+   deployment look like?" — you're the person who can answer credibly.
+   The CLAUDE.md file has the full roadmap: local JSON → VA API → Bedrock on GovCloud.
+   Help me stress-test that story so we can answer follow-up questions confidently.
 
-4. **Making sure it runs**
-   Before we record the demo video, do one full clean install on your machine
-   (`pip install -r requirements.txt` + `uvicorn main:app --reload`) and confirm
-   the happy path works end-to-end. Find anything broken and we fix it together.
+4. **Clean install verification on your machine**
+   Before we record the demo video, do one full clean install on your laptop:
+   ```bash
+   git clone https://github.com/akaseahawk/VetAssist
+   cd VetAssist
+   pip install -r requirements.txt
+   uvicorn main:app --reload
+   # open http://localhost:8000, run the full happy path with Maria
+   ```
+   Find anything broken and we fix it together. This is the most important
+   quality gate before recording.
 
 **Time ask:** 4–8 hours across the week.
-**What you'd own:** Code review, upload concept stub, architecture Q&A prep.
+**What you'd own:** Upload stub implementation, edge case testing, architecture Q&A prep,
+clean install verification.
 
 ---
 
@@ -180,8 +307,8 @@ uvicorn main:app --reload
 # open http://localhost:8000
 ```
 
-No API key needed to run the app. The chat assistant shows a placeholder response
-without one — that's fine for initial review.
+No API key needed to run the app. The benefit discovery and chat assistant show
+graceful fallback responses without one — that's fine for initial review.
 
 ---
 

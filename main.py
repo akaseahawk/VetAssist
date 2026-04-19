@@ -171,29 +171,37 @@ async def get_veteran(veteran_id: str):
 @app.get("/api/eligibility/{veteran_id}")
 async def get_eligibility(veteran_id: str):
     """
-    Run the rules-based eligibility engine for a veteran.
+    Discover benefits worth exploring for a veteran.
 
-    Returns each benefit with:
-      - eligible: True/False (likely eligible based on profile)
-      - reason: plain-language explanation of why
+    HOW IT WORKS:
+      - If ANTHROPIC_API_KEY is set: Claude reads the veteran profile and uses
+        its own VA knowledge to surface relevant benefits — reasoning the way
+        a knowledgeable VSO would, not from hardcoded rules.
+      - If no API key: falls back to the rules engine in eligibility.py.
+      - Either way, results are framed as 'worth exploring' — never a determination.
 
     WHY this is a separate route from /api/forms:
-    The veteran sees benefits FIRST and decides which ones to pursue.
-    They then select a form. Keeping these as separate API calls matches
-    that two-step UX flow.
+      The veteran sees benefits FIRST and decides which ones to pursue.
+      They then select a form. Two-step flow matches the intended UX.
+
+    IMPORTANT: This system does not determine eligibility.
+      The VA and the veteran's VSO make that determination.
+      We help veterans understand what to ask about and prepare paperwork.
     """
     veteran = get_veteran_by_id(veteran_id)
     if not veteran:
         raise HTTPException(status_code=404, detail=f"Veteran '{veteran_id}' not found.")
 
-    from services.eligibility import check_eligibility
-    results = check_eligibility(veteran, get_benefits_catalog())
+    from services.benefit_discovery import discover_benefits
+    result = discover_benefits(veteran)
 
     return {
         "veteran_id":   veteran_id,
         "veteran_name": veteran["name"],
         "branch":       veteran.get("branch", ""),
-        "benefits":     results,
+        "benefits":     result["benefits"],
+        "mode":         result["mode"],
+        "disclaimer":   result["disclaimer"],
     }
 
 
@@ -222,12 +230,13 @@ async def get_forms(veteran_id: str):
     if not veteran:
         raise HTTPException(status_code=404, detail=f"Veteran '{veteran_id}' not found.")
 
-    from services.eligibility import check_eligibility
+    from services.benefit_discovery import discover_benefits
     from services.form_matcher import get_forms_for_benefits, prefill_fields, build_field_summary
 
-    # Step 1: Determine which benefits this veteran likely qualifies for
-    eligibility_results = check_eligibility(veteran, get_benefits_catalog())
-    eligible_ids = [b["benefit_id"] for b in eligibility_results if b["eligible"]]
+    # Step 1: Discover which benefits are worth exploring for this veteran
+    # Uses Claude if API key is set, rules engine as fallback
+    discovery = discover_benefits(veteran)
+    eligible_ids = [b["benefit_id"] for b in discovery["benefits"]]
 
     # Step 2: Find forms that correspond to those eligible benefits
     matched_forms = get_forms_for_benefits(eligible_ids, get_forms_catalog())
@@ -289,13 +298,14 @@ async def chat_endpoint(request: ChatRequest):
     if not veteran:
         raise HTTPException(status_code=404, detail=f"Veteran '{request.veteran_id}' not found.")
 
-    from services.eligibility import check_eligibility
+    from services.benefit_discovery import discover_benefits
     from services.form_matcher import get_forms_for_benefits, prefill_fields, build_field_summary
     from services.claude_chat import chat as claude_chat
 
-    # Run eligibility to give Claude the full benefit context
-    eligibility_results = check_eligibility(veteran, get_benefits_catalog())
-    eligible_ids = [b["benefit_id"] for b in eligibility_results if b["eligible"]]
+    # Discover benefits to give Claude full context for the conversation
+    discovery = discover_benefits(veteran)
+    eligibility_results = discovery["benefits"]  # Claude chat uses these for context
+    eligible_ids = [b["benefit_id"] for b in eligibility_results]
 
     # Find missing fields for the active form (or all eligible forms if none selected)
     forms_catalog = get_forms_catalog()
