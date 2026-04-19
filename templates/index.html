@@ -5,255 +5,479 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VetAssist — Benefits & Forms Assistant</title>
   <style>
-    /* ---------------------------------------------------------------
-       Base styles — intentionally minimal for demo readability
-    --------------------------------------------------------------- */
+    /* ------------------------------------------------------------------
+       Base reset and typography
+       WHY minimal styles: easy for Amy to restyle without untangling a
+       complex CSS framework. Every rule here has a clear purpose.
+    ------------------------------------------------------------------ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: "Segoe UI", Arial, sans-serif;
-      background: #f4f6f9;
-      color: #222;
+      background: #f0f2f5;
+      color: #1a1a2e;
       min-height: 100vh;
+      font-size: 15px;
     }
 
+    /* ------------------------------------------------------------------
+       Header
+    ------------------------------------------------------------------ */
     header {
-      background: #003366;
+      background: #1a3a6b;
       color: #fff;
       padding: 1rem 2rem;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 1rem;
+      border-bottom: 4px solid #c8102e; /* VA red accent */
     }
-    header h1 { font-size: 1.5rem; letter-spacing: 0.02em; }
-    header .tagline { font-size: 0.85rem; opacity: 0.8; }
+    header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: 0.02em; }
+    header .tagline { font-size: 0.8rem; opacity: 0.75; margin-top: 2px; }
+    header .wilcore-badge {
+      margin-left: auto;
+      font-size: 0.7rem;
+      opacity: 0.6;
+      text-align: right;
+      align-self: center;
+    }
 
-    .container { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+    /* ------------------------------------------------------------------
+       Flow steps indicator
+       Shows the veteran where they are in the process
+    ------------------------------------------------------------------ */
+    .step-bar {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: #fff;
+      border-bottom: 1px solid #ddd;
+      padding: 0.6rem 2rem;
+      font-size: 0.78rem;
+      overflow-x: auto;
+    }
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: #999;
+      white-space: nowrap;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+    }
+    .step.active { color: #1a3a6b; font-weight: 700; background: #e8edf7; }
+    .step.done   { color: #2e7d32; }
+    .step-arrow  { color: #ccc; padding: 0 0.25rem; }
 
-    /* ---------------------------------------------------------------
-       Section cards
-    --------------------------------------------------------------- */
+    /* ------------------------------------------------------------------
+       Main layout
+    ------------------------------------------------------------------ */
+    .container { max-width: 920px; margin: 1.5rem auto; padding: 0 1rem; }
+
+    /* ------------------------------------------------------------------
+       Cards — each step in the flow is a card
+    ------------------------------------------------------------------ */
     .card {
       background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.12);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+      padding: 1.4rem 1.6rem;
+      margin-bottom: 1.25rem;
     }
     .card h2 {
-      font-size: 1.1rem;
-      color: #003366;
-      margin-bottom: 1rem;
-      border-bottom: 2px solid #e8ecf1;
-      padding-bottom: 0.5rem;
-    }
-
-    /* ---------------------------------------------------------------
-       Veteran selector
-    --------------------------------------------------------------- */
-    select, button {
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      font-size: 0.95rem;
-      cursor: pointer;
-    }
-    button {
-      background: #003366;
-      color: #fff;
-      border: none;
-      margin-left: 0.5rem;
-      transition: background 0.2s;
-    }
-    button:hover { background: #004d99; }
-    button:disabled { background: #999; cursor: default; }
-
-    /* ---------------------------------------------------------------
-       Benefit badges
-    --------------------------------------------------------------- */
-    .benefit-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
-    .badge {
-      padding: 0.3rem 0.75rem;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-    .badge-eligible   { background: #d4edda; color: #155724; }
-    .badge-ineligible { background: #f8d7da; color: #721c24; opacity: 0.6; }
-
-    /* ---------------------------------------------------------------
-       Forms table
-    --------------------------------------------------------------- */
-    .form-block { margin-bottom: 1rem; }
-    .form-title {
+      font-size: 1rem;
+      color: #1a3a6b;
       font-weight: 700;
-      font-size: 0.95rem;
-      margin-bottom: 0.4rem;
+      margin-bottom: 1rem;
       display: flex;
       align-items: center;
       gap: 0.5rem;
     }
-    .form-title a { font-size: 0.8rem; color: #0066cc; text-decoration: none; }
-    .form-title a:hover { text-decoration: underline; }
-    .not-digitized { font-size: 0.75rem; color: #856404; background: #fff3cd; padding: 0.2rem 0.5rem; border-radius: 4px; }
-    .field-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    .field-table th { text-align: left; padding: 0.3rem 0.5rem; background: #f0f4f8; }
-    .field-table td { padding: 0.3rem 0.5rem; border-top: 1px solid #eee; }
-    .status-prefilled { color: #155724; font-weight: 600; }
-    .status-missing   { color: #721c24; }
-    .status-ask       { color: #856404; }
-    .progress-bar-wrap { height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; margin-top: 0.4rem; }
-    .progress-bar      { height: 100%; background: #28a745; border-radius: 4px; transition: width 0.3s; }
+    .card h2 .step-num {
+      background: #1a3a6b;
+      color: #fff;
+      border-radius: 50%;
+      width: 22px; height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
 
-    /* ---------------------------------------------------------------
-       Chat assistant area
-    --------------------------------------------------------------- */
+    /* ------------------------------------------------------------------
+       Veteran selector
+    ------------------------------------------------------------------ */
+    .select-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    select, input[type="text"] {
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid #bbb;
+      font-size: 0.9rem;
+      background: #fff;
+    }
+    select:focus, input[type="text"]:focus { outline: 2px solid #1a3a6b; border-color: transparent; }
+
+    /* ------------------------------------------------------------------
+       Buttons
+    ------------------------------------------------------------------ */
+    .btn {
+      padding: 0.45rem 1.1rem;
+      border-radius: 6px;
+      border: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    .btn-primary { background: #1a3a6b; color: #fff; }
+    .btn-primary:hover { background: #14305a; }
+    .btn-success { background: #2e7d32; color: #fff; }
+    .btn-success:hover { background: #245e27; }
+    .btn-outline {
+      background: transparent;
+      color: #1a3a6b;
+      border: 1.5px solid #1a3a6b;
+    }
+    .btn-outline:hover { background: #e8edf7; }
+    .btn-edit {
+      background: transparent;
+      color: #666;
+      border: 1px solid #ccc;
+      font-size: 0.78rem;
+      padding: 0.2rem 0.5rem;
+    }
+    .btn-edit:hover { background: #f5f5f5; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ------------------------------------------------------------------
+       Profile summary
+    ------------------------------------------------------------------ */
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    .profile-item { font-size: 0.85rem; }
+    .profile-item .label { font-weight: 700; color: #555; font-size: 0.75rem; text-transform: uppercase; }
+    .profile-item .value { color: #1a1a2e; }
+
+    /* ------------------------------------------------------------------
+       Benefit badges
+    ------------------------------------------------------------------ */
+    .benefit-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .benefit-badge {
+      padding: 0.4rem 0.9rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: default;
+      border: 2px solid transparent;
+      transition: border-color 0.15s;
+    }
+    .benefit-badge.eligible   { background: #e8f5e9; color: #1b5e20; border-color: #a5d6a7; }
+    .benefit-badge.ineligible { background: #f5f5f5; color: #999; }
+    .benefit-badge.eligible:hover { border-color: #2e7d32; }
+
+    /* ------------------------------------------------------------------
+       Form selector tabs
+    ------------------------------------------------------------------ */
+    .form-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+    .form-tab {
+      padding: 0.4rem 0.9rem;
+      border-radius: 6px;
+      border: 1.5px solid #bbb;
+      font-size: 0.83rem;
+      cursor: pointer;
+      background: #fff;
+      color: #555;
+      transition: all 0.15s;
+    }
+    .form-tab:hover  { border-color: #1a3a6b; color: #1a3a6b; }
+    .form-tab.active { background: #1a3a6b; color: #fff; border-color: #1a3a6b; }
+    .form-tab .not-digital { font-size: 0.7rem; color: #c8102e; font-weight: 700; }
+    .form-tab.active .not-digital { color: #ffb3b3; }
+
+    /* ------------------------------------------------------------------
+       Field table
+    ------------------------------------------------------------------ */
+    .field-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .field-table th {
+      text-align: left;
+      padding: 0.4rem 0.6rem;
+      background: #f5f7fb;
+      color: #555;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 2px solid #e0e4ef;
+    }
+    .field-table td {
+      padding: 0.45rem 0.6rem;
+      border-bottom: 1px solid #f0f2f5;
+      vertical-align: middle;
+    }
+    .field-table tr:last-child td { border-bottom: none; }
+
+    /* Status indicators */
+    .status-known    { color: #2e7d32; font-weight: 700; font-size: 0.8rem; }
+    .status-ask      { color: #e65100; font-weight: 700; font-size: 0.8rem; }
+    .status-editing  { color: #1a3a6b; font-weight: 700; font-size: 0.8rem; }
+
+    /* Inline edit input */
+    .field-edit-input {
+      padding: 0.25rem 0.5rem;
+      border: 1.5px solid #1a3a6b;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      width: 100%;
+      max-width: 280px;
+    }
+
+    /* Progress bar */
+    .progress-wrap { height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; margin: 0.5rem 0; }
+    .progress-bar  { height: 100%; background: #2e7d32; border-radius: 4px; transition: width 0.3s; }
+    .progress-label { font-size: 0.78rem; color: #666; margin-bottom: 0.3rem; }
+
+    /* ------------------------------------------------------------------
+       Continue / confirm button row
+    ------------------------------------------------------------------ */
+    .confirm-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #f0f2f5;
+    }
+    .confirm-note { font-size: 0.78rem; color: #888; }
+
+    /* ------------------------------------------------------------------
+       Chat area
+    ------------------------------------------------------------------ */
     #chat-messages {
-      min-height: 120px;
-      max-height: 280px;
+      min-height: 140px;
+      max-height: 320px;
       overflow-y: auto;
       background: #f9fafb;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      padding: 0.75rem;
+      border: 1px solid #e0e4ef;
+      border-radius: 8px;
+      padding: 0.85rem;
       margin-bottom: 0.75rem;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
+      scroll-behavior: smooth;
     }
-    .msg { margin-bottom: 0.6rem; }
-    .msg-user { text-align: right; }
-    .msg-user .bubble   { background: #003366; color: #fff; display: inline-block; padding: 0.4rem 0.8rem; border-radius: 12px 12px 0 12px; }
-    .msg-assist .bubble { background: #e8ecf1; color: #222; display: inline-block; padding: 0.4rem 0.8rem; border-radius: 12px 12px 12px 0; }
+    .msg { margin-bottom: 0.7rem; display: flex; }
+    .msg-user   { justify-content: flex-end; }
+    .msg-assist { justify-content: flex-start; }
+    .bubble {
+      max-width: 80%;
+      padding: 0.5rem 0.9rem;
+      border-radius: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+    .msg-user   .bubble { background: #1a3a6b; color: #fff; border-radius: 12px 12px 0 12px; }
+    .msg-assist .bubble { background: #e8edf7; color: #1a1a2e; border-radius: 12px 12px 12px 0; }
+
     .chat-input-row { display: flex; gap: 0.5rem; }
     .chat-input-row input {
       flex: 1;
       padding: 0.5rem 0.75rem;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      font-size: 0.9rem;
+      border-radius: 6px;
+      border: 1.5px solid #bbb;
+      font-size: 0.88rem;
     }
+    .chat-input-row input:focus { outline: 2px solid #1a3a6b; border-color: transparent; }
 
-    /* ---------------------------------------------------------------
-       Misc
-    --------------------------------------------------------------- */
-    .placeholder-note {
-      font-size: 0.8rem;
-      color: #666;
-      font-style: italic;
-      margin-top: 0.4rem;
+    /* ------------------------------------------------------------------
+       Misc utility
+    ------------------------------------------------------------------ */
+    .note         { font-size: 0.78rem; color: #888; font-style: italic; margin-top: 0.4rem; }
+    .section-note { font-size: 0.83rem; color: #555; margin-bottom: 0.75rem; }
+    .not-digital-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      background: #fff3e0;
+      color: #bf360c;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 700;
+      margin-left: 0.5rem;
     }
-    .section-label { font-weight: 700; margin-bottom: 0.4rem; }
-    .profile-row { font-size: 0.88rem; margin-bottom: 0.25rem; }
-    .profile-row span { font-weight: 600; }
-    .spinner { display: none; font-size: 0.85rem; color: #666; margin-top: 0.5rem; }
-    .spinner.active { display: block; }
-    .error-msg { color: #721c24; font-size: 0.85rem; }
+    .hidden { display: none; }
+    .spinner { color: #888; font-size: 0.82rem; margin-top: 0.4rem; }
+    .error-msg { color: #c62828; font-size: 0.83rem; }
+    .va-link { font-size: 0.78rem; color: #1a3a6b; text-decoration: none; }
+    .va-link:hover { text-decoration: underline; }
+    hr.section-divider { border: none; border-top: 1px solid #e8ecf1; margin: 0.75rem 0; }
   </style>
 </head>
 <body>
 
+<!-- =========================================================
+     HEADER
+========================================================= -->
 <header>
   <div>
     <h1>VetAssist</h1>
-    <div class="tagline">VA Benefits &amp; Forms Assistant — Wilcore Innovation Challenge MVP</div>
+    <div class="tagline">VA Benefits &amp; Forms Assistant — Wilcore Innovation Challenge</div>
   </div>
+  <div class="wilcore-badge">Powered by Wilcore<br>Service-Disabled Veteran-Owned</div>
 </header>
 
+<!-- =========================================================
+     FLOW STEP INDICATOR
+     Shows the veteran where they are. JS updates .active class.
+========================================================= -->
+<div class="step-bar">
+  <div class="step active" id="step-1">① Select Profile</div>
+  <div class="step-arrow">›</div>
+  <div class="step" id="step-2">② Review Benefits</div>
+  <div class="step-arrow">›</div>
+  <div class="step" id="step-3">③ Choose a Form</div>
+  <div class="step-arrow">›</div>
+  <div class="step" id="step-4">④ Confirm Your Info</div>
+  <div class="step-arrow">›</div>
+  <div class="step" id="step-5">⑤ Fill in the Gaps</div>
+</div>
+
+<!-- =========================================================
+     MAIN CONTENT
+========================================================= -->
 <div class="container">
 
-  <!-- ----------------------------------------------------------------
-       Veteran Selector
-  ---------------------------------------------------------------- -->
-  <div class="card">
-    <h2>1. Select a Veteran Profile</h2>
-    <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.5rem;">
-      <label for="veteran-select" style="font-size:0.9rem;">Veteran:</label>
+  <!-- STEP 1: Select Veteran Profile -->
+  <div class="card" id="card-select">
+    <h2><span class="step-num">1</span> Select Your Profile</h2>
+    <div class="select-row">
+      <label for="veteran-select" style="font-size:0.88rem; font-weight:600;">Veteran:</label>
       <select id="veteran-select">
         <option value="">— choose a profile —</option>
       </select>
-      <button id="load-btn" onclick="loadVeteran()">Load Profile</button>
+      <button class="btn btn-primary" onclick="loadVeteran()">Load Profile</button>
     </div>
-    <p class="placeholder-note">
-      These are synthetic profiles for demo purposes. No real veteran PII is used.
-    </p>
-    <div id="profile-display" style="margin-top:1rem; display:none;">
-      <div class="section-label">Profile Summary</div>
-      <div id="profile-details"></div>
+    <p class="note">Demo uses synthetic profiles. No real veteran data is stored or used.</p>
+
+    <!-- Profile summary, shown after loading -->
+    <div id="profile-summary" class="hidden" style="margin-top:1rem;">
+      <hr class="section-divider">
+      <div id="profile-greeting" style="font-size:0.9rem; color:#1a3a6b; font-weight:600; margin-bottom:0.6rem;"></div>
+      <div class="profile-grid" id="profile-grid"></div>
     </div>
   </div>
 
-  <!-- ----------------------------------------------------------------
-       Likely Benefits
-  ---------------------------------------------------------------- -->
-  <div class="card" id="benefits-card" style="display:none;">
-    <h2>2. Likely Benefits</h2>
-    <div id="benefits-output"></div>
-    <div class="spinner" id="benefits-spinner">Checking eligibility...</div>
+  <!-- STEP 2: Likely Benefits -->
+  <div class="card hidden" id="card-benefits">
+    <h2><span class="step-num">2</span> Benefits You May Qualify For</h2>
+    <p class="section-note">
+      These are based on the information in your profile. Green = likely eligible.
+      Select a form below to start filling it out.
+      Your VSO can confirm final eligibility.
+    </p>
+    <div class="benefit-grid" id="benefit-grid"></div>
+    <p class="note" id="benefit-spinner">Checking eligibility...</p>
   </div>
 
-  <!-- ----------------------------------------------------------------
-       Suggested Forms
-  ---------------------------------------------------------------- -->
-  <div class="card" id="forms-card" style="display:none;">
-    <h2>3. Suggested Forms &amp; Prefilled Fields</h2>
-    <p style="font-size:0.85rem; color:#555; margin-bottom:1rem;">
-      Fields shown as <span class="status-prefilled">Known</span> are prefilled from your profile.
-      Fields shown as <span class="status-ask">Needs answer</span> will be asked in the chat below.
+  <!-- STEP 3: Choose a Form -->
+  <div class="card hidden" id="card-forms">
+    <h2><span class="step-num">3</span> Choose a Form to Work On</h2>
+    <p class="section-note">
+      Select a form to see which fields we already know and which ones we still need from you.
     </p>
-    <div id="forms-output"></div>
-    <div class="spinner" id="forms-spinner">Loading forms...</div>
-  </div>
+    <div class="form-tabs" id="form-tabs"></div>
 
-  <!-- ----------------------------------------------------------------
-       Conversational Assistant
-  ---------------------------------------------------------------- -->
-  <div class="card" id="chat-card" style="display:none;">
-    <h2>4. Ask VetAssist</h2>
-    <p style="font-size:0.85rem; color:#555; margin-bottom:0.75rem;">
-      Ask questions about your benefits or forms. VetAssist will also ask for any missing information
-      it needs to complete your forms.
-    </p>
-    <div id="chat-messages">
-      <div class="msg msg-assist">
-        <div class="bubble">
-          Hi! I'm VetAssist. I've reviewed your profile and found some benefits you may qualify for.
-          Feel free to ask me anything about your forms or benefits, and I'll help fill in the gaps.
-        </div>
+    <!-- Selected form detail -->
+    <div id="form-detail" class="hidden">
+      <div id="form-header" style="margin-bottom:0.6rem;"></div>
+      <div class="progress-label" id="progress-label"></div>
+      <div class="progress-wrap"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
+
+      <table class="field-table" style="margin-top:0.75rem;">
+        <thead>
+          <tr>
+            <th style="width:35%">Field</th>
+            <th style="width:40%">Value</th>
+            <th style="width:15%">Status</th>
+            <th style="width:10%"></th>
+          </tr>
+        </thead>
+        <tbody id="field-rows"></tbody>
+      </table>
+
+      <!-- Confirm row — veteran reviews prefilled fields and clicks Continue -->
+      <div class="confirm-row">
+        <button class="btn btn-success" onclick="confirmFields()">
+          ✓ This looks right — Continue to Fill in the Gaps
+        </button>
+        <span class="confirm-note">
+          Edit any incorrect fields above before continuing.
+          We never assume your information is correct.
+        </span>
       </div>
     </div>
-    <div class="chat-input-row">
-      <input type="text" id="chat-input" placeholder="Type a question or answer..." onkeydown="if(event.key==='Enter')sendChat()"/>
-      <button onclick="sendChat()">Send</button>
-    </div>
-    <p class="placeholder-note" id="chat-mode-note"></p>
   </div>
 
-  <!-- ----------------------------------------------------------------
-       Output placeholder
-  ---------------------------------------------------------------- -->
-  <div class="card" id="output-card" style="display:none;">
-    <h2>5. Generate Output Package</h2>
-    <p style="font-size:0.85rem; color:#555;">
-      In the full version, this button generates a printable PDF or email-ready package with
-      all prefilled fields, a cover note, and submission instructions.
+  <!-- STEP 4 & 5: Verify and fill in the gaps via chat -->
+  <div class="card hidden" id="card-chat">
+    <h2><span class="step-num">4–5</span> Fill in the Gaps</h2>
+    <p class="section-note" id="chat-intro">
+      I'll ask you for the remaining information one question at a time.
+      Feel free to also ask me anything about your benefits or forms.
     </p>
-    <button disabled title="Coming in a future sprint">Generate Printable Package (Coming Soon)</button>
-    <p class="placeholder-note">
-      TODO: POST /api/generate-output → produce printable/email-ready output using reportlab or weasyprint.
-    </p>
+
+    <div id="chat-messages"></div>
+
+    <div class="chat-input-row">
+      <input
+        type="text"
+        id="chat-input"
+        placeholder="Type your answer or question..."
+        onkeydown="if(event.key==='Enter') sendChat()"
+      />
+      <button class="btn btn-primary" onclick="sendChat()">Send</button>
+    </div>
+    <p class="note" id="chat-mode-note"></p>
   </div>
 
 </div><!-- /.container -->
 
+<!-- =========================================================
+     JAVASCRIPT
+     WHY vanilla JS: no framework needed for this UI.
+     Everything is readable by a junior dev without knowing React/Vue.
+     State is kept in simple variables — no store, no context.
+========================================================= -->
 <script>
-// -----------------------------------------------------------------------
-//  State
-// -----------------------------------------------------------------------
-let currentVeteranId = null;
-let conversationHistory = [];
+// ---------------------------------------------------------------------------
+// App state
+// All state lives here — no hidden globals scattered through the code.
+// ---------------------------------------------------------------------------
+const state = {
+  veteranId:           null,   // currently selected veteran ID
+  veteran:             null,   // full veteran profile dict
+  eligibilityResults:  [],     // output of /api/eligibility
+  forms:               [],     // output of /api/forms
+  activeFormId:        null,   // the form tab the veteran has selected
+  activeForm:          null,   // the full form dict for the active form
+  verifiedFields:      {},     // fields the veteran has confirmed or edited
+  conversationHistory: [],     // chat turns [{role, content}]
+};
 
-// -----------------------------------------------------------------------
-//  Init: load veteran list
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Step 1: Load veteran list on page load
+// ---------------------------------------------------------------------------
 async function init() {
   try {
     const res = await fetch("/api/veterans");
@@ -262,226 +486,379 @@ async function init() {
     veterans.forEach(v => {
       const opt = document.createElement("option");
       opt.value = v.id;
-      opt.textContent = `${v.name} (${v.branch})`;
+      opt.textContent = `${v.name}  (${v.branch})`;
       sel.appendChild(opt);
     });
   } catch (e) {
-    console.error("Failed to load veterans:", e);
+    console.error("Failed to load veterans list:", e);
   }
 }
 
-// -----------------------------------------------------------------------
-//  Load veteran profile + eligibility + forms
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Step 1: Load a veteran profile + run eligibility + load forms
+// ---------------------------------------------------------------------------
 async function loadVeteran() {
   const sel = document.getElementById("veteran-select");
-  const veteranId = sel.value;
-  if (!veteranId) return;
+  if (!sel.value) return;
 
-  currentVeteranId = veteranId;
-  conversationHistory = [];
+  // Reset state for a fresh load
+  state.veteranId           = sel.value;
+  state.conversationHistory = [];
+  state.verifiedFields      = {};
+  state.activeFormId        = null;
+  state.activeForm          = null;
 
-  // Reset chat
-  document.getElementById("chat-messages").innerHTML = `
-    <div class="msg msg-assist">
-      <div class="bubble">Hi! I'm VetAssist. Loading your profile...</div>
-    </div>`;
+  setStep(1);
+  show("card-benefits");
+  hide("card-forms");
+  hide("card-chat");
 
-  // Show all cards
-  ["benefits-card","forms-card","chat-card","output-card"].forEach(id => {
-    document.getElementById(id).style.display = "block";
-  });
-
-  // Load profile
-  await loadProfile(veteranId);
-
-  // Load eligibility + forms in parallel
-  await Promise.all([
-    loadEligibility(veteranId),
-    loadForms(veteranId),
+  // Load profile and eligibility in parallel — both are needed before showing Step 2
+  const [profileRes, eligRes] = await Promise.all([
+    fetch(`/api/veterans/${state.veteranId}`),
+    fetch(`/api/eligibility/${state.veteranId}`),
   ]);
 
-  // Reset chat greeting
-  document.getElementById("chat-messages").innerHTML = `
-    <div class="msg msg-assist">
-      <div class="bubble">
-        Hi! I've reviewed your profile. You may qualify for the benefits listed above.
-        I can help you understand each form, answer questions, or ask for any missing information.
-        What would you like to know?
-      </div>
-    </div>`;
+  state.veteran            = await profileRes.json();
+  const eligData           = await eligRes.json();
+  state.eligibilityResults = eligData.benefits || [];
+
+  // Show profile summary
+  renderProfile(state.veteran);
+
+  // Show benefits
+  document.getElementById("benefit-spinner").classList.add("hidden");
+  renderBenefits(state.eligibilityResults);
+
+  // Load forms (prefill data) in the background
+  const formsRes = await fetch(`/api/forms/${state.veteranId}`);
+  const formsData = await formsRes.json();
+  state.forms = formsData.forms || [];
+
+  renderFormTabs(state.forms);
+  show("card-forms");
+  setStep(2);
 }
 
-async function loadProfile(veteranId) {
-  const res = await fetch(`/api/veterans/${veteranId}`);
-  const v = await res.json();
+// ---------------------------------------------------------------------------
+// Render: profile summary card
+// ---------------------------------------------------------------------------
+function renderProfile(v) {
+  // Branch-aware greeting — simple client-side version
+  // (Claude does the full personalization in chat)
+  const greetings = {
+    "Army":        "Thank you for your service and sacrifice in the Army — and to your family for theirs.",
+    "Marine Corps":"Semper Fidelis — thank you for your service and dedication in the Marine Corps.",
+    "Air Force":   "Thank you for your service in the Air Force and for what you and your family gave.",
+    "Navy":        "Thank you for your service in the United States Navy.",
+    "Coast Guard": "Semper Paratus — thank you for your service in the Coast Guard.",
+  };
+  const greeting = greetings[v.branch] || "Thank you for your service and sacrifice.";
+  document.getElementById("profile-greeting").textContent = greeting;
 
-  document.getElementById("profile-display").style.display = "block";
-  document.getElementById("profile-details").innerHTML = `
-    <div class="profile-row"><span>Name:</span> ${v.name}</div>
-    <div class="profile-row"><span>Branch:</span> ${v.branch}</div>
-    <div class="profile-row"><span>Service:</span> ${v.service_start} to ${v.service_end}</div>
-    <div class="profile-row"><span>Discharge:</span> ${v.discharge_type}</div>
-    <div class="profile-row"><span>Combat Deployment:</span> ${v.combat_deployment ? "Yes (" + v.deployment_locations.join(", ") + ")" : "No"}</div>
-    <div class="profile-row"><span>Service-Connected Disability:</span> ${v.service_connected_disability ? "Yes — " + v.disability_rating_pct + "% (" + v.disability_conditions.join(", ") + ")" : "No"}</div>
-    <div class="profile-row"><span>Enrolled VA Health Care:</span> ${v.enrolled_va_healthcare ? "Yes" : "No"}</div>
+  const grid = document.getElementById("profile-grid");
+  grid.innerHTML = [
+    ["Name",       v.name],
+    ["Branch",     v.branch],
+    ["Service",    `${v.service_start} to ${v.service_end}`],
+    ["Discharge",  v.discharge_type],
+    ["Combat",     v.combat_deployment ? "Yes — " + (v.deployment_locations || []).join(", ") : "No"],
+    ["Disability", v.disability_rating_pct > 0 ? `${v.disability_rating_pct}% — ${(v.disability_conditions||[]).join(", ")}` : "None on file"],
+    ["VA Health Care", v.enrolled_va_healthcare ? "Enrolled" : "Not enrolled"],
+  ].map(([label, value]) => `
+    <div class="profile-item">
+      <div class="label">${label}</div>
+      <div class="value">${escHtml(String(value))}</div>
+    </div>
+  `).join("");
+
+  show("profile-summary");
+}
+
+// ---------------------------------------------------------------------------
+// Render: benefit eligibility badges
+// ---------------------------------------------------------------------------
+function renderBenefits(benefits) {
+  const grid = document.getElementById("benefit-grid");
+  grid.innerHTML = benefits.map(b => `
+    <div
+      class="benefit-badge ${b.eligible ? 'eligible' : 'ineligible'}"
+      title="${escHtml(b.reason)}"
+    >
+      ${b.eligible ? "✓" : "–"} ${escHtml(b.title)}
+    </div>
+  `).join("");
+}
+
+// ---------------------------------------------------------------------------
+// Render: form selector tabs
+// ---------------------------------------------------------------------------
+function renderFormTabs(forms) {
+  const tabs = document.getElementById("form-tabs");
+  tabs.innerHTML = forms.map(f => `
+    <div
+      class="form-tab"
+      id="tab-${f.form_id}"
+      onclick="selectForm('${f.form_id}')"
+    >
+      VA ${escHtml(f.form_id)}
+      ${!f.digitized ? '<span class="not-digital">PAPER FORM</span>' : ''}
+    </div>
+  `).join("");
+}
+
+// ---------------------------------------------------------------------------
+// Step 3: Veteran selects a form to work on
+// ---------------------------------------------------------------------------
+function selectForm(formId) {
+  state.activeFormId = formId;
+  state.activeForm   = state.forms.find(f => f.form_id === formId);
+
+  // Update tab styling
+  document.querySelectorAll(".form-tab").forEach(t => t.classList.remove("active"));
+  const tab = document.getElementById(`tab-${formId}`);
+  if (tab) tab.classList.add("active");
+
+  if (!state.activeForm) return;
+  renderFormDetail(state.activeForm);
+  show("form-detail");
+  setStep(3);
+}
+
+// ---------------------------------------------------------------------------
+// Render: field table for the selected form
+// Shows prefilled fields with Edit buttons, and missing fields flagged in orange.
+// ---------------------------------------------------------------------------
+function renderFormDetail(form) {
+  const f = form;
+
+  // Header
+  document.getElementById("form-header").innerHTML = `
+    <strong>VA Form ${escHtml(f.form_id)}</strong> — ${escHtml(f.form_title)}
+    ${!f.digitized ? '<span class="not-digital-badge">Paper / Non-Digitized Form</span>' : ''}
+    &nbsp;<a class="va-link" href="${escHtml(f.info_url)}" target="_blank" rel="noopener">[VA.gov info ↗]</a>
   `;
-}
 
-async function loadEligibility(veteranId) {
-  const spinner = document.getElementById("benefits-spinner");
-  spinner.classList.add("active");
-  document.getElementById("benefits-output").innerHTML = "";
+  // Progress bar
+  const pct = f.summary.total > 0
+    ? Math.round((f.summary.prefilled_count / f.summary.total) * 100)
+    : 0;
+  document.getElementById("progress-label").textContent =
+    `${f.summary.prefilled_count} of ${f.summary.total} fields known from your profile — ${f.summary.missing_count} still needed`;
+  document.getElementById("progress-bar").style.width = pct + "%";
 
-  const res = await fetch(`/api/eligibility/${veteranId}`);
-  const data = await res.json();
+  // Field rows
+  const tbody = document.getElementById("field-rows");
+  tbody.innerHTML = f.fields.map(field => {
+    const isVerified = state.verifiedFields[field.key] !== undefined;
+    const displayVal = isVerified
+      ? state.verifiedFields[field.key]
+      : (field.value || "");
+    const status     = isVerified ? "known" : field.status;
 
-  spinner.classList.remove("active");
-
-  const el = document.getElementById("benefits-output");
-  if (!data.benefits || data.benefits.length === 0) {
-    el.innerHTML = "<p>No benefits found.</p>";
-    return;
-  }
-
-  const eligible = data.benefits.filter(b => b.eligible);
-  const ineligible = data.benefits.filter(b => !b.eligible);
-
-  let html = "";
-  if (eligible.length > 0) {
-    html += `<div class="section-label" style="margin-bottom:0.4rem;">Likely eligible (${eligible.length}):</div>
-             <div class="benefit-list">`;
-    eligible.forEach(b => {
-      html += `<span class="badge badge-eligible" title="${b.reason}">${b.title}</span>`;
-    });
-    html += `</div>`;
-  }
-  if (ineligible.length > 0) {
-    html += `<div class="section-label" style="margin:0.75rem 0 0.4rem;">Not likely eligible:</div>
-             <div class="benefit-list">`;
-    ineligible.forEach(b => {
-      html += `<span class="badge badge-ineligible" title="${b.reason}">${b.title}</span>`;
-    });
-    html += `</div>`;
-  }
-
-  el.innerHTML = html;
-}
-
-async function loadForms(veteranId) {
-  const spinner = document.getElementById("forms-spinner");
-  spinner.classList.add("active");
-  document.getElementById("forms-output").innerHTML = "";
-
-  const res = await fetch(`/api/forms/${veteranId}`);
-  const data = await res.json();
-
-  spinner.classList.remove("active");
-
-  const el = document.getElementById("forms-output");
-  if (!data.forms || data.forms.length === 0) {
-    el.innerHTML = "<p>No forms matched for this veteran's eligible benefits.</p>";
-    return;
-  }
-
-  let html = "";
-  data.forms.forEach(form => {
-    const pct = form.summary.total > 0
-      ? Math.round((form.summary.prefilled_count / form.summary.total) * 100)
-      : 0;
-
-    html += `<div class="form-block">
-      <div class="form-title">
-        VA Form ${form.form_id} — ${form.form_title}
-        <a href="${form.info_url}" target="_blank" rel="noopener">[VA.gov info]</a>
-        ${!form.digitized ? '<span class="not-digitized">⚠ Not fully digitized — upload may be needed</span>' : ""}
-      </div>
-      <div style="font-size:0.8rem; color:#555; margin-bottom:0.4rem;">
-        ${form.summary.prefilled_count} of ${form.summary.total} fields known
-        &nbsp;|&nbsp; ${form.summary.missing_count} still needed
-      </div>
-      <div class="progress-bar-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
-      <table class="field-table" style="margin-top:0.6rem;">
-        <thead><tr><th>Field</th><th>Value</th><th>Status</th></tr></thead>
-        <tbody>`;
-
-    form.fields.forEach(field => {
-      const statusClass = field.status === "prefilled" ? "status-prefilled"
-                        : field.status === "ask"       ? "status-ask"
-                        : "status-missing";
-      const statusLabel = field.status === "prefilled" ? "Known"
-                        : field.status === "ask"       ? "Needs answer"
-                        : "Missing";
-      html += `<tr>
-        <td>${field.label}</td>
-        <td>${field.value !== null ? field.value : "—"}</td>
-        <td class="${statusClass}">${statusLabel}</td>
+    if (status === "prefilled" || isVerified) {
+      // Known field — show value with an Edit button so veteran can correct it
+      return `<tr id="row-${field.key}">
+        <td>${escHtml(field.label)}</td>
+        <td id="val-${field.key}">${escHtml(displayVal)}</td>
+        <td><span class="status-known">✓ Known</span></td>
+        <td>
+          <button class="btn btn-edit" onclick="editField('${field.key}', '${escHtml(displayVal)}')">
+            Edit
+          </button>
+        </td>
       </tr>`;
-    });
-
-    html += `</tbody></table></div><hr style="margin:1rem 0; border:none; border-top:1px solid #eee;">`;
-  });
-
-  el.innerHTML = html;
+    } else {
+      // Missing field — show placeholder, Claude will ask in chat
+      return `<tr id="row-${field.key}">
+        <td>${escHtml(field.label)}</td>
+        <td id="val-${field.key}" style="color:#bbb;">—</td>
+        <td><span class="status-ask">Needs answer</span></td>
+        <td></td>
+      </tr>`;
+    }
+  }).join("");
 }
 
-// -----------------------------------------------------------------------
-//  Chat
-// -----------------------------------------------------------------------
-async function sendChat() {
-  if (!currentVeteranId) return;
+// ---------------------------------------------------------------------------
+// Edit a prefilled field inline
+// Veteran clicks Edit → field becomes an input → they save it
+// WHY: we never assume a prefilled value is correct. The veteran must confirm.
+// ---------------------------------------------------------------------------
+function editField(key, currentVal) {
+  const valCell = document.getElementById(`val-${key}`);
+  if (!valCell) return;
 
+  // Replace the value display with an input + Save button
+  valCell.innerHTML = `
+    <input
+      class="field-edit-input"
+      type="text"
+      id="edit-input-${key}"
+      value="${escHtml(currentVal)}"
+      onkeydown="if(event.key==='Enter') saveField('${key}')"
+    />
+    <button class="btn btn-outline" style="margin-left:0.4rem; font-size:0.78rem; padding:0.2rem 0.6rem;"
+      onclick="saveField('${key}')">Save</button>
+  `;
+  document.getElementById(`edit-input-${key}`)?.focus();
+}
+
+function saveField(key) {
+  const input = document.getElementById(`edit-input-${key}`);
+  if (!input) return;
+  const newVal = input.value.trim();
+
+  // Store the veteran-confirmed value
+  state.verifiedFields[key] = newVal;
+
+  // Re-render the row to show the saved value with Known status
+  const valCell = document.getElementById(`val-${key}`);
+  if (valCell) valCell.innerHTML = escHtml(newVal);
+
+  // Update the status cell
+  const row = document.getElementById(`row-${key}`);
+  if (row) {
+    const statusCell = row.cells[2];
+    const editCell   = row.cells[3];
+    if (statusCell) statusCell.innerHTML = '<span class="status-known">✓ Confirmed</span>';
+    if (editCell)   editCell.innerHTML   = `<button class="btn btn-edit" onclick="editField('${key}', '${escHtml(newVal)}')">Edit</button>`;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Step 4: Veteran confirms fields and moves to chat
+// ---------------------------------------------------------------------------
+function confirmFields() {
+  // Auto-save all prefilled fields as verified (the veteran clicked "this looks right")
+  if (state.activeForm) {
+    state.activeForm.fields.forEach(field => {
+      if (field.status === "prefilled" && state.verifiedFields[field.key] === undefined) {
+        state.verifiedFields[field.key] = field.value || "";
+      }
+    });
+  }
+
+  show("card-chat");
+  setStep(4);
+
+  // Initialize chat with a personalized greeting from VetAssist
+  const missingCount = state.activeForm
+    ? state.activeForm.summary.missing_count
+    : 0;
+  const formTitle = state.activeForm
+    ? `VA Form ${state.activeForm.form_id}`
+    : "your forms";
+
+  const greeting = state.veteran
+    ? `Thank you${state.veteran.branch ? ` for your service in the ${state.veteran.branch}` : ''}, ${state.veteran.name.split(' ')[0]}. ` +
+      `I've confirmed the information we already know for ${formTitle}. ` +
+      (missingCount > 0
+        ? `I still need ${missingCount} more piece${missingCount > 1 ? 's' : ''} of information from you. I'll ask one at a time. Ready when you are.`
+        : `All fields are complete — you're all set! Ask me anything about next steps.`)
+    : "Ready to help. What would you like to know?";
+
+  addMessage("assist", greeting);
+
+  // Scroll to chat
+  document.getElementById("card-chat").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// ---------------------------------------------------------------------------
+// Chat: send a message
+// ---------------------------------------------------------------------------
+async function sendChat() {
   const input = document.getElementById("chat-input");
   const message = input.value.trim();
-  if (!message) return;
+  if (!message || !state.veteranId) return;
 
   input.value = "";
-  appendMessage("user", message);
-  conversationHistory.push({ role: "user", content: message });
+  addMessage("user", message);
+  state.conversationHistory.push({ role: "user", content: message });
 
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        veteran_id: currentVeteranId,
-        message: message,
-        conversation_history: conversationHistory.slice(-10), // last 10 turns
+        veteran_id:           state.veteranId,
+        message:              message,
+        conversation_history: state.conversationHistory.slice(-20),
+        active_form_id:       state.activeFormId,
+        verified_fields:      state.verifiedFields,
       }),
     });
-    const data = await res.json();
-    const reply = data.reply || "[No response]";
-    appendMessage("assist", reply);
-    conversationHistory.push({ role: "assistant", content: reply });
 
-    // Show model note
-    const note = document.getElementById("chat-mode-note");
+    const data = await res.json();
+    const reply = data.reply || "I'm sorry — something went wrong. Please try again.";
+
+    addMessage("assist", reply);
+    state.conversationHistory.push({ role: "assistant", content: reply });
+
+    // Update step indicator
+    setStep(5);
+
+    // Show which model is responding
+    const modeNote = document.getElementById("chat-mode-note");
     if (data.model === "placeholder") {
-      note.textContent = "Running in placeholder mode — add ANTHROPIC_API_KEY to .env for live responses.";
-    } else if (data.model) {
-      note.textContent = `Powered by ${data.model}`;
+      modeNote.textContent = "Placeholder mode — add ANTHROPIC_API_KEY to .env for live Claude responses.";
+    } else if (data.model && data.model !== "error") {
+      modeNote.textContent = `Powered by ${data.model}`;
     }
+
   } catch (e) {
-    appendMessage("assist", "Sorry, something went wrong. Please try again.");
+    addMessage("assist", "Something went wrong — please check your connection and try again.");
   }
 }
 
-function appendMessage(role, text) {
+// ---------------------------------------------------------------------------
+// Utility: add a message bubble to the chat
+// ---------------------------------------------------------------------------
+function addMessage(role, text) {
   const container = document.getElementById("chat-messages");
   const div = document.createElement("div");
-  div.className = `msg msg-${role === "user" ? "user" : "assist"}`;
-  div.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>`;
+  div.className = `msg msg-${role}`;
+  div.innerHTML = `<div class="bubble">${escHtml(text)}</div>`;
   container.appendChild(div);
   container.scrollTop = container.scrollHeight;
 }
 
-function escapeHtml(str) {
-  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+// ---------------------------------------------------------------------------
+// Utility: update the step indicator bar
+// ---------------------------------------------------------------------------
+function setStep(n) {
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById(`step-${i}`);
+    if (!el) continue;
+    el.classList.remove("active", "done");
+    if (i === n)  el.classList.add("active");
+    if (i < n)    el.classList.add("done");
+  }
 }
 
-// -----------------------------------------------------------------------
-//  Boot
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Utility: show/hide elements
+// ---------------------------------------------------------------------------
+function show(id) { document.getElementById(id)?.classList.remove("hidden"); }
+function hide(id) { document.getElementById(id)?.classList.add("hidden"); }
+
+// ---------------------------------------------------------------------------
+// Utility: escape HTML to prevent XSS when inserting user or API data into DOM
+// WHY: any data coming from the API (veteran names, field values, etc.) could
+// contain characters like < > & that would break the HTML if unescaped.
+// ---------------------------------------------------------------------------
+function escHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// ---------------------------------------------------------------------------
+// Boot
+// ---------------------------------------------------------------------------
 init();
 </script>
 </body>

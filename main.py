@@ -1,124 +1,163 @@
 """
 main.py — VetAssist FastAPI application
 
-Minimal local MVP. No database, no authentication, no cloud deployment.
-Runs entirely on local JSON files and a single HTML page.
+HOW THIS APP WORKS (read this first):
+    VetAssist follows a simple, linear flow:
+      1. Veteran is selected → profile loaded from JSON
+      2. Eligibility engine runs rules → returns list of likely benefits
+      3. Veteran sees benefits, selects a form to work on
+      4. Form fields are prefilled from profile → missing fields identified
+      5. Veteran edits/confirms prefilled fields in the UI (no assumptions)
+      6. Claude asks for missing fields conversationally — one at a time
+      7. Output package generated (post-MVP)
 
-Usage:
+    Claude is used for conversation only — the rules engine handles eligibility.
+    Claude can add nuance and explain benefits using its innate knowledge,
+    but it does not make eligibility decisions.
+
+WHY FastAPI:
+    - Lightweight, fast, and has automatic API docs at /docs
+    - Built-in request/response validation via Pydantic
+    - Easy to swap in a real database or auth layer later without rewriting routes
+
+WHY JSON files instead of a database:
+    - Zero setup — clone and run, no database server needed
+    - Easy to read and edit for demo purposes
+    - Clear separation: data lives in /data, logic lives in /services
+    - Post-MVP: replace load_json() calls with database queries — nothing else changes
+
+RUNNING LOCALLY:
     pip install -r requirements.txt
-    cp .env.example .env           # then add your ANTHROPIC_API_KEY
+    cp .env.example .env           # add ANTHROPIC_API_KEY for live chat
     uvicorn main:app --reload
+    open http://localhost:8000
 
-Endpoints:
-    GET  /                    → serves index.html
-    GET  /api/veterans        → list all synthetic veteran profiles
-    GET  /api/veterans/{id}   → get one veteran's full profile
-    GET  /api/eligibility/{id} → run eligibility check for a veteran
-    GET  /api/forms/{id}      → get matched forms with prefilled fields
-    POST /api/chat            → send a message to the conversational assistant
+API ENDPOINTS:
+    GET  /                          → serves the frontend HTML page
+    GET  /api/veterans              → list all veteran profiles (id, name, branch)
+    GET  /api/veterans/{id}         → full profile for one veteran
+    GET  /api/eligibility/{id}      → run benefit eligibility for a veteran
+    GET  /api/forms/{id}            → matched forms + prefilled fields for a veteran
+    POST /api/chat                  → send a message to the conversational assistant
+    POST /api/upload                → (stub) future: accept DD214/PDF and extract fields
+    POST /api/generate-output       → (stub) future: produce printable/email output
+    GET  /health                    → health check
 
-TODO (post-MVP):
-    - POST /api/upload        → accept DD214 or flat PDF and extract text (OCR)
-    - POST /api/generate-output → produce a printable/email-ready package
-    - Authentication and session management for production
-    - Replace JSON files with a real database (PostgreSQL or DynamoDB)
-    - Deploy to AWS Bedrock endpoint for FedRAMP-eligible infrastructure
+TODO (post-MVP — do not add these to the MVP):
+    - POST /api/upload: accept DD214 or flat PDF, OCR it, merge fields into prefill
+    - POST /api/generate-output: produce a printable PDF or email-ready package
+    - Authentication via login.gov or VA identity service
+    - Replace JSON files with PostgreSQL or DynamoDB
+    - Deploy to AWS Bedrock + GovCloud for FedRAMP-eligible federal use
 """
 
 import json
 import os
 from pathlib import Path
+from typing import Optional
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
-# Load environment variables from .env if present
+# Load .env file if present (sets ANTHROPIC_API_KEY, CLAUDE_MODEL, etc.)
 load_dotenv()
 
 # ---------------------------------------------------------------------------
-# App init
+# App setup
 # ---------------------------------------------------------------------------
 
 app = FastAPI(
     title="VetAssist",
-    description="Veteran benefits assistant — Wilcore Innovation Challenge MVP",
+    description="Veteran benefits and forms assistant — Wilcore Innovation Challenge MVP",
     version="0.1.0",
 )
 
-# Serve static files if the static/ directory exists
+# Mount static files (CSS, images) if that folder exists.
+# WHY conditional: keeps the app runnable even if /static doesn't exist yet.
 static_dir = Path(__file__).parent / "static"
 if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
+
 # ---------------------------------------------------------------------------
-# Data loading utilities
+# Data helpers
+# WHY load from disk on each request (not cached in memory):
+# For an MVP with a handful of JSON files, this is fine — files are small.
+# If this became a production app with many users, we'd cache these in memory
+# or replace with database queries. For now, simplicity wins.
 # ---------------------------------------------------------------------------
 
 DATA_DIR = Path(__file__).parent / "data"
 
 
-def load_json(filename: str) -> any:
-    """Load and return parsed JSON from the data directory."""
-    filepath = DATA_DIR / filename
-    if not filepath.exists():
-        raise FileNotFoundError(f"Data file not found: {filepath}")
-    with open(filepath, "r") as f:
+def load_json(filename: str):
+    """Read and parse a JSON file from the /data directory."""
+    path = DATA_DIR / filename
+    if not path.exists():
+        raise FileNotFoundError(f"Data file not found: {path}")
+    with open(path, "r") as f:
         return json.load(f)
 
 
-def get_all_veterans() -> list:
-    return load_json("veterans.json")
-
-
-def get_veteran_by_id(veteran_id: str) -> dict:
-    veterans = get_all_veterans()
-    for v in veterans:
+def get_veteran_by_id(veteran_id: str) -> Optional[dict]:
+    """
+    Find and return a single veteran profile by ID.
+    Returns None if not found — callers handle the 404 response.
+    """
+    for v in load_json("veterans.json"):
         if v["id"] == veteran_id:
             return v
     return None
 
 
 def get_benefits_catalog() -> list:
-    data = load_json("benefits_rules.json")
-    return data.get("benefits", [])
+    """Return the list of benefit definitions from benefits_rules.json."""
+    return load_json("benefits_rules.json").get("benefits", [])
 
 
 def get_forms_catalog() -> list:
-    data = load_json("forms_catalog.json")
-    return data.get("forms", [])
+    """Return the list of form definitions from forms_catalog.json."""
+    return load_json("forms_catalog.json").get("forms", [])
 
 
 # ---------------------------------------------------------------------------
-# Route: Serve frontend
+# Frontend
 # ---------------------------------------------------------------------------
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_index():
-    """Serve the main single-page frontend."""
-    template_path = Path(__file__).parent / "templates" / "index.html"
-    if not template_path.exists():
-        return HTMLResponse("<h1>VetAssist</h1><p>Frontend template not found.</p>", status_code=200)
-    with open(template_path, "r") as f:
-        return HTMLResponse(content=f.read())
+    """
+    Serve the single-page HTML frontend.
+    WHY not use a template engine: one static HTML file is simpler to read,
+    edit, and demo. No Jinja2, no build step needed.
+    """
+    template = Path(__file__).parent / "templates" / "index.html"
+    if not template.exists():
+        return HTMLResponse("<h1>VetAssist</h1><p>Frontend not found.</p>")
+    return HTMLResponse(content=template.read_text())
 
 
 # ---------------------------------------------------------------------------
-# Route: Veterans
+# Veteran routes
 # ---------------------------------------------------------------------------
 
 @app.get("/api/veterans")
 async def list_veterans():
-    """Return all synthetic veteran profiles (names and IDs only for listing)."""
-    veterans = get_all_veterans()
+    """
+    Return a summary list of all veteran profiles.
+    We only return id, name, and branch here — not the full profile —
+    to keep the dropdown response small and fast.
+    """
+    veterans = load_json("veterans.json")
     return [{"id": v["id"], "name": v["name"], "branch": v["branch"]} for v in veterans]
 
 
 @app.get("/api/veterans/{veteran_id}")
 async def get_veteran(veteran_id: str):
-    """Return the full profile for a specific veteran."""
+    """Return the full profile for a single veteran."""
     veteran = get_veteran_by_id(veteran_id)
     if not veteran:
         raise HTTPException(status_code=404, detail=f"Veteran '{veteran_id}' not found.")
@@ -126,39 +165,58 @@ async def get_veteran(veteran_id: str):
 
 
 # ---------------------------------------------------------------------------
-# Route: Eligibility
+# Eligibility route
 # ---------------------------------------------------------------------------
 
 @app.get("/api/eligibility/{veteran_id}")
 async def get_eligibility(veteran_id: str):
     """
     Run the rules-based eligibility engine for a veteran.
-    Returns a list of benefits with eligible=True/False and a reason string.
+
+    Returns each benefit with:
+      - eligible: True/False (likely eligible based on profile)
+      - reason: plain-language explanation of why
+
+    WHY this is a separate route from /api/forms:
+    The veteran sees benefits FIRST and decides which ones to pursue.
+    They then select a form. Keeping these as separate API calls matches
+    that two-step UX flow.
     """
     veteran = get_veteran_by_id(veteran_id)
     if not veteran:
         raise HTTPException(status_code=404, detail=f"Veteran '{veteran_id}' not found.")
 
     from services.eligibility import check_eligibility
-    catalog = get_benefits_catalog()
-    results = check_eligibility(veteran, catalog)
+    results = check_eligibility(veteran, get_benefits_catalog())
 
     return {
-        "veteran_id": veteran_id,
+        "veteran_id":   veteran_id,
         "veteran_name": veteran["name"],
-        "benefits": results,
+        "branch":       veteran.get("branch", ""),
+        "benefits":     results,
     }
 
 
 # ---------------------------------------------------------------------------
-# Route: Forms
+# Forms route
 # ---------------------------------------------------------------------------
 
 @app.get("/api/forms/{veteran_id}")
 async def get_forms(veteran_id: str):
     """
-    Return matched VA forms for a veteran's eligible benefits,
-    with fields prefilled where possible and missing fields identified.
+    Return the VA forms the veteran likely needs, with fields prefilled
+    from their profile and missing fields identified.
+
+    Flow:
+      1. Run eligibility to get eligible benefit IDs
+      2. Match those IDs to forms in the catalog
+      3. For each form, prefill fields from the profile
+      4. Return prefilled fields + a summary of what's known vs. missing
+
+    WHY we run eligibility again here (instead of caching):
+    This keeps each endpoint self-contained and stateless — easier to
+    debug and test. The eligibility check is fast (pure Python, no I/O).
+    Post-MVP: if this becomes slow, pass eligible_ids as a query parameter.
     """
     veteran = get_veteran_by_id(veteran_id)
     if not veteran:
@@ -167,127 +225,183 @@ async def get_forms(veteran_id: str):
     from services.eligibility import check_eligibility
     from services.form_matcher import get_forms_for_benefits, prefill_fields, build_field_summary
 
-    # Step 1: Get eligible benefits
-    benefits_catalog = get_benefits_catalog()
-    eligibility_results = check_eligibility(veteran, benefits_catalog)
+    # Step 1: Determine which benefits this veteran likely qualifies for
+    eligibility_results = check_eligibility(veteran, get_benefits_catalog())
     eligible_ids = [b["benefit_id"] for b in eligibility_results if b["eligible"]]
 
-    # Step 2: Match forms to eligible benefits
-    forms_catalog = get_forms_catalog()
-    matched_forms = get_forms_for_benefits(eligible_ids, forms_catalog)
+    # Step 2: Find forms that correspond to those eligible benefits
+    matched_forms = get_forms_for_benefits(eligible_ids, get_forms_catalog())
 
-    # Step 3: Prefill fields from profile
+    # Step 3: For each form, prefill what we know and flag what's missing
     output = []
     for form in matched_forms:
         prefilled = prefill_fields(form, veteran)
-        summary = build_field_summary(prefilled)
-        output.append({
-            **prefilled,
-            "summary": summary,
-        })
+        summary   = build_field_summary(prefilled)
+        output.append({**prefilled, "summary": summary})
 
     return {
-        "veteran_id": veteran_id,
-        "veteran_name": veteran["name"],
+        "veteran_id":          veteran_id,
+        "veteran_name":        veteran["name"],
         "eligible_benefit_ids": eligible_ids,
-        "forms": output,
+        "forms":               output,
     }
 
 
 # ---------------------------------------------------------------------------
-# Route: Chat
+# Chat route
 # ---------------------------------------------------------------------------
 
 class ChatRequest(BaseModel):
-    veteran_id: str
-    message: str
-    conversation_history: list = []  # List of {role, content} dicts
+    veteran_id:           str
+    message:              str
+    # Prior conversation turns sent from the frontend.
+    # WHY the frontend sends history: the backend is stateless — no session.
+    # The frontend accumulates turns and sends them back each time.
+    # This is simple and works fine for a local MVP.
+    conversation_history: list = []
+    # The form the veteran is currently working on (e.g. "21-526EZ").
+    # Helps Claude focus its questions on the right form's missing fields.
+    active_form_id:       Optional[str] = None
+    # Fields the veteran has already confirmed as correct in the UI.
+    # Claude uses this to avoid re-asking for things already verified.
+    verified_fields:      dict = {}
 
 
 @app.post("/api/chat")
-async def chat(request: ChatRequest):
+async def chat_endpoint(request: ChatRequest):
     """
-    Send a user message to the conversational assistant.
-    Returns Claude's reply (or a placeholder if API key is not configured).
+    Send the veteran's message to Claude and return the response.
+
+    WHY we compute context here (not cache it):
+    Each chat turn needs current missing fields — the veteran may have
+    just confirmed some fields in the UI, changing what's still needed.
+    The eligibility check is fast, so recomputing is fine for the MVP.
+
+    What Claude receives:
+      - Full veteran profile (branch, service, conditions, etc.)
+      - Eligible benefit list with reasons (from rules engine)
+      - Branch-specific VSO contacts and benefit notes
+      - Fields still missing for the active form
+      - Fields already verified by the veteran (don't re-ask)
+      - Last 20 turns of conversation history
     """
     veteran = get_veteran_by_id(request.veteran_id)
     if not veteran:
         raise HTTPException(status_code=404, detail=f"Veteran '{request.veteran_id}' not found.")
 
-    # Get missing fields to give Claude context
     from services.eligibility import check_eligibility
     from services.form_matcher import get_forms_for_benefits, prefill_fields, build_field_summary
+    from services.claude_chat import chat as claude_chat
 
-    benefits_catalog = get_benefits_catalog()
-    eligibility_results = check_eligibility(veteran, benefits_catalog)
+    # Run eligibility to give Claude the full benefit context
+    eligibility_results = check_eligibility(veteran, get_benefits_catalog())
     eligible_ids = [b["benefit_id"] for b in eligibility_results if b["eligible"]]
 
+    # Find missing fields for the active form (or all eligible forms if none selected)
     forms_catalog = get_forms_catalog()
-    matched_forms = get_forms_for_benefits(eligible_ids, forms_catalog)
 
-    all_missing = []
-    for form in matched_forms:
+    if request.active_form_id:
+        # Veteran is working on a specific form — only show that form's missing fields
+        active_forms = [f for f in forms_catalog if f["id"] == request.active_form_id]
+    else:
+        # No form selected yet — show all forms' missing fields (benefits phase)
+        active_forms = get_forms_for_benefits(eligible_ids, forms_catalog)
+
+    # Collect all missing fields across relevant forms, deduplicated by field key.
+    # WHY deduplicate: multiple forms may need the same field (e.g. SSN appears
+    # on almost every form). We only want to ask the veteran once.
+    seen_keys  = set(request.verified_fields.keys())  # don't re-ask verified fields
+    missing    = []
+    for form in active_forms:
         prefilled = prefill_fields(form, veteran)
-        summary = build_field_summary(prefilled)
-        all_missing.extend(summary["missing_fields"])
+        summary   = build_field_summary(prefilled)
+        for field in summary["missing_fields"]:
+            if field["key"] not in seen_keys:
+                missing.append(field)
+                seen_keys.add(field["key"])
 
-    # Deduplicate missing fields by key
-    seen_keys = set()
-    deduped_missing = []
-    for field in all_missing:
-        if field["key"] not in seen_keys:
-            deduped_missing.append(field)
-            seen_keys.add(field["key"])
-
-    from services.claude_chat import chat as claude_chat
+    # Call Claude with full context
     result = claude_chat(
         user_message=request.message,
         veteran=veteran,
-        missing_fields=deduped_missing,
+        eligible_benefits=eligibility_results,
+        missing_fields=missing,
+        verified_fields=request.verified_fields,
         conversation_history=request.conversation_history,
+        active_form=request.active_form_id,
     )
 
     return {
-        "veteran_id": request.veteran_id,
-        "reply": result["response"],
-        "model": result["model"],
-        "error": result.get("error"),
+        "veteran_id":    request.veteran_id,
+        "reply":         result["response"],
+        "model":         result["model"],
+        "missing_count": len(missing),  # lets the UI show progress
+        "error":         result.get("error"),
     }
 
 
 # ---------------------------------------------------------------------------
-# TODO: Upload endpoint (placeholder — OCR not implemented in MVP)
+# Upload stub
+# Post-MVP: OCR a DD214 or flat PDF and merge fields into prefill context
 # ---------------------------------------------------------------------------
 
 @app.post("/api/upload")
 async def upload_document():
     """
-    TODO (post-MVP): Accept a DD214, flat PDF, or scanned image.
-    Extract text using pytesseract or AWS Textract.
-    Merge extracted fields into the veteran's form prefill context.
+    STUB — not implemented in the MVP.
+
+    What this will do (next sprint — Nick's task for the hackathon):
+      1. Accept a multipart/form-data upload (image or PDF)
+      2. Run OCR using pytesseract (local) or AWS Textract (cloud)
+      3. Parse extracted text into structured fields
+      4. Return a dict of extracted fields to merge into the prefill context
+
+    WHY this matters:
+    The DD-214 is the single most valuable document a veteran has.
+    If they can photograph it and upload it, VetAssist can prefill name,
+    branch, service dates, discharge type, and deployment info automatically —
+    eliminating most of the 'ask' fields in one step.
+
+    Demo version (hackathon): return hardcoded extracted fields from the
+    DD-214 mockup image in forms_to_verify/ to show the concept working.
     """
     return {
-        "status": "not_implemented",
-        "message": "Document upload and OCR are planned for a future sprint. "
-                   "In the MVP, veteran data is loaded from a synthetic JSON profile.",
+        "status":  "not_implemented",
+        "message": (
+            "Document upload and OCR are planned for the next sprint. "
+            "See forms_to_verify/ for mockup images showing what the extracted form would look like. "
+            "In the MVP, veteran data is loaded from the synthetic JSON profile."
+        ),
     }
 
 
 # ---------------------------------------------------------------------------
-# TODO: Output generation endpoint (placeholder)
+# Output generation stub
+# Post-MVP: produce a printable PDF or email-ready package
 # ---------------------------------------------------------------------------
 
 @app.post("/api/generate-output")
 async def generate_output():
     """
-    TODO (post-MVP): Generate a printable PDF or email-ready package
-    with all prefilled form fields, a cover note, and submission instructions.
-    Could use reportlab, weasyprint, or fillpdf for PDF generation.
+    STUB — not implemented in the MVP.
+
+    What this will do (future sprint):
+      1. Take the veteran's profile + verified form fields
+      2. Generate a prefilled PDF using pypdf or reportlab
+      3. Include a cover sheet with: submission instructions, who to contact,
+         what to bring, and next steps — all customized to their branch and benefit
+      4. Return as a downloadable file or email it directly
+
+    WHY this is valuable:
+    The veteran gets a complete package they can print, bring to a VSO, or
+    email to their VA regional office — with no repeated data entry.
     """
     return {
-        "status": "not_implemented",
-        "message": "Printable/email output generation is planned for a future sprint. "
-                   "In the MVP, form field data is displayed in the browser UI.",
+        "status":  "not_implemented",
+        "message": (
+            "Printable/email output generation is planned for a future sprint. "
+            "In the MVP, form field data is displayed in the browser and can be reviewed there."
+        ),
     }
 
 
@@ -297,4 +411,5 @@ async def generate_output():
 
 @app.get("/health")
 async def health():
+    """Simple health check. Used to verify the server is running."""
     return {"status": "ok", "app": "VetAssist", "version": "0.1.0-mvp"}

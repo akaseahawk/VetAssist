@@ -1,0 +1,119 @@
+{
+  "_note": "Branch-specific VSO contacts, VA regional offices, and benefit notes. Used to personalize chat responses and the output package for each veteran's branch of service.",
+
+  "Army": {
+    "primary_vso": "Disabled American Veterans (DAV)",
+    "primary_vso_url": "https://www.dav.org",
+    "secondary_vso": "American Legion",
+    "secondary_vso_url": "https://www.legion.org",
+    "va_benefits_line": "1-800-827-1000",
+    "va_regional_note": "Army veterans can locate their nearest VA Regional Office at va.gov/find-locations",
+    "branch_specific_benefits": [
+      {
+        "name": "Combat-Related Special Compensation (CRSC)",
+        "description": "Army veterans with combat-related disabilities may receive CRSC in addition to VA disability pay. This is separate from standard VA compensation.",
+        "info_url": "https://www.hrc.army.mil/content/Combat%20Related%20Special%20Compensation%20CRSC"
+      },
+      {
+        "name": "Traumatic Servicemembers Group Life Insurance (TSGLI)",
+        "description": "If you suffered a qualifying traumatic injury during service, you may be eligible for a one-time TSGLI payment.",
+        "info_url": "https://www.benefits.va.gov/insurance/tsgli.asp"
+      }
+    ],
+    "greeting_note": "Thank you for your service and sacrifice — and to your family for theirs as well."
+  },
+
+  "Marine Corps": {
+    "primary_vso": "Marine Corps League",
+    "primary_vso_url": "https://www.mcleague.org",
+    "secondary_vso": "Disabled American Veterans (DAV)",
+    "secondary_vso_url": "https://www.dav.org",
+    "va_benefits_line": "1-800-827-1000",
+    "va_regional_note": "Marine Corps veterans can locate their nearest VA Regional Office at va.gov/find-locations",
+    "branch_specific_benefits": [
+      {
+        "name": "Camp Lejeune Family Member Program",
+        "description": "Veterans and family members who lived or worked at Camp Lejeune between August 1953 and December 1987 may be eligible for VA health care due to contaminated water exposure.",
+        "info_url": "https://www.va.gov/disability/eligibility/hazardous-materials-exposure/camp-lejeune-water-contamination/"
+      },
+      {
+        "name": "Combat-Related Special Compensation (CRSC)",
+        "description": "Marine veterans with combat-related disabilities may qualify for CRSC payments in addition to standard VA disability compensation.",
+        "info_url": "https://www.military.com/benefits/military-pay/special-pay/combat-related-special-compensation.html"
+      }
+    ],
+    "greeting_note": "Semper Fidelis — thank you for your service and dedication, and to your family who served alongside you."
+  },
+
+  "Air Force": {
+    "primary_vso": "Air Force Association",
+    "primary_vso_url": "https://www.afa.org",
+    "secondary_vso": "American Veterans (AMVETS)",
+    "secondary_vso_url": "https://amvets.org",
+    "va_benefits_line": "1-800-827-1000",
+    "va_regional_note": "Air Force veterans can locate their nearest VA Regional Office at va.gov/find-locations",
+    "branch_specific_benefits": [
+      {
+        "name": "Burn Pit / Airborne Hazards Exposure",
+        "description": "Air Force veterans deployed near burn pits or exposed to airborne hazards may qualify for PACT Act benefits, including expanded VA health care and disability compensation.",
+        "info_url": "https://www.va.gov/resources/the-pact-act-and-your-va-benefits/"
+      },
+      {
+        "name": "Special Survivor Indemnity Allowance (SSIA)",
+        "description": "Surviving spouses of Air Force veterans who receive Dependency and Indemnity Compensation may qualify for SSIA.",
+        "info_url": "https://www.va.gov/disability/survivor-dic-rates/"
+      }
+    ],
+    "greeting_note": "Thank you for your service and sacrifice in the Air Force — and to your family for everything they gave as well."
+  },
+
+  "Navy": {
+    "primary_vso": "Fleet Reserve Association",
+    "primary_vso_url": "https://www.fra.org",
+    "secondary_vso": "Veterans of Foreign Wars (VFW)",
+    "secondary_vso_url": "https://www.vfw.org",
+    "va_benefits_line": "1-800-827-1000",
+    "va_regional_note": "Navy veterans can locate their nearest VA Regional Office at va.gov/find-locations",
+    "branch_specific_benefits": [
+      {
+        "name": "Asbestos Exposure Benefits",
+        "description": "Navy veterans — especially those who served on ships before the 1980s — have high rates of asbestos exposure and may qualify for related VA disability compensation.",
+        "info_url": "https://www.va.gov/disability/eligibility/hazardous-materials-exposure/asbestos/"
+      },
+      {
+        "name": "Burn Pit / Airborne Hazards (PACT Act)",
+        "description": "Navy veterans deployed near burn pits may qualify for expanded health care and compensation under the PACT Act.",
+        "info_url": "https://www.va.gov/resources/the-pact-act-and-your-va-benefits/"
+      }
+    ],
+    "greeting_note": "Thank you for your service and the sacrifices you and your family made in the United States Navy."
+  },
+
+  "Coast Guard": {
+    "primary_vso": "Chief Petty Officers Association",
+    "primary_vso_url": "https://www.cpoa.com",
+    "secondary_vso": "American Legion",
+    "secondary_vso_url": "https://www.legion.org",
+    "va_benefits_line": "1-800-827-1000",
+    "va_regional_note": "Coast Guard veterans can locate their nearest VA Regional Office at va.gov/find-locations",
+    "branch_specific_benefits": [
+      {
+        "name": "Search and Rescue Operational Stress",
+        "description": "Coast Guard veterans involved in search and rescue operations may have elevated PTSD and stress-related conditions that qualify for VA mental health benefits.",
+        "info_url": "https://www.va.gov/disability/eligibility/ptsd/"
+      }
+    ],
+    "greeting_note": "Semper Paratus — thank you for your service in the Coast Guard and for everything you and your family gave."
+  },
+
+  "default": {
+    "primary_vso": "Veterans of Foreign Wars (VFW)",
+    "primary_vso_url": "https://www.vfw.org",
+    "secondary_vso": "Disabled American Veterans (DAV)",
+    "secondary_vso_url": "https://www.dav.org",
+    "va_benefits_line": "1-800-827-1000",
+    "va_regional_note": "Find your nearest VA Regional Office at va.gov/find-locations",
+    "branch_specific_benefits": [],
+    "greeting_note": "Thank you for your service and sacrifice — and to your family for theirs as well."
+  }
+}
