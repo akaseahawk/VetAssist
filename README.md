@@ -42,29 +42,23 @@ with overlapping fields filled out by hand.
 
 **Diagram 1 — The painful journey today:**
 
-```
-                        VETERAN'S JOURNEY TODAY
-                        ========================
+```mermaid
+flowchart TD
+    A([Veteran suspects\nbenefits exist]) --> B[Google:\nVA disability forms]
+    B --> C[VA.gov search\nresults — confusing]
+    C --> D[47-page PDF form\nmanual fill-out]
+    D --> E[Re-enter same info\non 3–5 forms]
+    E --> F{Submission}
+    F -->|Incomplete| G([❌ Rejected\n102+ day delay])
+    F -->|Wrong form| G
+    F -->|Correct| H([✅ Claim begins\n102+ day wait])
 
-   START                                                      END
-     │                                                          │
-     ▼                                                          ▼
-┌─────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐   ┌──────────┐
-│ Veteran │    │  Google  │    │ VA.gov   │    │ 47-page  │   │ Give up  │
-│ suspects│───▶│ "VA dis- │───▶│ search   │───▶│ PDF form │──▶│    or    │
-│ benefits│    │ ability  │    │ results  │    │ manual   │   │ submit   │
-│ exist   │    │ forms"   │    │ confusing│    │ fill-out │   │ wrong    │
-└─────────┘    └──────────┘    └──────────┘    └──────────┘   └──────────┘
-                                                    │                │
-                                                    ▼                ▼
-                                              ┌──────────┐   ┌──────────┐
-                                              │ Re-enter │   │102+ day  │
-                                              │ same info│   │ wait or  │
-                                              │ 3-5 forms│   │rejection │
-                                              └──────────┘   └──────────┘
-
-   Pain points:  No guidance · Paper-first · Repeated data entry · Plain language gap
+    style A fill:#f5f5f5,stroke:#999
+    style G fill:#ffe0e0,stroke:#cc0000
+    style H fill:#e0f0e0,stroke:#006600
 ```
+
+*Pain points: No guidance · Paper-first · Repeated data entry · Plain-language gap*
 
 ---
 
@@ -83,55 +77,64 @@ and ask for missing information conversationally — one question at a time.
 **Connect** — Point the veteran to their VSO, the VA, and the specific VA.gov pages
 they need. VetAssist prepares them. The VA and VSO make the final call.
 
-**Diagram 2 — What VetAssist does (three-column view):**
+**Diagram 2 — What VetAssist does:**
 
-```
-┌─────────────────────┬──────────────────────┬──────────────────────┐
-│     UNDERSTAND      │       PREPARE        │       CONNECT        │
-├─────────────────────┼──────────────────────┼──────────────────────┤
-│                     │                      │                      │
-│ Load veteran        │ Show required forms  │ VA.gov link on       │
-│ profile             │                      │ every benefit card   │
-│                     │ Prefill every field  │                      │
-│ Claude reviews      │ already known from   │ VSO contacts by      │
-│ service history,    │ profile              │ branch               │
-│ branch, discharge,  │                      │                      │
-│ conditions          │ Flag what is missing │ Warm handoff         │
-│                     │ and ask for it one   │ instructions         │
-│ Surface benefits    │ question at a time   │ per benefit type     │
-│ worth exploring     │                      │                      │
-│ (not a ruling)      │ Veteran edits any    │ VetAssist prepares.  │
-│                     │ prefilled field      │ VSO + VA decide.     │
-│ Plain language.     │ before continuing    │                      │
-│ Specific reasons.   │                      │                      │
-└─────────────────────┴──────────────────────┴──────────────────────┘
+```mermaid
+flowchart TD
+    subgraph UNDERSTAND["🔍 UNDERSTAND"]
+        U1[Load veteran profile]
+        U2[Claude reviews service history\nbranch · discharge · conditions]
+        U3[Surface benefits worth exploring\nnot a ruling — plain language]
+        U1 --> U2 --> U3
+    end
+
+    subgraph PREPARE["📋 PREPARE"]
+        P1[Show required forms]
+        P2[Prefill every known field\nfrom veteran profile]
+        P3[Flag missing fields\nask one at a time via chat]
+        P4[Veteran edits any\nprefilled field before continuing]
+        P1 --> P2 --> P3 --> P4
+    end
+
+    subgraph CONNECT["🔗 CONNECT"]
+        C1[VA.gov link on\nevery benefit card]
+        C2[VSO contacts\nby branch]
+        C3[Warm handoff\ninstructions per benefit]
+        C4[VetAssist prepares.\nVSO + VA decide.]
+        C1 --> C2 --> C3 --> C4
+    end
+
+    UNDERSTAND --> PREPARE --> CONNECT
 ```
 
 ### Before vs. After
 
 **Diagram 3 — Experience comparison:**
 
-```
-          BEFORE VetAssist              WITH VetAssist
-          ════════════════              ══════════════
+```mermaid
+flowchart LR
+    subgraph BEFORE["❌ Before VetAssist"]
+        direction TB
+        B1[Veteran guesses\nwhat they qualify for]
+        B2[Searches VA.gov manually\nfinds 47-page PDFs]
+        B3[Re-enters same info\non 3–5 separate forms]
+        B4[Prints · Handwrites\nScans · Mails]
+        B5([102+ days\nConfusion])
+        B1 --> B2 --> B3 --> B4 --> B5
+    end
 
-          Veteran guesses              Profile loads automatically
-          what they qualify for        Benefits identified in seconds
-                 │                            │
-                 ▼                            ▼
-          Searches VA.gov manually     Matching forms displayed
-          Finds 47-page PDFs           Fields prefilled from profile
-                 │                            │
-                 ▼                            ▼
-          Re-enters same info          Chat asks only what's missing
-          on 3–5 separate forms        One question at a time
-                 │                            │
-                 ▼                            ▼
-          Prints · Handwrites          Printable/email-ready package
-          Scans · Mails                Next steps + VSO contacts
-                 │                            │
-                 ▼                            ▼
-          102+ days · Confusion        30 minutes · Guided · Clear
+    subgraph AFTER["✅ With VetAssist"]
+        direction TB
+        A1[Profile loads automatically\nbenefits identified in seconds]
+        A2[Matching forms displayed\nfields prefilled from profile]
+        A3[Chat asks only what's missing\none question at a time]
+        A4[Printable / email-ready package\nnext steps + VSO contacts]
+        A5([30 minutes\nGuided · Clear])
+        A1 --> A2 --> A3 --> A4 --> A5
+    end
+
+    style B5 fill:#ffe0e0,stroke:#cc0000
+    style A5 fill:#e0f0e0,stroke:#006600
 ```
 
 ### Why Now
@@ -169,201 +172,155 @@ and saved 2 hours each, that's ~200,000 veteran-hours recovered per year.
 
 ### Diagram 4 — System Architecture
 
-```
-                        VETASSIST SYSTEM ARCHITECTURE
-                        ==============================
+```mermaid
+flowchart TD
+    Browser["🌐 Veteran's Browser\ntemplates/index.html\nvanilla JS · no build step"]
 
-                        ┌──────────────────────────┐
-                        │   Veteran's Browser       │
-                        │   templates/index.html    │
-                        │   (vanilla JS, no build)  │
-                        └────────────┬─────────────┘
-                                     │ HTTP
-                                     ▼
-                        ┌──────────────────────────┐
-                        │   FastAPI Application     │
-                        │   main.py                 │
-                        │                           │
-                        │  GET /                    │
-                        │  GET /api/veterans        │
-                        │  GET /api/eligibility     │
-                        │  GET /api/forms           │
-                        │  POST /api/chat           │
-                        │  POST /api/upload (stub)  │
-                        └─────┬──────┬──────┬──────┘
-                              │      │      │
-               ┌──────────────┘      │      └──────────────┐
-               ▼                     ▼                      ▼
-  ┌────────────────────┐ ┌──────────────────┐  ┌──────────────────────┐
-  │ benefit_discovery  │ │  form_matcher    │  │   claude_chat        │
-  │ services/          │ │  services/       │  │   services/          │
-  │                    │ │                  │  │                      │
-  │ Claude-first:      │ │ Maps benefits    │  │ Conversational       │
-  │ uses innate VA     │ │ to forms         │  │ assistant            │
-  │ knowledge          │ │                  │  │                      │
-  │                    │ │ Prefills fields  │  │ Branch-aware         │
-  │ Fallback:          │ │ from profile     │  │ greeting             │
-  │ eligibility.py     │ │                  │  │                      │
-  │ rules engine       │ │ Flags missing    │  │ Asks for missing     │
-  └───────────┬────────┘ │ fields           │  │ fields one at a time │
-              │          └────────┬─────────┘  └──────────┬───────────┘
-              │                   │                        │
-              └──────────┬────────┘                        │
-                         ▼                                 ▼
-              ┌──────────────────────┐       ┌─────────────────────────┐
-              │    data/ (JSON)      │       │   Anthropic Claude API  │
-              │                      │       │   (or placeholder mode  │
-              │  veterans.json       │       │    without API key)     │
-              │  benefits_rules.json │       └─────────────────────────┘
-              │  forms_catalog.json  │
-              │  branch_contacts.json│
-              └──────────────────────┘
+    API["⚙️ FastAPI Application\nmain.py\nGET / · GET /api/veterans\nGET /api/eligibility · GET /api/forms\nPOST /api/chat · POST /api/upload stub"]
+
+    BD["benefit_discovery.py\nClaude-first discovery\nrules fallback"]
+    FM["form_matcher.py\nMaps benefits → forms\nPrefills fields · Flags missing"]
+    CC["claude_chat.py\nConversational assistant\nBranch-aware greeting"]
+
+    DATA["data/\nveternas.json\nbenefits_rules.json\nforms_catalog.json\nbranch_contacts.json"]
+
+    CLAUDE["☁️ Anthropic Claude API\nor placeholder mode\nwithout API key"]
+
+    Browser -->|HTTP| API
+    API --> BD
+    API --> FM
+    API --> CC
+    BD --> DATA
+    FM --> DATA
+    CC --> DATA
+    BD -->|Claude-first| CLAUDE
+    CC --> CLAUDE
+    API -->|JSON response| Browser
 ```
 
 ### Diagram 5 — Data Flow: MVP → Next Sprint → Federal
 
-```
-                    DATA FLOW EVOLUTION
-                    ===================
+```mermaid
+flowchart TD
+    subgraph MVP["🟢 MVP — Today"]
+        M1[Veteran data → data/veterans.json\nsynthetic JSON profiles]
+        M2[Benefit rules → data/benefits_rules.json]
+        M3[Form catalog → data/forms_catalog.json]
+        M4[AI model → Anthropic API direct\nor placeholder mode]
+        M5[Infra → Local laptop · uvicorn · no cloud]
+    end
 
-   ┌──────────────────────────────────────────────────────────┐
-   │  MVP (Today)                                             │
-   │                                                          │
-   │  Veteran data ──▶ data/veterans.json (synthetic JSON)   │
-   │  Benefit rules ──▶ data/benefits_rules.json             │
-   │  Form catalog ──▶ data/forms_catalog.json               │
-   │  AI model ──▶ Anthropic API (direct) or placeholder     │
-   │  Infra ──▶ Local laptop · uvicorn · no cloud            │
-   └──────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-   ┌──────────────────────────────────────────────────────────┐
-   │  Next Sprint (Post-Hackathon)                            │
-   │                                                          │
-   │  Veteran data ──▶ DD-214 upload + OCR (AWS Textract)    │
-   │  Benefit rules ──▶ rules engine + Claude nuance layer   │
-   │  Form catalog ──▶ VA Forms API (api.va.gov)             │
-   │  AI model ──▶ Anthropic API + conversation persistence  │
-   │  Output ──▶ Printable PDF package (reportlab)           │
-   │  Infra ──▶ Hosted cloud, no auth yet                    │
-   └──────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-   ┌──────────────────────────────────────────────────────────┐
-   │  Federal Deployment (VA Pilot)                           │
-   │                                                          │
-   │  Veteran data ──▶ VA Identity Service / login.gov       │
-   │  Benefit rules ──▶ VA Benefits API (live data)          │
-   │  Form catalog ──▶ VA Forms API (live + versioned)       │
-   │  AI model ──▶ AWS Bedrock (Claude) · FedRAMP-authorized │
-   │  Infra ──▶ AWS GovCloud · FISMA Low/Moderate ATO        │
-   │  Auth ──▶ VA PIV card or login.gov identity             │
-   └──────────────────────────────────────────────────────────┘
+    subgraph NEXT["🟡 Next Sprint — Post-Hackathon"]
+        N1[Veteran data → DD-214 upload + OCR\nAWS Textract]
+        N2[Benefit rules → rules engine\n+ Claude nuance layer]
+        N3[Form catalog → VA Forms API\napi.va.gov]
+        N4[AI model → Anthropic API\n+ conversation persistence]
+        N5[Output → Printable PDF package\nreportlab]
+        N6[Infra → Hosted cloud · no auth yet]
+    end
+
+    subgraph FED["🔵 Federal Deployment — VA Pilot"]
+        F1[Veteran data → VA Identity Service\nlogin.gov]
+        F2[Benefit rules → VA Benefits API\nlive data]
+        F3[Form catalog → VA Forms API\nlive + versioned]
+        F4[AI model → AWS Bedrock Claude\nFedRAMP-authorized]
+        F5[Infra → AWS GovCloud\nFISMA Low/Moderate ATO]
+        F6[Auth → VA PIV card\nor login.gov identity]
+    end
+
+    MVP -->|Sprint 2–4\nweeks 2–4| NEXT
+    NEXT -->|Months 2–6\nfederal contract| FED
 ```
 
 ### Diagram 6 — Eligibility Approach: Claude-Driven with Rules Fallback
 
-```
-            BENEFIT DISCOVERY — HOW IT WORKS
-            ==================================
+```mermaid
+flowchart TD
+    START([Veteran profile loaded]) --> CHECK{ANTHROPIC_API_KEY\nset in environment?}
 
-   Veteran profile loaded
-          │
-          ▼
-   ┌──────────────────────────────┐
-   │ Is ANTHROPIC_API_KEY set?    │
-   └─────────┬──────────┬─────────┘
-           Yes          No
-             │            │
-             ▼            ▼
-   ┌──────────────┐  ┌───────────────────────┐
-   │ Claude reads │  │ Hardcoded rules engine │
-   │ full veteran │  │ eligibility.py         │
-   │ profile      │  │ RULE_REGISTRY pattern  │
-   │              │  │                        │
-   │ Uses innate  │  │ Pure Python · fast     │
-   │ VA knowledge │  │ auditable · predictable│
-   │ (like a VSO) │  └───────────┬────────────┘
-   │              │              │
-   │ Reasons from │              │
-   │ branch,      │              │
-   │ discharge,   │              │
-   │ conditions,  │              │
-   │ deployments  │              │
-   └──────┬───────┘              │
-          │   ┌──────────────────┘
-          │   │  If Claude fails,
-          │   │  fall back to rules
-          ▼   ▼
-   ┌───────────────────────────────────────┐
-   │  Results — always framed as:          │
-   │  "worth exploring" · NOT "eligible"   │
-   │                                       │
-   │  • Plain-language reason              │
-   │  • Specific to this veteran           │
-   │  • VA.gov "Learn more" link           │
-   │  • "Talk to your VSO" note            │
-   │                                       │
-   │  VetAssist is NOT the decision maker. │
-   │  The VA and the veteran's VSO are.    │
-   └───────────────────────────────────────┘
+    CHECK -->|Yes| CLAUDE["☁️ Claude reads full veteran profile\nUses innate VA knowledge\nReasons from: branch · discharge\ncombat history · conditions · deployments"]
+    CHECK -->|No| RULES["📋 Hardcoded rules engine\nservices/eligibility.py\nRULE_REGISTRY pattern\nPure Python · fast · auditable"]
+
+    CLAUDE -->|Fails or malformed JSON| RULES
+    CLAUDE -->|Success| MERGE
+    RULES --> MERGE
+
+    MERGE["Merge with catalog metadata\nTitles · descriptions · VA.gov links"] --> FRAME
+
+    FRAME["🛡️ Always framed as:\n'worth exploring' — NOT 'eligible'\n\n• Plain-language reason\n• Specific to this veteran\n• VA.gov Learn more link\n• Talk to your VSO note"]
+
+    FRAME --> END([Results returned to frontend])
+
+    NOTE["⚠️ VetAssist is NOT the decision maker.\nThe VA and the veteran's VSO are."]
+    FRAME --- NOTE
+
+    style CLAUDE fill:#e8f0fe,stroke:#4285f4
+    style RULES fill:#fef9e7,stroke:#f0ad4e
+    style FRAME fill:#e8f8e8,stroke:#34a853
+    style NOTE fill:#fff3cd,stroke:#ffc107
 ```
 
 ### Diagram 7 — Service Interaction Map
 
-```
-            SERVICE INTERACTION MAP
-            =======================
-            (main.py ↔ services/)
+```mermaid
+flowchart TD
+    REQ([HTTP Request]) --> MAIN
 
-   HTTP Request
-        │
-        ▼
-   main.py
-   ┌─────────────────────────────────────────────────┐
-   │                                                 │
-   │  GET /api/eligibility/{id}                      │
-   │  GET /api/forms/{id}                            │
-   │  POST /api/chat                                 │
-   │                                                 │
-   │  Both eligibility and forms routes call:        │
-   │  ┌───────────────────────────────────────┐      │
-   │  │  services/benefit_discovery.py        │      │
-   │  │  discover_benefits(veteran)           │      │
-   │  │                                       │      │
-   │  │  ├── _discover_with_claude()          │      │
-   │  │  │     calls Anthropic API            │      │
-   │  │  │     parses JSON response           │      │
-   │  │  │     merges with catalog data       │      │
-   │  │  │                                   │      │
-   │  │  └── _discover_with_rules() fallback │      │
-   │  │        calls services/eligibility.py │      │
-   │  │        check_eligibility()           │      │
-   │  │        RULE_REGISTRY lookup          │      │
-   │  └───────────────────────────────────────┘      │
-   │                                                 │
-   │  GET /api/forms and POST /api/chat also call:  │
-   │  ┌───────────────────────────────────────┐      │
-   │  │  services/form_matcher.py             │      │
-   │  │  get_forms_for_benefits()             │      │
-   │  │  prefill_fields()                     │      │
-   │  │  build_field_summary()                │      │
-   │  └───────────────────────────────────────┘      │
-   │                                                 │
-   │  POST /api/chat also calls:                     │
-   │  ┌───────────────────────────────────────┐      │
-   │  │  services/claude_chat.py              │      │
-   │  │  chat()                               │      │
-   │  │  ├── builds system prompt             │      │
-   │  │  │   (profile + benefits + missing)   │      │
-   │  │  ├── loads branch_contacts.json       │      │
-   │  │  └── calls Anthropic messages.create  │      │
-   │  └───────────────────────────────────────┘      │
-   │                                                 │
-   └─────────────────────────────────────────────────┘
-        │
-        ▼
-   JSON response → frontend (templates/index.html)
+    subgraph MAIN["main.py — all routes"]
+        R1["GET /api/eligibility/{id}"]
+        R2["GET /api/forms/{id}"]
+        R3["POST /api/chat"]
+        R4["POST /api/upload stub"]
+        R5["GET /api/veterans · GET /health"]
+    end
+
+    R1 --> BD
+    R2 --> BD
+    R3 --> BD
+
+    subgraph BD["services/benefit_discovery.py"]
+        BD1["discover_benefits(veteran)"]
+        BD2["_discover_with_claude()\nAnthropics messages.create()\nparse JSON · merge catalog"]
+        BD3["_discover_with_rules() fallback\neligibility.check_eligibility()\nRULE_REGISTRY lookup"]
+        BD1 --> BD2
+        BD2 -->|"failure / no key"| BD3
+    end
+
+    R2 --> FM
+    R3 --> FM
+
+    subgraph FM["services/form_matcher.py"]
+        FM1["get_forms_for_benefits()"]
+        FM2["prefill_fields()"]
+        FM3["build_field_summary()"]
+        FM1 --> FM2 --> FM3
+    end
+
+    R3 --> CC
+
+    subgraph CC["services/claude_chat.py"]
+        CC1["chat(message, veteran,\nbenefits, missing, verified,\nhistory, active_form)"]
+        CC2["Build system prompt\nprofile + benefits + missing fields"]
+        CC3["Load branch_contacts.json\nfor VSO info + branch greeting"]
+        CC4["anthropic.messages.create()\nor placeholder string"]
+        CC1 --> CC2 --> CC3 --> CC4
+    end
+
+    BD --> DATA
+    FM --> DATA
+    CC --> DATA
+
+    subgraph DATA["data/ — JSON files"]
+        D1[veterans.json]
+        D2[benefits_rules.json]
+        D3[forms_catalog.json]
+        D4[branch_contacts.json]
+    end
+
+    BD2 --> ANTHROPIC["☁️ Anthropic Claude API"]
+    CC4 --> ANTHROPIC
+
+    MAIN -->|JSON response| FE(["🌐 templates/index.html\nvanilla JS frontend"])
 ```
 
 ### Eligibility Engine Detail
@@ -411,69 +368,32 @@ and offline environments without compromising the default experience.
 
 ### Diagram 8 — Two-Track Implementation Roadmap
 
-```
-   TWO-TRACK IMPLEMENTATION ROADMAP
-   ==================================
-   Track A: Product depth (more value per veteran)
-   Track B: Infrastructure (production-readiness)
+```mermaid
+flowchart TD
+    MVP["✅ Week 1 — Hackathon MVP\nSynthetic profiles · Rules engine · Prefill\nClaude chat · Forms catalog · Demo frontend\nDisclaimer framing · VA.gov links"]
 
-   Week 1 (NOW — Hackathon MVP)
-   ─────────────────────────────────────────────────
-   ✅ Synthetic profiles · Rules engine · Prefill
-   ✅ Claude chat · Forms catalog · Demo frontend
-   ✅ Disclaimer framing · VA.gov links
+    MVP --> TRACK_A & TRACK_B
 
-         ┌────────────────────────────────────────┐
-         │         Track A — Product              │
-         └────────────────────────────────────────┘
-              │
-              ▼
-         Sprint 2 (weeks 2–4)
-         ─────────────────────────────────
-         DD-214 upload + OCR extraction
-         Printable/email-ready output
-         Conversation persistence
-              │
-              ▼
-         Sprint 3 (months 2–3)
-         ─────────────────────────────────
-         Live VA Forms API integration
-         Multi-benefit workflow
-         VSO warm handoff integration
-              │
-              ▼
-         Sprint 4 (months 4–6)
-         ─────────────────────────────────
-         VA Benefits API (live eligibility)
-         Multi-agency expansion (SSA, HUD)
-         VA login.gov identity
+    subgraph TRACK_A["Track A — Product Depth"]
+        direction TB
+        A2["Sprint 2 — weeks 2–4\nDD-214 upload + OCR extraction\nPrintable / email-ready output\nConversation persistence"]
+        A3["Sprint 3 — months 2–3\nLive VA Forms API integration\nMulti-benefit workflow\nVSO warm handoff integration"]
+        A4["Sprint 4 — months 4–6\nVA Benefits API live eligibility\nMulti-agency expansion SSA · HUD\nVA login.gov identity"]
+        A2 --> A3 --> A4
+    end
 
-         ┌────────────────────────────────────────┐
-         │      Track B — Infrastructure          │
-         └────────────────────────────────────────┘
-              │
-              ▼
-         Sprint 2 (weeks 2–4)
-         ─────────────────────────────────
-         Hosted deployment (no cloud req't)
-         Database (PostgreSQL or DynamoDB)
-         Basic auth layer
-              │
-              ▼
-         Sprint 3 (months 2–3)
-         ─────────────────────────────────
-         AWS Bedrock (Claude endpoint swap)
-         FedRAMP-authorized infrastructure
-         Section 508 accessibility baseline
-              │
-              ▼
-         Sprint 4 (months 4–6)
-         ─────────────────────────────────
-         AWS GovCloud deployment
-         FISMA Low/Moderate ATO process
-         VA PIV / login.gov integration
+    subgraph TRACK_B["Track B — Infrastructure"]
+        direction TB
+        B2["Sprint 2 — weeks 2–4\nHosted deployment\nDatabase PostgreSQL or DynamoDB\nBasic auth layer"]
+        B3["Sprint 3 — months 2–3\nAWS Bedrock Claude endpoint swap\nFedRAMP-authorized infrastructure\nSection 508 accessibility baseline"]
+        B4["Sprint 4 — months 4–6\nAWS GovCloud deployment\nFISMA Low/Moderate ATO process\nVA PIV / login.gov integration"]
+        B2 --> B3 --> B4
+    end
 
-   Estimated path to VA pilot: 6–9 months · 3–4 engineers
+    A4 & B4 --> PILOT(["🎯 VA Pilot\n6–9 months · 3–4 engineers"])
+
+    style MVP fill:#e0f0e0,stroke:#34a853
+    style PILOT fill:#e8f0fe,stroke:#4285f4
 ```
 
 ### Feasibility — Why This Works in One Week

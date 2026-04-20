@@ -31,30 +31,24 @@ service dates on five different forms. Done once. Done right.
 
 ## The demo flow (what judges will see)
 
-```
-VETASSIST DEMO FLOW
-===================
+```mermaid
+flowchart LR
+    S1["Step 1\nSelect Veteran\nProfile"] --> S2["Step 2\nBenefits Worth\nExploring"]
+    S2 --> S3["Step 3\nChoose a Form"]
+    S3 --> S4["Step 4\nConfirm Your Info"]
+    S4 --> S5["Step 5\nFill in the Gaps"]
 
-Step 1          Step 2          Step 3          Step 4          Step 5
-────────        ────────        ────────        ────────        ────────
-Select          Benefits        Choose          Confirm         Fill in
-Veteran         Worth           a Form          Your Info       the Gaps
-Profile         Exploring
-   │               │               │               │               │
-   ▼               ▼               ▼               ▼               ▼
-Veteran         Claude          Form tabs       Field table     Chat box
-dropdown        reads           appear for      with prefill    opens
-appears         profile         each benefit    status          
-                                                                
-Load            Disclaimer      Select          Edit button     Claude asks
-Profile         banner          VA form         on every        missing
-button          shown           (e.g.           prefilled       fields one
-                first           21-526EZ)       field           at a time
-                                                                
-                Benefit         Fields          "This looks     Veteran
-                cards with      prefilled       right —         answers
-                reason +        from profile    Continue"       in plain
-                VA.gov link     shown           gates chat      language
+    S1 -.->|"Veteran dropdown\n+ Load Profile button"| S1
+    S2 -.->|"Disclaimer banner first\nBenefit cards: reason + VA.gov link"| S2
+    S3 -.->|"Form tabs per benefit\ne.g. VA 21-526EZ"| S3
+    S4 -.->|"Fields prefilled from profile\nEdit button on every field\n'This looks right — Continue'"| S4
+    S5 -.->|"Claude asks missing fields\none at a time in plain language"| S5
+
+    style S1 fill:#f5f5f5,stroke:#999
+    style S2 fill:#e8f0fe,stroke:#4285f4
+    style S3 fill:#e8f0fe,stroke:#4285f4
+    style S4 fill:#fef9e7,stroke:#f0ad4e
+    style S5 fill:#e0f0e0,stroke:#34a853
 ```
 
 In the demo, we follow **Maria** — an Army veteran, two combat deployments,
@@ -109,51 +103,30 @@ It's not something you'd be proud to show at a presentation.
 
 **Here's the UX flow you're working with:**
 
-```
-VERIFICATION UX FLOW
-====================
-(Amy's domain — Step 3 and 4 in the frontend)
+```mermaid
+flowchart TD
+    FT(["Veteran lands on\nStep 3 — Field Table"])
 
-   Veteran lands on Step 3 — Field Table
-          │
-          │  Each prefilled field shows:
-          │  ┌──────────────────────────────────────┐
-          │  │ Field Name │ Value from Profile │ ✓ Known │ [Edit] │
-          │  └──────────────────────────────────────┘
-          │
-          │  Missing fields show:
-          │  ┌──────────────────────────────────────┐
-          │  │ Field Name │     —     │ ⚠ Needs answer │      │
-          │  └──────────────────────────────────────┘
-          │
-          ▼
-   Veteran clicks [Edit] on a prefilled field
-          │
-          │  Field becomes inline input:
-          │  ┌──────────────────────────────────┐
-          │  │ [  Current value       ] [Save]  │
-          │  └──────────────────────────────────┘
-          │
-          ▼
-   Veteran clicks [Save]  ──────────────────────┐
-          │                                      │
-          │  Status changes to: ✓ Confirmed      │
-          │  Edit button returns                 │
-          │                                      │ ← This is where a
-          ▼                                      │   green flash would
-   Veteran clicks                                │   land perfectly, Amy.
-   "✓ This looks right — Continue"               │   Short, reassuring.
-          │                                      │
-          ▼                                      │
-   Step 4 — Chat opens ◀────────────────────────┘
-          │
-          │  VetAssist greets the veteran
-          │  by name + branch
-          │
-          │  Asks missing fields ONE at a time
-          │
-          ▼
-   Veteran types answer → assistant confirms → next question
+    FT --> PF["Prefilled fields show:\nField Name · Value from Profile · ✓ Known · Edit button"]
+    FT --> MF["Missing fields show:\nField Name · — · ⚠ Needs answer"]
+
+    PF --> EDIT["Veteran clicks Edit\nField becomes inline input\nwith Save button"]
+    EDIT --> SAVE["Veteran clicks Save"]
+    SAVE --> FLASH["✅ Green flash confirmation\n'Saved' — short and reassuring\n← This is Amy's moment"]
+    FLASH --> STATUS["Status updates to: ✓ Confirmed\nEdit button returns"]
+
+    STATUS --> CONT
+    MF --> CONT
+
+    CONT(["Veteran clicks\n'✓ This looks right — Continue'"])
+    CONT --> CHAT["Step 4 — Chat opens\nVetAssist greets veteran\nby name + branch"]
+    CHAT --> LOOP["Asks missing fields\nONE at a time in plain language"]
+    LOOP --> ANS["Veteran types answer\nAssistant confirms\nmoves to next field"]
+    ANS --> LOOP
+
+    style FLASH fill:#e0f0e0,stroke:#34a853
+    style CHAT fill:#e8f0fe,stroke:#4285f4
+    style CONT fill:#fef9e7,stroke:#f0ad4e
 ```
 
 **Where you'd make this project:**

@@ -46,66 +46,72 @@ This is correct for the MVP — easy to run, demo, and explain to non-technical 
 
 ## Service interaction map
 
-```
-   SERVICE INTERACTION MAP
-   =======================
-   Read this before modifying any route.
+```mermaid
+flowchart TD
+    REQ([HTTP Request]) --> MAIN
 
-   HTTP Request
-        │
-        ▼
-   main.py (all routes)
-   ┌─────────────────────────────────────────────────────────────┐
-   │                                                             │
-   │  GET /api/eligibility/{id}                                  │
-   │  GET /api/forms/{id}                                        │
-   │  POST /api/chat                                             │
-   │                                                             │
-   │  All three of these call first:                             │
-   │  ┌─────────────────────────────────────────────────────┐   │
-   │  │  services/benefit_discovery.py                      │   │
-   │  │  discover_benefits(veteran)                         │   │
-   │  │                                                     │   │
-   │  │  ├── _discover_with_claude()   (if API key set)     │   │
-   │  │  │     anthropic.messages.create()                  │   │
-   │  │  │     parses JSON response                         │   │
-   │  │  │     merges with catalog metadata                 │   │
-   │  │  │     returns None on any failure → triggers fall  │   │
-   │  │  │                                                  │   │
-   │  │  └── _discover_with_rules()   (no key or failure)   │   │
-   │  │        services/eligibility.check_eligibility()     │   │
-   │  │        RULE_REGISTRY dict → per-benefit functions   │   │
-   │  └─────────────────────────────────────────────────────┘   │
-   │                                                             │
-   │  GET /api/forms and POST /api/chat also call:              │
-   │  ┌─────────────────────────────────────────────────────┐   │
-   │  │  services/form_matcher.py                           │   │
-   │  │  get_forms_for_benefits(eligible_ids, catalog)      │   │
-   │  │  prefill_fields(form, veteran)                      │   │
-   │  │  build_field_summary(prefilled_form)                │   │
-   │  └─────────────────────────────────────────────────────┘   │
-   │                                                             │
-   │  POST /api/chat also calls:                                 │
-   │  ┌─────────────────────────────────────────────────────┐   │
-   │  │  services/claude_chat.py                            │   │
-   │  │  chat(user_message, veteran, eligible_benefits,     │   │
-   │  │       missing_fields, verified_fields,              │   │
-   │  │       conversation_history, active_form)            │   │
-   │  │                                                     │   │
-   │  │  ├── builds system prompt from all context above    │   │
-   │  │  ├── loads branch_contacts.json for VSO info        │   │
-   │  │  └── anthropic.messages.create() or placeholder     │   │
-   │  └─────────────────────────────────────────────────────┘   │
-   │                                                             │
-   │  POST /api/upload (stub)                                    │
-   │  POST /api/generate-output (stub)                           │
-   │  GET /api/veterans                                          │
-   │  GET /api/veterans/{id}                                     │
-   │  GET /health                                                │
-   └─────────────────────────────────────────────────────────────┘
-        │
-        ▼
-   JSON response → templates/index.html (vanilla JS frontend)
+    subgraph MAIN["main.py — all routes"]
+        R1["GET /api/eligibility/{id}"]
+        R2["GET /api/forms/{id}"]
+        R3["POST /api/chat"]
+        R4["POST /api/upload stub
+POST /api/generate-output stub"]
+        R5["GET /api/veterans
+GET /api/veterans/{id}
+GET /health"]
+    end
+
+    R1 & R2 & R3 --> BD
+
+    subgraph BD["services/benefit_discovery.py"]
+        BD1["discover_benefits(veteran)"]
+        BD2["_discover_with_claude()
+anthropics.messages.create()
+parse JSON · merge catalog
+returns None on failure"]
+        BD3["_discover_with_rules() fallback
+eligibility.check_eligibility()
+RULE_REGISTRY lookup"]
+        BD1 --> BD2
+        BD2 -->|"failure or no API key"| BD3
+    end
+
+    R2 & R3 --> FM
+
+    subgraph FM["services/form_matcher.py"]
+        FM1["get_forms_for_benefits()"]
+        FM2["prefill_fields()"]
+        FM3["build_field_summary()"]
+        FM1 --> FM2 --> FM3
+    end
+
+    R3 --> CC
+
+    subgraph CC["services/claude_chat.py"]
+        CC1["chat(message, veteran, benefits,
+missing, verified, history, active_form)"]
+        CC2["Build system prompt
+profile + benefits + missing fields"]
+        CC3["Load branch_contacts.json
+VSO info + branch greeting"]
+        CC4["anthropic.messages.create()
+or placeholder string"]
+        CC1 --> CC2 --> CC3 --> CC4
+    end
+
+    BD & FM & CC --> DATA
+
+    subgraph DATA["data/ — JSON files"]
+        D1[veterans.json]
+        D2[benefits_rules.json]
+        D3[forms_catalog.json]
+        D4[branch_contacts.json]
+    end
+
+    BD2 & CC4 --> CLAUDE["☁️ Anthropic Claude API"]
+
+    MAIN -->|"JSON response"| FE(["🌐 templates/index.html
+vanilla JS frontend"])
 ```
 
 ---
@@ -226,38 +232,43 @@ This is intentional for the MVP — simpler, faster, no external dependencies.
 
 **What an agentic version would add:**
 
-```
-AGENTIC FUTURE STATE
-====================
-(Post-MVP — not in scope for the hackathon)
+```mermaid
+flowchart TD
+    START([Veteran profile loaded]) --> AGENT["Benefit discovery agent spawned"]
 
-   Veteran profile loaded
-          │
-          ▼
-   Benefit discovery agent spawned
-          │
-          ├── Tool: search VA.gov policy documents
-          │         (live eligibility rules, PACT Act updates)
-          │
-          ├── Tool: query VA Benefits API
-          │         (live claim status, existing awards)
-          │
-          ├── Tool: query VA Forms API
-          │         (current form versions, required fields)
-          │
-          └── Synthesize findings into "worth exploring" list
+    AGENT --> T1["🔍 Tool: search VA.gov policy documents
+live eligibility rules · PACT Act updates"]
+    AGENT --> T2["📋 Tool: query VA Benefits API
+live claim status · existing awards"]
+    AGENT --> T3["📄 Tool: query VA Forms API
+current form versions · required fields"]
 
-   WHY this is post-MVP:
-   - Adds external API dependencies (VA API access, credentials)
-   - Adds latency (multiple tool calls per session)
-   - Adds failure modes (VA API downtime)
-   - Claude's innate knowledge is already strong for benefit categories
-   - The hackathon judges care about the demo flow, not live API calls
+    T1 & T2 & T3 --> SYNTH["Synthesize findings into
+'worth exploring' list"]
+    SYNTH --> OUT([Results — same framing as today
+but grounded in live VA data])
 
-   WHEN to build it:
-   - After VA API credentials are secured
-   - When the PACT Act or other legislative changes need live tracking
-   - When the app moves from MVP to a real VA pilot
+    WHY["⚠️ WHY this is post-MVP
+
+• Adds external API dependencies
+  VA API access + credentials required
+• Adds latency — multiple tool calls per session
+• Adds failure modes — VA API downtime
+• Claude's innate knowledge is already
+  strong for benefit categories
+• Hackathon judges care about demo flow,
+  not live API calls"]
+
+    WHEN["✅ WHEN to build it
+
+• After VA API credentials are secured
+• When PACT Act or legislative changes
+  need live tracking
+• When app moves from MVP to VA pilot"]
+
+    style WHY fill:#fff3cd,stroke:#ffc107
+    style WHEN fill:#e0f0e0,stroke:#34a853
+    style AGENT fill:#e8f0fe,stroke:#4285f4
 ```
 
 **The right trigger for adding agents:**
