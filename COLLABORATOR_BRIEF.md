@@ -32,23 +32,30 @@ service dates on five different forms. Done once. Done right.
 ## The demo flow (what judges will see)
 
 ```mermaid
-flowchart LR
+flowchart TD
     S1["Step 1\nSelect Veteran\nProfile"] --> S2["Step 2\nBenefits Worth\nExploring"]
     S2 --> S3["Step 3\nChoose a Form"]
     S3 --> S4["Step 4\nConfirm Your Info"]
-    S4 --> S5["Step 5\nFill in the Gaps"]
+    S4 --> S5{"Missing fields?"}
+
+    S5 -->|"Has a source doc\ne.g. DD-214"| S5A["Step 5A\n📷 Photo your document\nClaude vision reads it\n— not OCR —"]
+    S5A --> S5B["Review extracted fields\nEdit button on each one\nConfirm what's correct"]
+    S5B --> S6["Step 6\nChat fills the rest\none question at a time"]
+    S5 -->|"No source doc\nask directly"| S6
 
     S1 -.->|"Veteran dropdown\n+ Load Profile button"| S1
     S2 -.->|"Disclaimer banner first\nBenefit cards: reason + VA.gov link"| S2
     S3 -.->|"Form tabs per benefit\ne.g. VA 21-526EZ"| S3
     S4 -.->|"Fields prefilled from profile\nEdit button on every field\n'This looks right — Continue'"| S4
-    S5 -.->|"Claude asks missing fields\none at a time in plain language"| S5
+    S6 -.->|"Claude asks missing fields\none at a time in plain language"| S6
 
     style S1 fill:#f5f5f5,stroke:#999
     style S2 fill:#e8f0fe,stroke:#4285f4
     style S3 fill:#e8f0fe,stroke:#4285f4
     style S4 fill:#fef9e7,stroke:#f0ad4e
-    style S5 fill:#e0f0e0,stroke:#34a853
+    style S5A fill:#fff3cd,stroke:#ffc107
+    style S5B fill:#fff3cd,stroke:#ffc107
+    style S6 fill:#e0f0e0,stroke:#34a853
 ```
 
 In the demo, we follow **Maria** — an Army veteran, two combat deployments,
@@ -70,16 +77,20 @@ The foundation is built and running locally. Here's where things stand:
   when no API key is set. **No hardcoded decisions in the default path.**
 - 5 real VA forms with field-level metadata and VA.gov links
 - Field prefill logic — knows which fields it can fill vs. what to ask for
+- **Document photo-to-prefill** — when a field is missing, the UI shows which document
+  likely has it (e.g. DD-214). The veteran can photograph that document; Claude reads it
+  using multimodal vision (not OCR — it understands the form semantically), extracts the
+  fields, and presents them for the veteran to confirm before anything populates
 - Conversational Claude assistant (live with API key, graceful placeholder without)
-- Single-page HTML frontend with disclaimer banner, benefit cards, form tables, chat
+- Single-page HTML frontend with disclaimer banner, benefit cards, form tables, chat,
+  document upload button on missing field rows, and vision confirmation modal
 
 **Already in the repo:**
-- Mockup images of non-digitized VA forms (DD-214, 21-4142, 21-0781) in `forms_to_verify/`
-  to demonstrate the upload-and-extract concept in the video demo
+- Mockup images of DD-214, 21-4142, and 21-0781 in `forms_to_verify/` —
+  use these to demo the document photo-to-prefill flow during the video
 
 **Not built yet (intentionally):**
 - PDF output / printable package (deferred — doesn't affect the main demo)
-- Real document OCR (stubbed out — the concept shows clearly in the demo)
 - Authentication / database (not needed for a local MVP)
 
 ---
@@ -175,55 +186,26 @@ who can speak credibly to Joe (CTO) when he asks the hard questions.
 
 **Where you'd add real value:**
 
-1. **DD-214 upload stub — highest demo value, 2–3 hours**
+1. **Document vision review — this is already built, 1–2 hours to review + test**
 
-   `POST /api/upload` currently returns a descriptive not-implemented message.
-   For the demo, it would be significantly more impressive to show the concept working —
-   even a fake version.
+   `POST /api/upload` is fully implemented using Claude multimodal vision — not a stub.
+   `GET /api/upload/suggestions/{veteran_id}` is also real — it tells the frontend which
+   document type has the veteran's missing fields, so the UI can show the “📷 From DD-214”
+   button on the right row.
 
-   Here's exactly what to build:
+   The frontend also has the full upload flow: hidden file input, upload button per missing field,
+   vision confirm modal with editable fields, and `confirmVisionFields()` that merges into state.
 
-   ```python
-   # In main.py, replace the upload stub body with:
-   #
-   # Accept any file upload (don't actually process it in the stub).
-   # Return hardcoded extracted fields that match the DD-214 mockup in forms_to_verify/.
-   # The frontend would merge these into the prefill context.
-   #
-   # WHY hardcoded: this is a demo stub. We're showing the concept,
-   # not the OCR pipeline. Real OCR comes post-MVP (AWS Textract).
-
-   from fastapi import UploadFile, File
-
-   @app.post("/api/upload")
-   async def upload_document(file: UploadFile = File(...)):
-       """
-       DEMO STUB — simulates DD-214 OCR extraction.
-       Returns hardcoded fields from the Maria Sanchez mockup.
-       Post-MVP: replace with real OCR (pytesseract or AWS Textract).
-       """
-       return {
-           "status": "extracted",
-           "filename": file.filename,
-           "extracted_fields": {
-               "full_name":      "Maria Sanchez",
-               "branch":         "Army",
-               "service_start":  "2003-06-15",
-               "service_end":    "2012-09-30",
-               "discharge_type": "Honorable",
-               "ssn_last4":      "****",
-               "mos":            "68W — Healthcare Specialist",
-           },
-           "note": (
-               "These fields were extracted from your document. "
-               "Please verify each one before continuing."
-           ),
-       }
+   **Your job:** test the full flow end-to-end with a real API key:
+   ```bash
+   # Load Maria (vet_001), select the 21-0781 form
+   # Click "From DD-214" on a missing field row
+   # Upload: forms_to_verify/DD_214_mockup_example.png
+   # Confirm the extracted fields in the modal
+   # Verify the field table updates correctly
    ```
-
-   Then in `templates/index.html`, add an upload button near the profile card
-   that calls `POST /api/upload` and merges the returned fields into `state.verifiedFields`.
-   The field table should update immediately to show what was extracted.
+   If anything is off, fix it. Read `services/document_vision.py` for the extraction logic
+   and `templates/index.html` for the upload/confirm UI. Architecture is in `CLAUDE.md`.
 
 2. **Stress test eligibility edge cases**
    - Malformed date strings in veteran profiles (e.g. `"service_start": null`)
@@ -253,7 +235,7 @@ who can speak credibly to Joe (CTO) when he asks the hard questions.
    quality gate before recording.
 
 **Time ask:** 4–8 hours across the week.
-**What you'd own:** Upload stub implementation, edge case testing, architecture Q&A prep,
+**What you'd own:** Document vision end-to-end test, edge case testing, architecture Q&A prep,
 clean install verification.
 
 ---

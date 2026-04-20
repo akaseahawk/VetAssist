@@ -39,13 +39,14 @@ API ENDPOINTS:
     GET  /api/eligibility/{id}      → run benefit eligibility for a veteran
     GET  /api/forms/{id}            → matched forms + prefilled fields for a veteran
     POST /api/chat                  → send a message to the conversational assistant
-    POST /api/upload                → (stub) future: accept DD214/PDF and extract fields
+    POST /api/upload                → accept document photo, extract fields via Claude vision
+    GET  /api/upload/suggestions/{id}→ return which document types have a veteran's missing fields
     POST /api/generate-output       → (stub) future: produce printable/email output
     GET  /health                    → health check
 
 TODO (post-MVP — do not add these to the MVP):
-    - POST /api/upload: accept DD214 or flat PDF, OCR it, merge fields into prefill
     - POST /api/generate-output: produce a printable PDF or email-ready package
+    - Expand document_vision.py: add more DOCUMENT_FIELD_DEFINITIONS beyond DD-214 and 21-4142
     - Authentication via login.gov or VA identity service
     - Replace JSON files with PostgreSQL or DynamoDB
     - Deploy to AWS Bedrock + GovCloud for FedRAMP-eligible federal use

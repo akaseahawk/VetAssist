@@ -15,9 +15,12 @@ Some forms:
 - Are physically handed to veterans at VA offices, military bases, or VSO offices
 - Are forms a veteran may photograph with their phone and need help reading and filling out
 
-VetAssist's upload-and-extract feature (post-MVP OCR sprint) will let veterans
-photograph or scan these forms and have VetAssist extract the context, identify
-what fields are needed, and walk them through completion.
+VetAssist's document photo-to-prefill feature — built and working in the current MVP —
+lets veterans photograph these documents and send the image to Claude, which reads it
+using multimodal vision (not OCR). Claude understands the document semantically:
+it knows what a DD-214 looks like and where each field lives, even in a tilted phone photo.
+Extracted fields are shown to the veteran for review and confirmation before anything
+populates their form.
 
 ---
 
@@ -53,12 +56,16 @@ During the VetAssist demo:
 2. VetAssist identifies she needs VA Form 21-0781 (PTSD Stressor Statement) —
    which is **not a truly digitized form online** (no structured data entry flow)
 3. The demo shows the mockup image of the form as if Maria photographed it from a VA office
-4. VetAssist's upload path would extract the context from the image and identify
-   which fields still need input
-5. The chat assistant walks through the missing fields in plain language
+4. The veteran clicks the “📷 From DD-214” button on a missing field row and uploads a photo
+5. Claude reads the document image and extracts the relevant fields
+6. The veteran reviews each extracted value in the confirmation modal and edits anything wrong
+7. Confirmed fields populate the form table automatically
+8. The chat assistant asks for any remaining fields in plain language
 
-This demonstrates one of VetAssist's most differentiated capabilities: **handling the
-last mile of paper-based, non-digital forms** that existing VA tools leave veterans to figure out alone.
+This demonstrates one of VetAssist's most differentiated capabilities: **reading paper
+documents the veteran already has and using that information to prefill new forms** —
+something no existing VA tool does. The veteran never has to re-type information from a
+document they're already holding.
 
 ---
 

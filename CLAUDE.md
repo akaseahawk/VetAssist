@@ -25,8 +25,9 @@ main.py                     FastAPI app — all routes live here
 services/
   benefit_discovery.py      Claude-first benefit discovery; rules fallback
   eligibility.py            Hardcoded rules engine (fallback mode only)
-  form_matcher.py           Maps benefits → forms, prefills fields from profile
+  form_matcher.py           Maps benefits → forms, prefills fields, flags missing
   claude_chat.py            Conversational assistant (Anthropic API or placeholder)
+  document_vision.py        Claude multimodal vision — reads document photos, extracts fields
 data/
   veterans.json             3 synthetic veteran profiles (no real PII)
   benefits_rules.json       5 benefit definitions used by the rules fallback
@@ -36,7 +37,7 @@ templates/
   index.html                Single-page frontend (vanilla JS, no framework)
 forms_to_verify/
   README.md                 Explains the folder and mockup images
-  *.png                     Mockup images of non-digitized VA forms
+  *.png                     Mockup images for testing document photo-to-prefill flow
 ```
 
 **The data layer is JSON files.** There is no database.
@@ -54,11 +55,12 @@ flowchart TD
         R1["GET /api/eligibility/{id}"]
         R2["GET /api/forms/{id}"]
         R3["POST /api/chat"]
-        R4["POST /api/upload stub
-POST /api/generate-output stub"]
+        R4["POST /api/upload
+GET /api/upload/suggestions/{id}"]
         R5["GET /api/veterans
 GET /api/veterans/{id}
 GET /health"]
+        R6["POST /api/generate-output stub"]
     end
 
     R1 & R2 & R3 --> BD
@@ -76,12 +78,14 @@ RULE_REGISTRY lookup"]
         BD2 -->|"failure or no API key"| BD3
     end
 
-    R2 & R3 --> FM
+    R2 & R3 & R4 --> FM
 
     subgraph FM["services/form_matcher.py"]
         FM1["get_forms_for_benefits()"]
-        FM2["prefill_fields()"]
+        FM2["prefill_fields()
+returns source_documents per field"]
         FM3["build_field_summary()"]
+        FM4["get_missing_fields_for_veteran()"]
         FM1 --> FM2 --> FM3
     end
 
@@ -99,7 +103,22 @@ or placeholder string"]
         CC1 --> CC2 --> CC3 --> CC4
     end
 
-    BD & FM & CC --> DATA
+    R4 --> DV
+
+    subgraph DV["services/document_vision.py"]
+        DV1["extract_fields_from_image()
+Send image bytes to Claude vision
+parse JSON → structured field dict"]
+        DV2["suggest_source_documents()
+Given missing field keys
+return which doc type covers them"]
+        DV3["DOCUMENT_FIELD_DEFINITIONS
+DD-214 · 21-4142 · GENERIC"]
+        DV1 --- DV3
+        DV2 --- DV3
+    end
+
+    BD & FM & CC & DV --> DATA
 
     subgraph DATA["data/ — JSON files"]
         D1[veterans.json]
@@ -108,7 +127,8 @@ or placeholder string"]
         D4[branch_contacts.json]
     end
 
-    BD2 & CC4 --> CLAUDE["☁️ Anthropic Claude API"]
+    BD2 & CC4 & DV1 --> CLAUDE["☁️ Anthropic Claude API
+(text + multimodal vision)"]
 
     MAIN -->|"JSON response"| FE(["🌐 templates/index.html
 vanilla JS frontend"])
@@ -174,8 +194,9 @@ These apply in BOTH modes and cannot be relaxed:
 | Veteran profile loading | REAL | Reads from data/veterans.json |
 | Benefit discovery | REAL | Claude-first; rules fallback |
 | Form field prefill | REAL | Maps profile fields to form fields |
+| Document type suggestions | REAL | suggest_source_documents() — tells veteran which doc has missing fields |
+| Document photo → field extraction | REAL (with API key) | Claude multimodal vision in document_vision.py; veteran confirms every field |
 | Conversational assistant | REAL (with API key) | Placeholder string without key |
-| Document upload / OCR | STUB | Endpoint exists, returns descriptive message |
 | PDF generation / output | STUB | Endpoint exists, returns descriptive message |
 | VA API integration | STUB | Uses local JSON instead |
 | Authentication | NOT IMPLEMENTED | Not needed for MVP |
@@ -279,9 +300,11 @@ you add a targeted search tool for that uncertainty. Not before.
 
 ## What to build next (post-MVP priority order)
 
-1. **Document upload + OCR** — Accept DD214 or flat PDF, extract text, merge into prefill
-   - Tools: pytesseract (local), AWS Textract (cloud/federal)
-   - Endpoint: POST /api/upload (stub already exists, Nick's task for the hackathon)
+1. **Expand document vision** — Currently supports DD-214 and 21-4142 in DOCUMENT_FIELD_DEFINITIONS.
+   Add more document types (VA award letters, service records, medical nexus letters).
+   For federal deployment, swap Claude vision for AWS Textract (FedRAMP-authorized).
+   - Endpoint: POST /api/upload is real and working; GET /api/upload/suggestions/{id} is also live.
+   - See services/document_vision.py for the extraction logic and field definitions.
 
 2. **Printable output** — Generate a PDF package with prefilled fields, cover note, next steps
    - Tools: reportlab or weasyprint
@@ -303,6 +326,38 @@ you add a targeted search tool for that uncertainty. Not before.
 7. **Database** — Replace JSON files with PostgreSQL or DynamoDB once data grows
 
 8. **Agentic benefit discovery** — See agentic future state section above
+
+---
+
+## How document photo-to-prefill works
+
+This is a built, working feature in the MVP. Read this before modifying it.
+
+**Why Claude vision and not OCR:**
+Traditional OCR fails on skewed photos, stamps, handwriting, and low-contrast backgrounds
+— all common in veteran documents. Claude vision understands documents semantically:
+it knows what a DD-214 looks like, where the discharge type box is, and what to do with
+a partial or obscured field. No special dependencies needed beyond the Anthropic SDK.
+
+**Key constraint — never auto-fill:**
+Every field extracted from a document photo must be confirmed by the veteran before
+it populates their form. A blurry photo or redacted field can produce a wrong value.
+The frontend enforces this via the vision confirm modal in `templates/index.html`.
+
+**The two functions in document_vision.py:**
+- `extract_fields_from_image()` — sends image bytes + target field list to Claude vision,
+  returns a structured dict of extracted values
+- `suggest_source_documents()` — given a list of missing field keys, returns which
+  document types (DD-214, 21-4142) are likely to contain those fields
+
+**How the frontend uses it:**
+1. `GET /api/upload/suggestions/{veteran_id}` is called after forms load
+2. The response tells the frontend which missing fields have a known source document
+3. A “📷 From DD-214” button appears on those field rows
+4. Veteran taps it — file picker opens (camera on mobile)
+5. File is sent to `POST /api/upload` with `document_type` and `requested_fields`
+6. Extracted fields appear in the vision confirm modal — all editable
+7. Veteran confirms → fields move to `state.verifiedFields` → field table updates
 
 ---
 

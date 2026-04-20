@@ -76,8 +76,12 @@ Three things, in order:
 **Understand** — Read the veteran's profile and surface the benefits worth exploring
 in plain language, with reasons specific to that veteran's situation.
 
-**Prepare** — Show the required forms, prefill every field already known,
-and ask for missing information conversationally — one question at a time.
+**Prepare** — Show the required forms, prefill every field already known
+from the veteran's profile, and surface which other documents (like a DD-214)
+may already have the missing information. The veteran can take a photo of that
+document — Claude reads it using computer vision (not OCR), extracts the fields,
+and presents them for the veteran to review and confirm before anything populates.
+For fields with no document source, Claude asks conversationally — one question at a time.
 
 **Connect** — Point the veteran to their VSO, the VA, and the specific VA.gov pages
 they need. VetAssist prepares them. The VA and VSO make the final call.
@@ -96,9 +100,16 @@ flowchart TD
     subgraph PREPARE["📋 PREPARE"]
         P1[Show required forms]
         P2[Prefill every known field\nfrom veteran profile]
-        P3[Flag missing fields\nask one at a time via chat]
-        P4[Veteran edits any\nprefilled field before continuing]
-        P1 --> P2 --> P3 --> P4
+        P3[Flag missing fields]
+        P4["Suggest source documents:\nYour DD-214 has 4 of these fields"]
+        P5["📷 Veteran photos document\nClaude vision reads it\n— not OCR —"]
+        P6[Veteran reviews + confirms\neach extracted field]
+        P7[Remaining gaps filled\nconversationally via chat]
+        P8[Veteran edits any\nprefilled field before continuing]
+        P1 --> P2 --> P3
+        P3 --> P4 --> P5 --> P6 --> P7
+        P3 --> P7
+        P7 --> P8
     end
 
     subgraph CONNECT["🔗 CONNECT"]
@@ -152,10 +163,10 @@ This question will come up. Here's the honest answer:
 | **VA Form Wizard** | Helps pick the right form for a single benefit | One form at a time, no prefill, no conversational follow-up |
 | **benefits.gov** | Lists federal programs with eligibility criteria | No form prefill, no veteran-specific reasoning, no follow-up |
 | **VSO appointment** | Expert human guidance | Requires scheduling, often weeks out, inconsistent availability |
-| **VetAssist** | Discovers likely benefits from profile, maps to forms, prefills known fields, asks for the rest conversationally | Not a determination — prepares veteran for VSO/VA conversation |
+| **VetAssist** | Discovers likely benefits from profile, maps to forms, prefills known fields from profile, suggests which documents (DD-214, etc.) may have missing fields, reads those documents with Claude vision, asks for the rest conversationally | Not a determination — prepares veteran for VSO/VA conversation |
 
-The gap VetAssist fills: **no single existing tool does discovery + prefill + conversational guidance in one session**.
-VA.gov has the information. VetAssist connects it to the veteran's specific situation.
+The gap VetAssist fills: **no single existing tool does discovery + prefill + document vision + conversational guidance in one session**.
+VA.gov has the information. VetAssist connects it to the veteran's specific situation — including reading the paper documents they already have.
 
 ### Why Now
 
@@ -196,11 +207,12 @@ and saved 2 hours each, that's ~200,000 veteran-hours recovered per year.
 flowchart TD
     Browser["🌐 Veteran's Browser\ntemplates/index.html\nvanilla JS · no build step"]
 
-    API["⚙️ FastAPI Application\nmain.py\nGET / · GET /api/veterans\nGET /api/eligibility · GET /api/forms\nPOST /api/chat · POST /api/upload stub"]
+    API["⚙️ FastAPI Application\nmain.py\nGET / · GET /api/veterans\nGET /api/eligibility · GET /api/forms\nPOST /api/chat\nPOST /api/upload · GET /api/upload/suggestions/{id}"]
 
     BD["benefit_discovery.py\nClaude-first discovery\nrules fallback"]
-    FM["form_matcher.py\nMaps benefits → forms\nPrefills fields · Flags missing"]
+    FM["form_matcher.py\nMaps benefits → forms\nPrefills fields · Flags missing\nReturns source_documents per field"]
     CC["claude_chat.py\nConversational assistant\nBranch-aware greeting"]
+    DV["document_vision.py\nClaude multimodal vision\nExtract fields from photo\nsuggest_source_documents()"]
 
     DATA["data/\nveternas.json\nbenefits_rules.json\nforms_catalog.json\nbranch_contacts.json"]
 
@@ -210,11 +222,14 @@ flowchart TD
     API --> BD
     API --> FM
     API --> CC
+    API -->|"POST /api/upload"| DV
     BD --> DATA
     FM --> DATA
     CC --> DATA
+    DV --> DATA
     BD -->|Claude-first| CLAUDE
     CC --> CLAUDE
+    DV -->|"Claude vision\nmultimodal"| CLAUDE
     API -->|JSON response| Browser
 ```
 
@@ -290,13 +305,23 @@ flowchart TD
         R1["GET /api/eligibility/{id}"]
         R2["GET /api/forms/{id}"]
         R3["POST /api/chat"]
-        R4["POST /api/upload stub"]
+        R4["POST /api/upload\nGET /api/upload/suggestions/{id}"]
         R5["GET /api/veterans · GET /health"]
     end
 
     R1 --> BD
     R2 --> BD
     R3 --> BD
+    R4 --> DV
+    R4 --> FM
+
+    subgraph DV["services/document_vision.py"]
+        DV1["extract_fields_from_image()\nSends photo bytes to Claude vision\nReturns structured field dict"]
+        DV2["suggest_source_documents()\nGiven missing field keys\nreturns which doc type has them"]
+        DV3["DOCUMENT_FIELD_DEFINITIONS\nDD-214 · 21-4142 · GENERIC\nField layouts Claude looks for"]
+        DV1 --- DV3
+        DV2 --- DV3
+    end
 
     subgraph BD["services/benefit_discovery.py"]
         BD1["discover_benefits(veteran)"]
@@ -337,8 +362,9 @@ flowchart TD
         D4[branch_contacts.json]
     end
 
-    BD2 --> ANTHROPIC["☁️ Anthropic Claude API"]
+    BD2 --> ANTHROPIC["☁️ Anthropic Claude API\n(text + multimodal vision)"]
     CC4 --> ANTHROPIC
+    DV1 --> ANTHROPIC
 
     MAIN -->|JSON response| FE(["🌐 templates/index.html\nvanilla JS frontend"])
 ```
@@ -372,7 +398,8 @@ and offline environments without compromising the default experience.
 | Form field prefill | **Real** | Maps profile fields to form field metadata |
 | VA form titles and VA.gov links | **Real** | 5 actual VA forms with public URLs |
 | Conversational assistant | **Real** (with API key) | Graceful placeholder without |
-| Document upload / OCR | **Stub** | Endpoint exists; returns descriptive message |
+| Document photo → prefill (Claude vision) | **Real** (with API key) | Veteran photos a DD-214 or other doc; Claude extracts fields; veteran confirms before anything populates |
+| Document type suggestions | **Real** | System tells veteran which document likely has each missing field |
 | Printable PDF output | **Stub** | Endpoint exists; returns descriptive message |
 | VA API integration | **Stub** | Uses local JSON instead |
 | Veteran PII | **Synthetic** | No real data used |
@@ -390,13 +417,13 @@ and offline environments without compromising the default experience.
 
 ```mermaid
 flowchart TD
-    MVP["✅ Week 1 — Hackathon MVP\nSynthetic profiles · Rules engine · Prefill\nClaude chat · Forms catalog · Demo frontend\nDisclaimer framing · VA.gov links"]
+    MVP["✅ Week 1 — Hackathon MVP\nSynthetic profiles · Claude benefit discovery · Prefill\nClaude chat · Forms catalog · Demo frontend\nDocument photo-to-prefill via Claude vision\nDisclaimer framing · VA.gov links"]
 
     MVP --> TRACK_A & TRACK_B
 
     subgraph TRACK_A["Track A — Product Depth"]
         direction TB
-        A2["Sprint 2 — weeks 2–4\nDD-214 upload + OCR extraction\nPrintable / email-ready output\nConversation persistence"]
+        A2["Sprint 2 — weeks 2–4\nPrintable / email-ready output\nConversation persistence\nExpand document vision beyond DD-214 + 21-4142"]
         A3["Sprint 3 — months 2–3\nLive VA Forms API integration\nMulti-benefit workflow\nVSO warm handoff integration"]
         A4["Sprint 4 — months 4–6\nVA Benefits API live eligibility\nMulti-agency expansion SSA · HUD\nVA login.gov identity"]
         A2 --> A3 --> A4
@@ -478,7 +505,7 @@ flowchart TD
 | Criterion | Weight | How VetAssist Addresses It |
 |-----------|--------|---------------------------|
 | **Impact** | 30% | Reduces veteran friction in a high-stakes process; clear federal proposal path |
-| **Originality** | 25% | Combines benefit discovery, form mapping, prefill, and conversational guidance — no single VA tool does all four |
+| **Originality** | 25% | Combines benefit discovery, form mapping, prefill, document photo-to-prefill (Claude vision), and conversational guidance — no single VA tool does all five |
 | **Feasibility** | 20% | Runs locally today; realistic one-week scope; clear post-MVP roadmap |
 | **Clarity** | 15% | One-screen demo, plain-language output, diagrams, before/after story |
 | **Collaboration** | 10% | Three defined teammate roles with clear ownership and bounded time commitment |
@@ -501,9 +528,12 @@ She Googles "VA disability forms," finds a 47-page PDF, and gives up.
 2. In seconds, she sees benefits worth exploring: disability compensation, PTSD benefits, VA health care
 3. She sees matching forms — one flagged as "not fully digitized"
 4. Most fields are already filled in from her profile (name, service dates, branch, conditions)
-5. The chat assistant asks her one question at a time for the rest
-6. She answers conversationally. The assistant confirms and moves to the next.
-7. She sees a summary ready to bring to her VSO or the VA
+5. For missing fields, VetAssist tells her: “Your DD-214 may have 3 of these — do you have it nearby?”
+6. She photographs her DD-214 with her phone and uploads the photo
+7. Claude reads the document image (not OCR — it understands the form semantically), extracts the fields, and shows them to Maria for review
+8. She confirms the extracted values — each one shows with an Edit button so she can correct anything
+9. The chat assistant asks for any remaining fields one at a time in plain language
+10. She sees a summary ready to bring to her VSO or the VA
 
 **The before/after:** hours of confusion just to know where to start → under 30 minutes, guided.
 The 102-day adjudication clock is the VA's. The confusion before it starts is ours to solve.
