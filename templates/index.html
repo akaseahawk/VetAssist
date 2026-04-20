@@ -739,12 +739,29 @@ function renderFormDetail(form) {
         </td>
       </tr>`;
     } else {
-      // Missing field — show placeholder, Claude will ask in chat
+      // Missing field — show placeholder, suggest a source document if we know one
+      // WHY source_documents: the catalog tells us which VA docs contain this field.
+      // We show a "Photo from doc" button only when a known source document exists.
+      const sourceDocs = field.source_documents || [];
+      const uploadHint = sourceDocs.length > 0
+        ? `<button class="btn btn-outline" style="font-size:0.78rem;padding:0.2rem 0.7rem;"
+             onclick="triggerDocUpload('${field.key}', '${sourceDocs[0]}', event)"
+             title="Upload a photo of your ${sourceDocs[0]} to fill this automatically">
+             📷 From ${sourceDocs[0]}
+           </button>`
+        : "";
       return `<tr id="row-${field.key}">
-        <td>${escHtml(field.label)}</td>
+        <td>
+          ${escHtml(field.label)}
+          ${sourceDocs.length > 0
+            ? `<div style="font-size:0.72rem;color:#888;margin-top:2px;">
+                Your ${sourceDocs.join(" or ")} may have this
+               </div>`
+            : ""}
+        </td>
         <td id="val-${field.key}" style="color:#bbb;">—</td>
         <td><span class="status-ask">Needs answer</span></td>
-        <td></td>
+        <td>${uploadHint}</td>
       </tr>`;
     }
   }).join("");
@@ -931,5 +948,203 @@ function escHtml(str) {
 // ---------------------------------------------------------------------------
 init();
 </script>
+<!-- Hidden file input for document photo uploads -->
+<!-- WHY hidden: we trigger it programmatically from the upload button in the field table -->
+<input
+  type="file"
+  id="doc-upload-input"
+  accept="image/jpeg,image/png,image/webp,image/gif"
+  style="display:none"
+  onchange="handleDocUpload(event)"
+/>
+
+<!-- Vision extraction confirmation modal -->
+<!-- WHY a modal and not auto-fill: veteran must confirm every extracted value -->
+<div id="vision-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55);
+     z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:10px; padding:2rem; max-width:540px; width:90%;
+              max-height:80vh; overflow-y:auto; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+    <h3 style="margin:0 0 0.5rem; color:#1a3a6b;">📋 Review Extracted Fields</h3>
+    <p id="vision-modal-note" style="font-size:0.9rem; color:#555; margin:0 0 1rem;"></p>
+    <p style="font-size:0.82rem; color:#888; margin:0 0 1rem;">
+      ⚠️ Review each value carefully. Edit anything that looks wrong before confirming.
+      These values came from your document photo — blurry or partial images may be inaccurate.
+    </p>
+    <div id="vision-modal-fields"></div>
+    <div style="margin-top:1.2rem; display:flex; gap:0.7rem; justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeVisionModal()">Cancel</button>
+      <button class="btn" onclick="confirmVisionFields()">✓ Confirm &amp; Populate Fields</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Document vision upload flow
+// Triggered when veteran clicks "📷 From DD-214" on a missing field row.
+// ---------------------------------------------------------------------------
+
+// Track which field triggered the upload and which document type we're reading
+state.pendingUploadField  = null;  // field key that triggered the upload
+state.pendingDocumentType = null;  // "DD-214", "21-4142", etc.
+state.visionExtracted     = {};    // staging area — confirmed fields move to verifiedFields
+
+function triggerDocUpload(fieldKey, documentType, event) {
+  // WHY we store context before opening the file picker:
+  // The file input's onchange fires without knowing what triggered it,
+  // so we stash which field and document type we're targeting.
+  state.pendingUploadField  = fieldKey;
+  state.pendingDocumentType = documentType;
+  document.getElementById("doc-upload-input").click();
+}
+
+async function handleDocUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Reset the input so the same file can be re-uploaded if needed
+  event.target.value = "";
+
+  // Show loading state in the field row
+  const fieldKey    = state.pendingUploadField;
+  const documentType = state.pendingDocumentType;
+  const valCell = document.getElementById(`val-${fieldKey}`);
+  if (valCell) valCell.textContent = "Reading document…";
+
+  // Build all the missing field keys across the current form — ask Claude to extract all of them
+  // WHY all missing fields, not just the one clicked:
+  // If the veteran has their DD-214 open, one upload can fill multiple fields at once.
+  // We only ask Claude for fields this document type is known to contain.
+  const allMissingKeys = Array.from(
+    document.querySelectorAll(".status-ask")
+  ).map(el => {
+    const row = el.closest("tr");
+    return row ? row.id.replace("row-", "") : null;
+  }).filter(Boolean);
+
+  // Build form data for multipart upload
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("document_type", documentType);
+  formData.append("requested_fields", allMissingKeys.join(","));
+
+  try {
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+      // WHY no Content-Type header: browser sets it automatically with the boundary
+      // for multipart/form-data. Setting it manually breaks the boundary.
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Upload failed" }));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+
+    const result = await res.json();
+
+    if (!result.success) {
+      // Show error in the field cell
+      if (valCell) valCell.innerHTML = `<span style="color:#c00;">⚠ ${escHtml(result.note)}</span>`;
+      return;
+    }
+
+    // Restore the cell to its missing state — results go in the modal
+    if (valCell) valCell.innerHTML = `<span style="color:#bbb;">—</span>`;
+
+    // Show the confirmation modal with extracted fields
+    openVisionModal(result);
+
+  } catch (err) {
+    if (valCell) valCell.innerHTML = `<span style="color:#c00;">⚠ ${escHtml(err.message)}</span>`;
+  }
+}
+
+function openVisionModal(result) {
+  // Build a confirmation form for each extracted field with a non-null value
+  // WHY editable inputs and not just display values:
+  // The veteran must be able to correct any field before confirming.
+  const extracted = result.extracted_fields || {};
+  const fieldsDiv = document.getElementById("vision-modal-fields");
+
+  // Stash extracted values so confirmVisionFields() can access them
+  state.visionExtracted = {};
+
+  const rows = Object.entries(extracted)
+    .filter(([, val]) => val !== null && val !== undefined)
+    .map(([key, val]) => {
+      // Find the human-readable label for this field key
+      const fieldDef = state.activeForm?.fields?.find(f => f.key === key);
+      const label = fieldDef?.label || key;
+      state.visionExtracted[key] = val;
+
+      return `
+        <div style="margin-bottom:0.8rem;">
+          <label style="font-size:0.82rem; font-weight:600; color:#1a3a6b; display:block; margin-bottom:0.2rem;">
+            ${escHtml(label)}
+          </label>
+          <input
+            type="text"
+            id="vision-field-${key}"
+            value="${escHtml(String(val))}"
+            style="width:100%; padding:0.4rem 0.6rem; border:1px solid #ccc; border-radius:5px;
+                   font-size:0.9rem; box-sizing:border-box;"
+            oninput="state.visionExtracted['${key}'] = this.value"
+          />
+        </div>`;
+    });
+
+  if (rows.length === 0) {
+    fieldsDiv.innerHTML = `<p style="color:#888;">No fields could be extracted from this image.</p>`;
+  } else {
+    fieldsDiv.innerHTML = rows.join("");
+  }
+
+  document.getElementById("vision-modal-note").textContent = result.note || "";
+  const modal = document.getElementById("vision-modal");
+  modal.style.display = "flex";
+}
+
+function closeVisionModal() {
+  document.getElementById("vision-modal").style.display = "none";
+  state.visionExtracted = {};
+}
+
+function confirmVisionFields() {
+  // Move all confirmed extracted values into state.verifiedFields
+  // WHY verifiedFields and not direct form state:
+  // verifiedFields is the single source of truth for confirmed data.
+  // The field table, chat context, and form output all read from it.
+  Object.entries(state.visionExtracted).forEach(([key, val]) => {
+    if (val !== null && val !== undefined && String(val).trim() !== "") {
+      state.verifiedFields[key] = String(val).trim();
+    }
+  });
+
+  closeVisionModal();
+
+  // Re-render the form detail to show newly populated fields
+  // WHY re-render: field rows need to flip from "Needs answer" to "✓ Known"
+  if (state.activeForm) {
+    // Merge verified fields into the form's field display
+    state.activeForm.fields = state.activeForm.fields.map(field => {
+      if (state.verifiedFields[field.key] !== undefined) {
+        return { ...field, value: state.verifiedFields[field.key], status: "prefilled" };
+      }
+      return field;
+    });
+    // Recalculate summary
+    const prefilled = state.activeForm.fields.filter(f => f.status === "prefilled").length;
+    const total     = state.activeForm.fields.length;
+    state.activeForm.summary = {
+      ...state.activeForm.summary,
+      prefilled_count: prefilled,
+      missing_count:   total - prefilled,
+    };
+    renderFormDetail(state.activeForm);
+  }
+}
+</script>
+
 </body>
 </html>

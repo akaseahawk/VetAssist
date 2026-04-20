@@ -4,97 +4,359 @@
       "id": "10-10EZ",
       "title": "Application for Health Benefits",
       "description": "Used by veterans to apply for enrollment in the VA health care system.",
-      "benefit_ids": ["healthcare_enrollment"],
+      "benefit_ids": [
+        "healthcare_enrollment"
+      ],
       "digitized": true,
       "info_url": "https://www.va.gov/forms/10-10ez/",
       "required_fields": [
-        {"key": "name", "label": "Full Name", "source": "profile", "profile_field": "name"},
-        {"key": "dob", "label": "Date of Birth", "source": "profile", "profile_field": "dob"},
-        {"key": "ssn", "label": "Social Security Number", "source": "ask", "profile_field": null},
-        {"key": "branch", "label": "Branch of Service", "source": "profile", "profile_field": "branch"},
-        {"key": "service_start", "label": "Service Start Date", "source": "profile", "profile_field": "service_start"},
-        {"key": "service_end", "label": "Service End Date", "source": "profile", "profile_field": "service_end"},
-        {"key": "discharge_type", "label": "Type of Discharge", "source": "profile", "profile_field": "discharge_type"},
-        {"key": "address_street", "label": "Street Address", "source": "profile", "profile_field": "address.street"},
-        {"key": "address_city", "label": "City", "source": "profile", "profile_field": "address.city"},
-        {"key": "address_state", "label": "State", "source": "profile", "profile_field": "address.state"},
-        {"key": "address_zip", "label": "ZIP Code", "source": "profile", "profile_field": "address.zip"},
-        {"key": "insurance_provider", "label": "Current Health Insurance Provider (if any)", "source": "ask", "profile_field": null},
-        {"key": "income_annual", "label": "Prior Year Gross Annual Income", "source": "profile", "profile_field": "income_annual"}
+        {
+          "key": "name",
+          "label": "Full Name",
+          "source": "profile",
+          "profile_field": "name"
+        },
+        {
+          "key": "dob",
+          "label": "Date of Birth",
+          "source": "profile",
+          "profile_field": "dob"
+        },
+        {
+          "key": "ssn",
+          "label": "Social Security Number",
+          "source": "ask",
+          "profile_field": null,
+          "source_documents": [
+            "21-4142"
+          ]
+        },
+        {
+          "key": "branch",
+          "label": "Branch of Service",
+          "source": "profile",
+          "profile_field": "branch"
+        },
+        {
+          "key": "service_start",
+          "label": "Service Start Date",
+          "source": "profile",
+          "profile_field": "service_start"
+        },
+        {
+          "key": "service_end",
+          "label": "Service End Date",
+          "source": "profile",
+          "profile_field": "service_end"
+        },
+        {
+          "key": "discharge_type",
+          "label": "Type of Discharge",
+          "source": "profile",
+          "profile_field": "discharge_type"
+        },
+        {
+          "key": "address_street",
+          "label": "Street Address",
+          "source": "profile",
+          "profile_field": "address.street"
+        },
+        {
+          "key": "address_city",
+          "label": "City",
+          "source": "profile",
+          "profile_field": "address.city"
+        },
+        {
+          "key": "address_state",
+          "label": "State",
+          "source": "profile",
+          "profile_field": "address.state"
+        },
+        {
+          "key": "address_zip",
+          "label": "ZIP Code",
+          "source": "profile",
+          "profile_field": "address.zip"
+        },
+        {
+          "key": "insurance_provider",
+          "label": "Current Health Insurance Provider (if any)",
+          "source": "ask",
+          "profile_field": null,
+          "source_documents": []
+        },
+        {
+          "key": "income_annual",
+          "label": "Prior Year Gross Annual Income",
+          "source": "profile",
+          "profile_field": "income_annual"
+        }
       ]
     },
     {
       "id": "21-526EZ",
       "title": "Application for Disability Compensation and Related Compensation Benefits",
       "description": "Used by veterans to apply for monthly compensation for service-connected disabilities.",
-      "benefit_ids": ["disability_compensation", "ptsd_benefits"],
+      "benefit_ids": [
+        "disability_compensation",
+        "ptsd_benefits"
+      ],
       "digitized": true,
       "info_url": "https://www.va.gov/disability/how-to-file-claim/",
       "required_fields": [
-        {"key": "name", "label": "Full Name", "source": "profile", "profile_field": "name"},
-        {"key": "dob", "label": "Date of Birth", "source": "profile", "profile_field": "dob"},
-        {"key": "ssn", "label": "Social Security Number", "source": "ask", "profile_field": null},
-        {"key": "branch", "label": "Branch of Service", "source": "profile", "profile_field": "branch"},
-        {"key": "service_start", "label": "Service Start Date", "source": "profile", "profile_field": "service_start"},
-        {"key": "service_end", "label": "Service End Date", "source": "profile", "profile_field": "service_end"},
-        {"key": "disability_conditions", "label": "Claimed Disability Conditions", "source": "profile", "profile_field": "disability_conditions"},
-        {"key": "treatment_history", "label": "VA or other federal treatment records", "source": "ask", "profile_field": null},
-        {"key": "current_compensation", "label": "Currently receiving disability compensation?", "source": "profile", "profile_field": "receiving_disability_comp"}
+        {
+          "key": "name",
+          "label": "Full Name",
+          "source": "profile",
+          "profile_field": "name"
+        },
+        {
+          "key": "dob",
+          "label": "Date of Birth",
+          "source": "profile",
+          "profile_field": "dob"
+        },
+        {
+          "key": "ssn",
+          "label": "Social Security Number",
+          "source": "ask",
+          "profile_field": null,
+          "source_documents": [
+            "21-4142"
+          ]
+        },
+        {
+          "key": "branch",
+          "label": "Branch of Service",
+          "source": "profile",
+          "profile_field": "branch"
+        },
+        {
+          "key": "service_start",
+          "label": "Service Start Date",
+          "source": "profile",
+          "profile_field": "service_start"
+        },
+        {
+          "key": "service_end",
+          "label": "Service End Date",
+          "source": "profile",
+          "profile_field": "service_end"
+        },
+        {
+          "key": "disability_conditions",
+          "label": "Claimed Disability Conditions",
+          "source": "profile",
+          "profile_field": "disability_conditions"
+        },
+        {
+          "key": "treatment_history",
+          "label": "VA or other federal treatment records",
+          "source": "ask",
+          "profile_field": null,
+          "source_documents": []
+        },
+        {
+          "key": "current_compensation",
+          "label": "Currently receiving disability compensation?",
+          "source": "profile",
+          "profile_field": "receiving_disability_comp"
+        }
       ]
     },
     {
       "id": "21-0781",
       "title": "Statement in Support of Claimed Mental Health Disorder(s) Due to an In-Service Traumatic Event",
       "description": "Supports a VA disability claim for PTSD or other mental health conditions linked to a traumatic in-service event.",
-      "benefit_ids": ["ptsd_benefits"],
+      "benefit_ids": [
+        "ptsd_benefits"
+      ],
       "digitized": false,
       "mockup_image": "forms_to_verify/VA_21-0781_PTSD_stressor_statement_mockup.png",
       "mockup_note": "Not a fully digitized online form. Veterans often receive this as a flat PDF or paper at a VA office. Mockup shows realistic field layout for demo purposes.",
       "info_url": "https://www.va.gov/forms/21-0781/",
       "required_fields": [
-        {"key": "name", "label": "Full Name", "source": "profile", "profile_field": "name"},
-        {"key": "ssn", "label": "Social Security Number", "source": "ask", "profile_field": null},
-        {"key": "traumatic_event_description", "label": "Description of traumatic in-service event", "source": "ask", "profile_field": null},
-        {"key": "event_date", "label": "Approximate date of traumatic event", "source": "ask", "profile_field": null},
-        {"key": "event_location", "label": "Location of traumatic event", "source": "ask", "profile_field": null},
-        {"key": "unit_assignment", "label": "Unit assignment at time of event", "source": "ask", "profile_field": null},
-        {"key": "mental_health_diagnosis", "label": "Diagnosed mental health condition(s)", "source": "profile", "profile_field": "disability_conditions"}
+        {
+          "key": "name",
+          "label": "Full Name",
+          "source": "profile",
+          "profile_field": "name"
+        },
+        {
+          "key": "ssn",
+          "label": "Social Security Number",
+          "source": "ask",
+          "profile_field": null,
+          "source_documents": [
+            "21-4142"
+          ]
+        },
+        {
+          "key": "traumatic_event_description",
+          "label": "Description of traumatic in-service event",
+          "source": "ask",
+          "profile_field": null,
+          "source_documents": []
+        },
+        {
+          "key": "event_date",
+          "label": "Approximate date of traumatic event",
+          "source": "ask",
+          "profile_field": null,
+          "source_documents": []
+        },
+        {
+          "key": "event_location",
+          "label": "Location of traumatic event",
+          "source": "ask",
+          "profile_field": null,
+          "source_documents": []
+        },
+        {
+          "key": "unit_assignment",
+          "label": "Unit assignment at time of event",
+          "source": "ask",
+          "profile_field": null,
+          "source_documents": [
+            "DD-214"
+          ]
+        },
+        {
+          "key": "mental_health_diagnosis",
+          "label": "Diagnosed mental health condition(s)",
+          "source": "profile",
+          "profile_field": "disability_conditions"
+        }
       ]
     },
     {
       "id": "22-1990",
       "title": "Application for VA Education Benefits (GI Bill)",
       "description": "Application for Post-9/11 GI Bill and other VA education benefit programs.",
-      "benefit_ids": ["education_gi_bill"],
+      "benefit_ids": [
+        "education_gi_bill"
+      ],
       "digitized": true,
       "info_url": "https://www.va.gov/education/apply-for-education-benefits/application/1990/",
       "required_fields": [
-        {"key": "name", "label": "Full Name", "source": "profile", "profile_field": "name"},
-        {"key": "dob", "label": "Date of Birth", "source": "profile", "profile_field": "dob"},
-        {"key": "ssn", "label": "Social Security Number", "source": "ask", "profile_field": null},
-        {"key": "branch", "label": "Branch of Service", "source": "profile", "profile_field": "branch"},
-        {"key": "service_start", "label": "Service Start Date", "source": "profile", "profile_field": "service_start"},
-        {"key": "service_end", "label": "Service End Date", "source": "profile", "profile_field": "service_end"},
-        {"key": "school_name", "label": "Name of school or training program", "source": "ask", "profile_field": null},
-        {"key": "program_of_study", "label": "Program of study or training objective", "source": "ask", "profile_field": null}
+        {
+          "key": "name",
+          "label": "Full Name",
+          "source": "profile",
+          "profile_field": "name"
+        },
+        {
+          "key": "dob",
+          "label": "Date of Birth",
+          "source": "profile",
+          "profile_field": "dob"
+        },
+        {
+          "key": "ssn",
+          "label": "Social Security Number",
+          "source": "ask",
+          "profile_field": null,
+          "source_documents": [
+            "21-4142"
+          ]
+        },
+        {
+          "key": "branch",
+          "label": "Branch of Service",
+          "source": "profile",
+          "profile_field": "branch"
+        },
+        {
+          "key": "service_start",
+          "label": "Service Start Date",
+          "source": "profile",
+          "profile_field": "service_start"
+        },
+        {
+          "key": "service_end",
+          "label": "Service End Date",
+          "source": "profile",
+          "profile_field": "service_end"
+        },
+        {
+          "key": "school_name",
+          "label": "Name of school or training program",
+          "source": "ask",
+          "profile_field": null,
+          "source_documents": []
+        },
+        {
+          "key": "program_of_study",
+          "label": "Program of study or training objective",
+          "source": "ask",
+          "profile_field": null,
+          "source_documents": []
+        }
       ]
     },
     {
       "id": "26-1880",
       "title": "Request for a Certificate of Eligibility (Home Loan)",
       "description": "Establishes a veteran's eligibility for VA home loan benefits.",
-      "benefit_ids": ["home_loan_guarantee"],
+      "benefit_ids": [
+        "home_loan_guarantee"
+      ],
       "digitized": true,
       "info_url": "https://www.va.gov/housing-assistance/home-loans/how-to-apply/",
       "required_fields": [
-        {"key": "name", "label": "Full Name", "source": "profile", "profile_field": "name"},
-        {"key": "dob", "label": "Date of Birth", "source": "profile", "profile_field": "dob"},
-        {"key": "ssn", "label": "Social Security Number", "source": "ask", "profile_field": null},
-        {"key": "branch", "label": "Branch of Service", "source": "profile", "profile_field": "branch"},
-        {"key": "service_start", "label": "Service Start Date", "source": "profile", "profile_field": "service_start"},
-        {"key": "service_end", "label": "Service End Date", "source": "profile", "profile_field": "service_end"},
-        {"key": "discharge_type", "label": "Type of Discharge", "source": "profile", "profile_field": "discharge_type"},
-        {"key": "property_address", "label": "Address of property to be purchased (if known)", "source": "ask", "profile_field": null}
+        {
+          "key": "name",
+          "label": "Full Name",
+          "source": "profile",
+          "profile_field": "name"
+        },
+        {
+          "key": "dob",
+          "label": "Date of Birth",
+          "source": "profile",
+          "profile_field": "dob"
+        },
+        {
+          "key": "ssn",
+          "label": "Social Security Number",
+          "source": "ask",
+          "profile_field": null,
+          "source_documents": [
+            "21-4142"
+          ]
+        },
+        {
+          "key": "branch",
+          "label": "Branch of Service",
+          "source": "profile",
+          "profile_field": "branch"
+        },
+        {
+          "key": "service_start",
+          "label": "Service Start Date",
+          "source": "profile",
+          "profile_field": "service_start"
+        },
+        {
+          "key": "service_end",
+          "label": "Service End Date",
+          "source": "profile",
+          "profile_field": "service_end"
+        },
+        {
+          "key": "discharge_type",
+          "label": "Type of Discharge",
+          "source": "profile",
+          "profile_field": "discharge_type"
+        },
+        {
+          "key": "property_address",
+          "label": "Address of property to be purchased (if known)",
+          "source": "ask",
+          "profile_field": null,
+          "source_documents": []
+        }
       ]
     }
   ],
@@ -102,12 +364,22 @@
     {
       "id": "DD-214",
       "title": "Certificate of Release or Discharge from Active Duty",
-      "description": "The primary military discharge document. Required as evidence for nearly every VA benefit application. Veterans receive this as a physical paper document at separation — it is never an online-fillable form.",
+      "description": "The primary military discharge document. Required as evidence for nearly every VA benefit application. Veterans receive this as a physical paper document at separation \u2014 it is never an online-fillable form.",
       "digitized": false,
       "mockup_image": "forms_to_verify/DD_214_mockup_example.png",
-      "mockup_note": "Veterans receive DD-214 on paper at separation. It is not a fillable form — it is a discharge record. Mockup shows realistic field layout using synthetic data. Source: https://www.archives.gov/personnel-records-center/dd-214",
+      "mockup_note": "Veterans receive DD-214 on paper at separation. It is not a fillable form \u2014 it is a discharge record. Mockup shows realistic field layout using synthetic data. Source: https://www.archives.gov/personnel-records-center/dd-214",
       "official_request_url": "https://www.archives.gov/veterans/military-service-records",
-      "fields_extracted_for_prefill": ["name", "branch", "service_start", "service_end", "discharge_type", "rank", "mos", "deployment_info", "decorations"]
+      "fields_extracted_for_prefill": [
+        "name",
+        "branch",
+        "service_start",
+        "service_end",
+        "discharge_type",
+        "rank",
+        "mos",
+        "deployment_info",
+        "decorations"
+      ]
     },
     {
       "id": "21-4142",
@@ -117,7 +389,14 @@
       "mockup_image": "forms_to_verify/VA_21-4142_authorization_to_disclose_mockup.png",
       "mockup_note": "While a fillable PDF version exists, veterans often receive this as a printed form at a VA office or from a VSO. Mockup shows realistic field layout. Source: https://www.vba.va.gov/pubs/forms/vba-21-4142-are.pdf",
       "info_url": "https://www.va.gov/find-forms/about-form-21-4142/",
-      "fields_extracted_for_prefill": ["name", "ssn", "dob", "address", "phone", "email"]
+      "fields_extracted_for_prefill": [
+        "name",
+        "ssn",
+        "dob",
+        "address",
+        "phone",
+        "email"
+      ]
     }
   ]
 }

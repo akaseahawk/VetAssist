@@ -139,3 +139,44 @@ def build_field_summary(prefilled_form: dict) -> dict:
         "missing_count": len(missing),
         "missing_fields": [{"key": f["key"], "label": f["label"]} for f in missing],
     }
+
+
+def get_missing_fields_for_veteran(
+    veteran: dict,
+    forms_data: dict,
+    form_id: str | None = None,
+) -> list[str]:
+    """
+    Return a list of field keys that are still missing for a veteran
+    across all forms (or a specific form if form_id is given).
+
+    WHY this helper exists:
+      The upload route and suggestions endpoint both need to know which fields
+      are missing so they can tell Claude exactly what to extract, and so they
+      can suggest the right source document to the veteran.
+      Centralizing this logic here keeps main.py clean.
+
+    Args:
+        veteran:   veteran profile dict
+        forms_data: full forms catalog dict (with "forms" key)
+        form_id:   optional — if given, only look at that specific form
+
+    Returns:
+        List of field key strings that have status "missing" or "ask",
+        deduplicated across forms (same field may appear on multiple forms).
+    """
+    catalog = forms_data.get("forms", [])
+
+    # Filter to specific form if requested
+    if form_id:
+        catalog = [f for f in catalog if f["id"] == form_id]
+
+    missing_keys: set[str] = set()
+
+    for form in catalog:
+        prefilled = prefill_fields(form, veteran)
+        for field in prefilled["fields"]:
+            if field["status"] in ("missing", "ask"):
+                missing_keys.add(field["key"])
+
+    return sorted(missing_keys)

@@ -56,7 +56,7 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -192,7 +192,6 @@ async def get_eligibility(veteran_id: str):
     if not veteran:
         raise HTTPException(status_code=404, detail=f"Veteran '{veteran_id}' not found.")
 
-    from services.benefit_discovery import discover_benefits
     result = discover_benefits(veteran)
 
     return {
@@ -230,8 +229,6 @@ async def get_forms(veteran_id: str):
     if not veteran:
         raise HTTPException(status_code=404, detail=f"Veteran '{veteran_id}' not found.")
 
-    from services.benefit_discovery import discover_benefits
-    from services.form_matcher import get_forms_for_benefits, prefill_fields, build_field_summary
 
     # Step 1: Discover which benefits are worth exploring for this veteran
     # Uses Claude if API key is set, rules engine as fallback
@@ -356,32 +353,131 @@ async def chat_endpoint(request: ChatRequest):
 # ---------------------------------------------------------------------------
 
 @app.post("/api/upload")
-async def upload_document():
+async def upload_document(
+    file: UploadFile = File(...),
+    document_type: str = "DD-214",
+    veteran_id: Optional[str] = None,
+    requested_fields: Optional[str] = None,  # comma-separated list of field keys
+):
     """
-    STUB — not implemented in the MVP.
+    Accept a photo or scan of a veteran's document and extract fields using Claude vision.
 
-    What this will do (next sprint — Nick's task for the hackathon):
-      1. Accept a multipart/form-data upload (image or PDF)
-      2. Run OCR using pytesseract (local) or AWS Textract (cloud)
-      3. Parse extracted text into structured fields
-      4. Return a dict of extracted fields to merge into the prefill context
+    WHY multimodal vision and not OCR:
+      Traditional OCR scans pixels for characters. It fails on skewed phone photos,
+      stamps, handwriting, and low-contrast backgrounds — all common in veteran documents.
+      Claude vision understands the document semantically: it knows what a DD-214
+      looks like and where the discharge type field is, even in a tilted photo.
 
-    WHY this matters:
-    The DD-214 is the single most valuable document a veteran has.
-    If they can photograph it and upload it, VetAssist can prefill name,
-    branch, service dates, discharge type, and deployment info automatically —
-    eliminating most of the 'ask' fields in one step.
+    WHY the veteran confirms every field before it populates:
+      We never auto-fill without consent. A blurry photo or partially redacted field
+      can produce a wrong value. The veteran reviews each extracted value with an Edit
+      button, then clicks Confirm. Only confirmed values flow into their form.
 
-    Demo version (hackathon): return hardcoded extracted fields from the
-    DD-214 mockup image in forms_to_verify/ to show the concept working.
+    Args:
+      file:             Image file (JPEG, PNG, WebP, or GIF)
+      document_type:    "DD-214", "21-4142", or "GENERIC"
+      veteran_id:       Optional — used to look up which fields are still missing
+      requested_fields: Comma-separated field keys to extract (e.g. "name,branch,service_start")
+                        If omitted, defaults to the known fields for the document type.
+
+    Returns:
+      {
+        "success": bool,
+        "document_type": str,
+        "extracted_fields": { field_key: value_or_null },
+        "fields_found": int,
+        "fields_requested": int,
+        "note": str,       # shown to veteran above the confirmation table
+        "error": str|null
+      }
     """
+
+    # Validate file type — we only support image formats Claude vision accepts
+    # WHY: Claude vision does not accept PDFs or text files via the image API.
+    # PDF support would require a PDF-to-image conversion step (post-MVP).
+    ALLOWED_MIME_TYPES = {
+        "image/jpeg":  True,
+        "image/png":   True,
+        "image/webp":  True,
+        "image/gif":   True,
+    }
+    mime_type = file.content_type or "image/jpeg"
+    if mime_type not in ALLOWED_MIME_TYPES:
+        raise HTTPException(
+            status_code=415,
+            detail=(
+                f"File type '{mime_type}' is not supported. "
+                "Please upload a JPEG, PNG, WebP, or GIF image. "
+                "If you have a PDF, take a screenshot or photo of the relevant page."
+            ),
+        )
+
+    # Read the image bytes from the upload
+    image_bytes = await file.read()
+
+    # Parse requested_fields from comma-separated string to list
+    # WHY: query params are easier for the frontend to construct than a JSON body
+    # alongside a file upload (multipart forms mix poorly with JSON bodies).
+    field_list: list[str] = []
+    if requested_fields:
+        field_list = [f.strip() for f in requested_fields.split(",") if f.strip()]
+
+    # If veteran_id is provided and no fields were specified,
+    # look up which fields are still missing for that veteran and request those.
+    # WHY: this lets the frontend say "extract what we're missing" without
+    # having to know the field list itself.
+    if veteran_id and not field_list:
+        veteran = get_veteran_by_id(veteran_id)
+        if veteran:
+            from services.form_matcher import get_missing_fields_for_veteran
+            try:
+                field_list = get_missing_fields_for_veteran(veteran, {"forms": get_forms_catalog()})
+            except Exception:
+                pass  # If lookup fails, fall back to document-type defaults
+
+    # Call the vision extraction service
+    from services.document_vision import extract_fields_from_image
+    result = extract_fields_from_image(
+        image_bytes=image_bytes,
+        mime_type=mime_type,
+        document_type=document_type,
+        requested_fields=field_list,
+    )
+
+    return result
+
+
+@app.get("/api/upload/suggestions/{veteran_id}")
+async def get_document_suggestions(veteran_id: str, form_id: Optional[str] = None):
+    """
+    For a given veteran and optional form, return which source documents
+    might contain their missing fields — so the UI can suggest the right document.
+
+    WHY a separate suggestions endpoint:
+      The frontend needs to know what to suggest BEFORE the veteran has uploaded
+      anything. This lets us show "Your DD-214 might have 4 of your missing fields"
+      right next to the missing field rows in the table.
+    """
+    veteran = get_veteran_by_id(veteran_id)
+    if not veteran:
+        raise HTTPException(status_code=404, detail=f"Veteran '{veteran_id}' not found")
+
+    # Find missing fields — ask fields that haven't been answered yet
+    # We look across all forms or just the specified one
+    from services.form_matcher import get_missing_fields_for_veteran
+    try:
+        missing_fields = get_missing_fields_for_veteran(veteran, {"forms": get_forms_catalog()}, form_id=form_id)
+    except Exception:
+        missing_fields = []
+
+    from services.document_vision import suggest_source_documents
+    suggestions = suggest_source_documents(missing_fields)
+
     return {
-        "status":  "not_implemented",
-        "message": (
-            "Document upload and OCR are planned for the next sprint. "
-            "See forms_to_verify/ for mockup images showing what the extracted form would look like. "
-            "In the MVP, veteran data is loaded from the synthetic JSON profile."
-        ),
+        "veteran_id": veteran_id,
+        "form_id": form_id,
+        "missing_fields": missing_fields,
+        "document_suggestions": suggestions,
     }
 
 
