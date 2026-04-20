@@ -293,7 +293,10 @@ you add a targeted search tool for that uncertainty. Not before.
 
 5. **AWS Bedrock integration** — Swap Anthropic direct API for Bedrock Claude endpoint
    - Required for FedRAMP / federal deployment
-   - Claude model remains the same — only the SDK call changes
+   - Not a pure config swap: requires changing SDK client from `anthropic.Anthropic()`
+     to `boto3.client("bedrock-runtime")` and updating the invoke method signature
+   - Message payload structure is compatible; auth model and client differ
+   - Estimated effort: 0.5–1 day — not a one-liner, but not a rewrite either
 
 6. **Authentication** — Add for any real deployment (VA PIV or login.gov integration)
 
@@ -312,4 +315,6 @@ you add a targeted search tool for that uncertainty. Not before.
 - Future: integrate with VA Identity Service or login.gov for authentication
 - Consider FISMA Low/Moderate ATO path for a VA pilot
 - The model abstraction in `services/claude_chat.py` is intentionally thin —
-  swapping to Bedrock is one environment variable and one SDK initialization change
+  swapping to Bedrock requires changing the SDK client initialization and invoke method
+  (boto3 + bedrock-runtime instead of anthropic SDK), but the messages payload structure
+  is compatible. Estimated 0.5–1 day of work, not a configuration-only change

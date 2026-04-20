@@ -192,6 +192,7 @@ async def get_eligibility(veteran_id: str):
     if not veteran:
         raise HTTPException(status_code=404, detail=f"Veteran '{veteran_id}' not found.")
 
+    from services.benefit_discovery import discover_benefits
     result = discover_benefits(veteran)
 
     return {
@@ -232,6 +233,8 @@ async def get_forms(veteran_id: str):
 
     # Step 1: Discover which benefits are worth exploring for this veteran
     # Uses Claude if API key is set, rules engine as fallback
+    from services.benefit_discovery import discover_benefits
+    from services.form_matcher import get_forms_for_benefits, prefill_fields, build_field_summary
     discovery = discover_benefits(veteran)
     eligible_ids = [b["benefit_id"] for b in discovery["benefits"]]
 

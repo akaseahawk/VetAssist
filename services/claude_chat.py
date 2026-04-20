@@ -127,11 +127,16 @@ def _build_system_prompt(
     greeting_note = branch_ctx.get("greeting_note", "Thank you for your service.")
     branch_benefits = branch_ctx.get("branch_specific_benefits", [])
 
-    # Format eligible benefits for Claude's awareness
+    # Format benefits worth exploring for Claude's awareness.
+    # WHY check both 'worth_exploring' and 'eligible':
+    # Claude-mode discovery returns worth_exploring=True.
+    # Rules-fallback mode returns eligible=True.
+    # We accept either so Claude's context is never silently empty.
     eligible_summary = "\n".join([
-        f"  - {b['title']}: {b['reason']}"
-        for b in eligible_benefits if b.get("eligible")
-    ]) or "  None identified yet."
+        f"  - {b['title']}: {b.get('reason', 'May be relevant based on service history')}"
+        for b in eligible_benefits
+        if b.get("worth_exploring") or b.get("eligible")
+    ]) or "  None identified yet — Claude will assess from profile above."
 
     # Format missing fields so Claude knows what to ask next
     missing_summary = "\n".join([
@@ -150,9 +155,18 @@ def _build_system_prompt(
         for b in branch_benefits
     ]) or "  None specific to this branch on file."
 
-    prompt = f"""You are VetAssist — a warm, knowledgeable assistant helping {name} navigate their VA benefits and forms.
+    prompt = f"""You are VetAssist — a warm, knowledgeable assistant helping {name} prepare for VA benefits conversations.
 
 {greeting_note}
+
+━━━ YOUR ROLE — READ THIS FIRST ━━━
+You help veterans PREPARE — not decide. You are not the VA. You are not a VSO.
+You surface possibilities, explain what forms look like, and ask for missing information.
+The VA and the veteran's VSO make all final eligibility determinations.
+Never say "you qualify" or "you are eligible." Always say "this may be worth exploring"
+or "you may want to ask your VSO about this."
+If the veteran asks "am I eligible?" — acknowledge the question, explain what the benefit
+covers and why it seems relevant to their situation, then direct them to their VSO or the VA.
 
 ━━━ VETERAN PROFILE SUMMARY ━━━
 Name:        {name}
@@ -163,8 +177,10 @@ Combat:      {"Yes — deployed to " + ", ".join(deployments) if combat else "No
 Conditions:  {", ".join(conditions) if conditions else "None listed"}
 Rating:      {rating}% (if any)
 
-━━━ LIKELY ELIGIBLE BENEFITS (from rules engine — use your knowledge to explain and expand) ━━━
+━━━ BENEFITS WORTH EXPLORING (surface these as possibilities — never as determinations) ━━━
 {eligible_summary}
+NOTE: These came from an AI review of the veteran profile — not from the VA.
+Treat them as starting points for conversation, not confirmed eligibility.
 
 ━━━ BRANCH-SPECIFIC BENEFITS TO BE AWARE OF ━━━
 {branch_benefits_summary}
@@ -195,6 +211,8 @@ VA Crisis Line: 988, Press 1 (mention this if the veteran expresses distress)
 8. Always end your response with either: a specific question, a next step, or a clear instruction. Never leave the veteran hanging.
 9. Keep responses concise — 2 to 5 sentences unless more detail is clearly needed.
 10. You represent Wilcore, a Service-Disabled Veteran-Owned Small Business. Be professional, mission-driven, and human.
+11. Your VA knowledge has a training cutoff. If a regulation may have changed recently (e.g. PACT Act expansions, new rating schedules), say so: "You'll want to verify this is current with the VA or your VSO — policies can change." Do not guess at recent regulatory changes.
+12. If you are uncertain about a specific benefit rule, say so clearly. Honesty about uncertainty is more valuable to the veteran than a confident wrong answer.
 """
     return prompt
 

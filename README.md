@@ -25,8 +25,13 @@ demo works locally even in an offline environment.
 ### Why Veterans Are Left Behind
 
 > *"The average VA disability claim takes 102.4 days to process — and that clock
-> doesn't even start until the veteran figures out which forms to file."*
+> doesn't even start until the veteran submits their first form."*
 > — VA Benefits Administration, FY2023 Annual Benefits Report
+
+To be precise: VetAssist doesn't cut the 102-day adjudication window — the VA controls that.
+What it does is remove the barrier *before* that clock starts: figuring out which benefits
+to apply for, which forms those require, and what information goes on each one.
+Most veterans never file because they don't know where to begin. VetAssist solves that part.
 
 Veterans earned their benefits through service and sacrifice. Getting those benefits
 should not require a law degree, a research project, or a stack of paper forms
@@ -137,6 +142,21 @@ flowchart LR
     style A5 fill:#e0f0e0,stroke:#006600
 ```
 
+### Why Not Just Use VA.gov, VA Form Wizard, or benefits.gov?
+
+This question will come up. Here's the honest answer:
+
+| Tool | What it does | What it doesn't do |
+|------|-------------|-------------------|
+| **VA.gov "How to Apply"** | Explains what benefits exist | No eligibility discovery, no prefill, no guidance |
+| **VA Form Wizard** | Helps pick the right form for a single benefit | One form at a time, no prefill, no conversational follow-up |
+| **benefits.gov** | Lists federal programs with eligibility criteria | No form prefill, no veteran-specific reasoning, no follow-up |
+| **VSO appointment** | Expert human guidance | Requires scheduling, often weeks out, inconsistent availability |
+| **VetAssist** | Discovers likely benefits from profile, maps to forms, prefills known fields, asks for the rest conversationally | Not a determination — prepares veteran for VSO/VA conversation |
+
+The gap VetAssist fills: **no single existing tool does discovery + prefill + conversational guidance in one session**.
+VA.gov has the information. VetAssist connects it to the veteran's specific situation.
+
 ### Why Now
 
 - The VA processes over 1 million disability claims per year ([VA FY2023 Benefits Report](https://www.benefits.va.gov/REPORTS/abr/))
@@ -157,7 +177,7 @@ flowchart LR
 - Reduce incomplete submissions through prefill and guided follow-ups
 - Scalable to any federal benefit program with known forms and eligibility rules
 - Maps directly to active VA modernization priorities
-- Could support a Wilcore BD opportunity as a Task Order under an existing VA IDIQ or 8(a) sole-source
+- Credible BD path for Wilcore: VA T4NG (Transformation Twenty-One Total Technology Next Generation) Task Order, CIO-SP4, or 8(a) sole-source under 38 U.S.C. § 8127 as a certified SDVOSB — no competitive tender required below $4M
 
 Quantified (conservative): If 10% of ~1M annual VA disability claims used a tool like this
 and saved 2 hours each, that's ~200,000 veteran-hours recovered per year.
@@ -450,7 +470,7 @@ flowchart TD
   - Section 508: accessible HTML, keyboard-navigable, screen-reader compatible with minor additions
   - FedRAMP: swap Anthropic API for AWS Bedrock (Claude) on FedRAMP-authorized infrastructure
   - FISMA Low/Moderate: appropriate for a VA benefits guidance tool with synthetic or de-identified data
-- **Contract structure:** Could be delivered as a Task Order under an existing VA IDIQ or via an 8(a) sole-source to Wilcore as an SDVOSB
+- **Contract structure:** Deliverable as a Task Order under VA T4NG or CIO-SP4, or via 8(a) sole-source under 38 U.S.C. § 8127 (SDVOSB preference). Wilcore's SDVOSB certification means no competitive tender is required below $4M — a significant acquisition advantage
 - **Broader applicability:** Same architecture applies to any federal benefit program with known forms (SSA, HUD, USDA rural benefits)
 
 ### Why This Scores Well Against the Wilcore Rubric
@@ -485,7 +505,8 @@ She Googles "VA disability forms," finds a 47-page PDF, and gives up.
 6. She answers conversationally. The assistant confirms and moves to the next.
 7. She sees a summary ready to bring to her VSO or the VA
 
-**The before/after:** hours of confusion → under 30 minutes, guided.
+**The before/after:** hours of confusion just to know where to start → under 30 minutes, guided.
+The 102-day adjudication clock is the VA's. The confusion before it starts is ours to solve.
 
 ---
 

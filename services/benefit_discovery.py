@@ -130,6 +130,16 @@ Return your response as a JSON array. Each item must have these exact fields:
 Only include benefits where worth_exploring is true.
 Be conservative — only surface what genuinely seems relevant.
 Do not guess or assume facts not in the profile.
+
+Important constraints:
+- Your VA knowledge has a training cutoff. If a benefit rule or eligibility threshold
+  may have changed recently (e.g. PACT Act expansions post-2022, new rating schedules),
+  note this uncertainty in the plain_language_reason so the veteran knows to verify.
+- Do not present your assessment as current or authoritative — frame it as a starting
+  point for a VSO or VA conversation, not a conclusion.
+- If you are not confident a benefit applies, set worth_exploring to false.
+  A shorter accurate list is better than a longer speculative one.
+
 Return only the JSON array, no other text."""
 
     try:

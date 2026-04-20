@@ -368,7 +368,10 @@
       </select>
       <button class="btn btn-primary" onclick="loadVeteran()">Load Profile</button>
     </div>
-    <p class="note">Demo uses synthetic profiles. No real veteran data is stored or used.</p>
+    <p class="note">
+      Demo uses synthetic profiles. No real veteran data is stored or transmitted.
+      Nothing you enter here is saved — all data stays in your browser session only.
+    </p>
 
     <!-- Profile summary, shown after loading -->
     <div id="profile-summary" class="hidden" style="margin-top:1rem;">
@@ -393,10 +396,10 @@
       margin-bottom:0.85rem;
       display:none;
     ">
-      <strong>Important:</strong> These are possibilities worth exploring based on your profile —
-      <strong>not a determination of eligibility.</strong>
-      Please talk to your VSO or the VA to confirm what applies to your situation
-      before taking action. VetAssist helps you prepare — your VSO and the VA make the final call.
+      <strong>Heads up before you read these:</strong> Based on your profile, here are some things
+      that may be <strong>worth asking your VSO about</strong>. This is not a determination —
+      VetAssist doesn't decide your eligibility, and neither should this page.
+      Your VSO and the VA do that. Think of this as preparation for that conversation.
       <span id="mode-badge" style="margin-left:0.5rem; font-size:0.75rem; color:#888;"></span>
     </div>
 
@@ -446,6 +449,10 @@
   <!-- STEP 4 & 5: Verify and fill in the gaps via chat -->
   <div class="card hidden" id="card-chat">
     <h2><span class="step-num">4–5</span> Fill in the Gaps</h2>
+    <p class="note" style="margin-bottom:0.6rem;">
+      Nothing you type here is stored. This session ends when you close the page.
+      Your answers are only used to help fill out your forms during this session.
+    </p>
     <p class="section-note" id="chat-intro">
       I'll ask you for the remaining information one question at a time.
       Feel free to also ask me anything about your benefits or forms.

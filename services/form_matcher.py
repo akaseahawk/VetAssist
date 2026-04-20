@@ -98,10 +98,14 @@ def prefill_fields(form: dict, veteran: dict) -> dict:
             status = "ask"
 
         fields_out.append({
-            "key": key,
-            "label": label,
-            "value": value,
-            "status": status,
+            "key":              key,
+            "label":            label,
+            "value":            value,
+            "status":           status,
+            # WHY include source_documents: the frontend uses this to show
+            # a '📷 From DD-214' upload button on missing fields.
+            # Passing it through from the catalog keeps the frontend stateless.
+            "source_documents": field.get("source_documents", []),
         })
 
     return {
