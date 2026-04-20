@@ -352,8 +352,8 @@ async def chat_endpoint(request: ChatRequest):
 
 
 # ---------------------------------------------------------------------------
-# Upload stub
-# Post-MVP: OCR a DD214 or flat PDF and merge fields into prefill context
+# Document upload — Claude vision reads a photo of a veteran's document
+# and extracts structured field values for the veteran to review and confirm.
 # ---------------------------------------------------------------------------
 
 @app.post("/api/upload")

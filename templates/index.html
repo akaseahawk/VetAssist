@@ -995,7 +995,7 @@ async function sendChat() {
     // Show which model is responding
     const modeNote = document.getElementById("chat-mode-note");
     if (data.model === "placeholder") {
-      modeNote.textContent = "Placeholder mode — add ANTHROPIC_API_KEY to .env for live Claude responses.";
+      modeNote.textContent = "Conversational assistant unavailable — AI connection not configured in this environment.";
     } else if (data.model && data.model !== "error") {
       modeNote.textContent = `Powered by ${data.model}`;
     }
@@ -1170,7 +1170,8 @@ async function handleDocUpload(event) {
 
   } catch (err) {
     // Show error inline in the triggering field input
-    // WHY trigInput not valCell: the old table row cell is gone; inputs are the target now
+    // WHY trigInput: field rows are editable <input> elements, not table cells.
+    // We update the input that triggered the upload so the veteran sees the error inline.
     if (trigInput) {
       trigInput.placeholder = `⚠ ${err.message}`;
       trigInput.classList.add("is-error");

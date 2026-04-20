@@ -238,9 +238,10 @@ and Claude chat responses show a placeholder message.
 3. Clicks "Load Profile" — sees profile summary and appreciative greeting
 4. Sees disclaimer banner, then benefit cards with reasons and VA.gov links
 5. Sees suggested VA forms — tabs for each, with prefilled fields and missing fields
-6. Veteran edits any incorrect prefilled field using the Edit button
-7. Clicks "This looks right — Continue" to open the chat
-8. Types a question or answer — receives a response from Claude (or placeholder)
+6. Veteran reviews prefilled fields (green) and missing fields (amber) — all shown as editable inputs
+7. Veteran edits anything incorrect, fills in missing fields, and optionally uploads a document photo
+8. Clicks “Confirm All & Continue” — required fields validate before proceeding
+9. Types a question or answer in the chat — receives a response from Claude (or placeholder)
 
 This is the one flow to keep working. Do not break it.
 

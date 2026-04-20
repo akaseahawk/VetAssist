@@ -39,15 +39,15 @@ flowchart TD
     S4 --> S5{"Missing fields?"}
 
     S5 -->|"Has a source doc\ne.g. DD-214"| S5A["Step 5A\n📷 Photo your document\nClaude vision reads it\n— not OCR —"]
-    S5A --> S5B["Review extracted fields\nEdit button on each one\nConfirm what's correct"]
+    S5A --> S5B["Review extracted fields\nEditable inputs — correct anything\nClick Confirm to populate"]
     S5B --> S6["Step 6\nChat fills the rest\none question at a time"]
     S5 -->|"No source doc\nask directly"| S6
 
     S1 -.->|"Veteran dropdown\n+ Load Profile button"| S1
     S2 -.->|"Disclaimer banner first\nBenefit cards: reason + VA.gov link"| S2
     S3 -.->|"Form tabs per benefit\ne.g. VA 21-526EZ"| S3
-    S4 -.->|"Fields prefilled from profile\nEdit button on every field\n'This looks right — Continue'"| S4
-    S6 -.->|"Claude asks missing fields\none at a time in plain language"| S6
+    S4 -.->|"Known fields (green) + Missing fields (amber)\nAll editable inputs\n'Confirm All & Continue'"| S4
+    S6 -.->|"Claude handles any remaining gaps\nin plain conversational language"| S6
 
     style S1 fill:#f5f5f5,stroke:#999
     style S2 fill:#e8f0fe,stroke:#4285f4
@@ -118,26 +118,25 @@ It's not something you'd be proud to show at a presentation.
 flowchart TD
     FT(["Veteran lands on\nStep 3 — Field Table"])
 
-    FT --> PF["Prefilled fields show:\nField Name · Value from Profile · ✓ Known · Edit button"]
-    FT --> MF["Missing fields show:\nField Name · — · ⚠ Needs answer"]
+    FT --> PF["Known fields (green):\nPrefilled from profile — editable input\nVeteran can correct any value"]
+    FT --> MF["Missing fields (amber):\nEmpty editable input\n📷 Upload button if a source doc is known"]
 
-    PF --> EDIT["Veteran clicks Edit\nField becomes inline input\nwith Save button"]
-    EDIT --> SAVE["Veteran clicks Save"]
-    SAVE --> FLASH["✅ Green flash confirmation\n'Saved' — short and reassuring\n← This is Amy's moment"]
-    FLASH --> STATUS["Status updates to: ✓ Confirmed\nEdit button returns"]
+    PF --> EDIT["Veteran reviews and edits\nany value inline"]
+    MF --> FILL["Veteran types in answer\nor uploads a document photo"]
+    FILL --> VISION["Claude reads photo — vision, not OCR\nExtracts fields — veteran confirms each one"]
 
-    STATUS --> CONT
-    MF --> CONT
+    EDIT --> CONF
+    VISION --> CONF
 
-    CONT(["Veteran clicks\n'✓ This looks right — Continue'"])
-    CONT --> CHAT["Step 4 — Chat opens\nVetAssist greets veteran\nby name + branch"]
-    CHAT --> LOOP["Asks missing fields\nONE at a time in plain language"]
-    LOOP --> ANS["Veteran types answer\nAssistant confirms\nmoves to next field"]
+    CONF(["Veteran clicks\n'Confirm All & Continue'"])
+    CONF --> CHAT["Chat opens\nVetAssist greets veteran\nby name + branch"]
+    CHAT --> LOOP["Handles any remaining gaps\nin plain conversational language"]
+    LOOP --> ANS["Veteran types answer\nAssistant confirms"]
     ANS --> LOOP
 
-    style FLASH fill:#e0f0e0,stroke:#34a853
+    style VISION fill:#fff3cd,stroke:#ffc107
     style CHAT fill:#e8f0fe,stroke:#4285f4
-    style CONT fill:#fef9e7,stroke:#f0ad4e
+    style CONF fill:#fef9e7,stroke:#f0ad4e
 ```
 
 **Where you'd make this project:**
@@ -245,7 +244,7 @@ clean install verification.
 | Day | Goal |
 |-----|------|
 | Mon Apr 20 | Challenge opens — decide if you're in, run the app locally |
-| Tue–Wed | Amy: UI pass. Nick: code review + upload stub |
+| Tue–Wed | Amy: UI pass. Nick: code review + upload flow test |
 | Thu | Full demo run-through, catch anything broken |
 | Fri | Record video demo, finalize submission materials |
 | Mon Apr 27 | Deadline 11:59 PM ET |

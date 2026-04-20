@@ -1,17 +1,29 @@
 """
 services/form_matcher.py
 
-Maps eligible benefits to required VA forms and identifies which fields
-are known from the veteran profile vs. still missing (need to be asked).
+Maps eligible benefits to VA forms and resolves which fields can be prefilled
+from the veteran's profile vs. which still need input.
 
-MVP approach: pure Python, reads from forms_catalog.json.
-No external API calls.
+HOW IT WORKS:
+    1. get_forms_for_benefits() finds which forms in the catalog correspond
+       to a veteran's eligible benefit IDs.
+    2. prefill_fields() walks each form's required fields, looks up values
+       in the veteran profile, and marks each field as 'prefilled' or 'missing'.
+    3. build_field_summary() counts known vs. missing fields and returns
+       a list of missing ones for the chat layer to ask about.
+    4. get_missing_fields_for_veteran() is a convenience wrapper used by the
+       upload route and document suggestions endpoint.
 
-TODO (post-MVP):
-    - Integrate VA Forms API to pull live form metadata
-    - Support actual PDF prefill using pypdf or fillpdf
-    - Support flat/scanned form upload (OCR pipeline)
-    - Add logic to deduplicate shared fields across multiple forms
+WHY pure Python, no database:
+    Form matching and prefill are deterministic lookups — no ML, no API calls.
+    All form definitions and field mappings live in data/forms_catalog.json.
+    This keeps the service fast, stateless, and easy to test.
+
+WHY source_documents pass through here:
+    Each field definition in the catalog may include a source_documents list
+    (e.g. ["DD-214"]) identifying which physical document contains that field.
+    form_matcher passes this through so the frontend can show a photo upload
+    button on missing fields without needing to know the catalog structure itself.
 """
 
 

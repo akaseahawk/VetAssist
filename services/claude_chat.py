@@ -260,19 +260,19 @@ def chat(
     # locally without a live key. This is intentional, not broken.
     # ------------------------------------------------------------------
     if not api_key:
+        # No API key configured — return a plain-language message that makes sense
+        # to a veteran without exposing internal developer setup details.
+        # The UI still works; chat is the only feature that requires the key.
         branch = veteran.get("branch", "your branch")
         branch_ctx = _get_branch_context(branch)
         greeting = branch_ctx.get("greeting_note", "Thank you for your service.")
-        missing_count = len(missing_fields or [])
-        next_field = missing_fields[0]["label"] if missing_fields else None
 
         placeholder = (
-            f"[PLACEHOLDER — add ANTHROPIC_API_KEY to .env for live responses]\n\n"
             f"{greeting}\n\n"
-            f"You asked: '{user_message}'\n\n"
-            f"In the live version, I would: explain your eligible benefits using VA knowledge, "
-            f"{'ask you about your ' + next_field + ' to complete your form' if next_field else 'confirm all your fields are complete'}, "
-            f"and connect you with {branch_ctx.get('primary_vso', 'a VSO')} for next steps."
+            f"The conversational assistant isn't available in this environment — "
+            f"it requires a live AI connection that hasn't been configured here. "
+            f"To continue, please bring your prepared form information to your VSO "
+            f"or contact the VA directly at {branch_ctx.get('va_benefits_line', '1-800-827-1000')}."
         )
         return {"response": placeholder, "model": "placeholder", "error": None}
 

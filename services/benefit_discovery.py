@@ -283,6 +283,6 @@ def discover_benefits(veteran: dict) -> dict:
             "based on your profile. They are possibilities worth exploring — "
             "not a determination of eligibility. For accurate guidance, please "
             "talk to your VSO or contact the VA directly before taking action. "
-            "(Live AI mode unavailable — add ANTHROPIC_API_KEY to .env for richer suggestions.)"
+            "(AI-assisted discovery is not available in this environment — these results are based on general eligibility guidelines.)"
         ),
     }

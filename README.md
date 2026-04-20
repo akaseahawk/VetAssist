@@ -460,7 +460,7 @@ flowchart TD
 - No authentication — synthetic data only
 - No cloud deployment — runs on any laptop with Python
 - One HTML page — no framework, no build step
-- Placeholder integrations — OCR and PDF output are stubs; core flow works without them
+- No PDF output in this MVP — the main demo flow (profile → benefits → forms → field review → chat) works completely without it
 
 ### Dependencies
 
@@ -476,7 +476,7 @@ flowchart TD
 | Benefit suggestions are not legally precise | Always framed as "worth exploring." Disclaimer before every card. VSO recommended. |
 | Form field metadata may drift from VA.gov | Catalog is versioned JSON; easy to update. Direct VA.gov links included. |
 | Claude API unavailable or slow | Graceful rules fallback. Demo does not depend on live API. |
-| OCR / PDF output not ready for demo | Clearly labeled stub. Core demo works without them. |
+| PDF output not in MVP | Core demo flow works completely without it. Clearly noted in UI. |
 | Judges ask about PII / data security | Synthetic data only. No real veteran data stored anywhere. |
 | "Why not just use VA.gov?" | VA.gov has no eligibility discovery, no prefill, no conversational guidance. VetAssist bridges those gaps. |
 
@@ -531,8 +531,8 @@ She Googles "VA disability forms," finds a 47-page PDF, and gives up.
 5. For missing fields, VetAssist tells her: “Your DD-214 may have 3 of these — do you have it nearby?”
 6. She photographs her DD-214 with her phone and uploads the photo
 7. Claude reads the document image (not OCR — it understands the form semantically), extracts the fields, and shows them to Maria for review
-8. She confirms the extracted values — each one shows with an Edit button so she can correct anything
-9. The chat assistant asks for any remaining fields one at a time in plain language
+8. She sees all extracted values in editable inputs and corrects anything that looks wrong, then clicks Confirm
+9. The chat assistant handles any remaining gaps in plain conversational language
 10. She sees a summary ready to bring to her VSO or the VA
 
 **The before/after:** hours of confusion just to know where to start → under 30 minutes, guided.
