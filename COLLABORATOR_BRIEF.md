@@ -95,18 +95,15 @@ The foundation is built and running locally. Here's where things stand:
 
 ---
 
-## Where I need help — and where you specifically fit
+## Where I need help — and where you fit
 
-I'm not going to give you a generic role. Here's where I actually need your skills.
+I'm not going to give you a generic role. Here's where the project actually needs skills.
 
 ---
 
-### Amy — Frontend & Accessibility
+### Frontend & Accessibility Role
 
-**Your background:** Design System Engineering Lead, Front-end Engineer,
-Accessibility Specialist at Wilcore.
-
-This project needs you more than anyone else on the frontend.
+**Background needed:** Frontend engineering, design systems, accessibility (Section 508 / WCAG).
 
 What the UI does right now: it's functional. Veteran selector, benefit cards with
 disclaimers, form table with prefill status, chat box. It works.
@@ -139,28 +136,26 @@ flowchart TD
     style CONF fill:#fef9e7,stroke:#f0ad4e
 ```
 
-**Where you'd make this project:**
+**Where this role makes the project:**
 
 1. **Visual polish on `templates/index.html`**
    The entire UI is one HTML file with vanilla CSS — no framework, no build step.
    Pull it up, make it look like something Wilcore would be proud to demo.
-   - Priority 1: Edit → Save confirmation flash (brief green "✓ Saved" animation)
-   - Priority 2: Loading states (benefit spinner, form tab loading)
-   - Priority 3: Field table hierarchy — prefilled vs. missing should read instantly
-   - Priority 4: Paper form warning badge prominence (non-digitized forms need a
+   - Priority 1: Loading states (benefit spinner, form tab loading)
+   - Priority 2: Field table hierarchy — prefilled vs. missing should read instantly
+   - Priority 3: Paper form warning badge prominence (non-digitized forms need a
      clear visual signal — veterans need to know they may need to print and mail)
 
 2. **The "before/after" designed visual**
    The strongest moment in our presentation will be a side-by-side: what a veteran
    does today (Google, paper forms, confusion) vs. what VetAssist does.
-   You know how to make that land visually in a way that a judge remembers.
    This is the most important non-code deliverable. Figma, Canva, or designed HTML —
    whatever you're fastest in.
 
 3. **Section 508 accessibility baseline**
    Since Wilcore has federal aspirations for this, judges will think about Section 508.
-   If you can add basic aria labels, focus states, and WCAG AA color contrast —
-   that's a credible signal that we've thought about this seriously.
+   Basic aria labels, focus states, and WCAG AA color contrast signal that we've
+   thought about this seriously.
    - aria-label on all interactive elements (buttons, inputs, select)
    - Visible focus ring on keyboard navigation
    - Color contrast: VA blue (#1a3a6b) on white passes; double-check green status labels
@@ -170,32 +165,32 @@ flowchart TD
    blurry or misaligned at screen-capture resolution before we record.
 
 **Time ask:** 4–8 hours across the week, heavily weighted toward Wed–Thu.
-**What you'd own:** `templates/index.html` visual polish, before/after designed visual,
+**What this role owns:** `templates/index.html` visual polish, before/after designed visual,
 accessibility baseline, demo video sign-off.
 
 ---
 
-### Nick — Engineering
+### Engineering Role
 
-**Your background:** Engineering Lead at Wilcore.
+**Background needed:** Backend engineering, Python, API design, architecture review.
 
-The backend and core logic are in solid shape. What I need from an engineering lead
-is a second set of eyes on the architecture, help tightening the code, and a partner
-who can speak credibly to Joe (CTO) when he asks the hard questions.
+The backend and core logic are in solid shape. What this role provides is a second
+set of eyes on the architecture, help tightening the code, and a partner who can
+speak credibly to the CTO when hard questions come up.
 
-**Where you'd add real value:**
+**Where this role adds real value:**
 
-1. **Document vision review — this is already built, 1–2 hours to review + test**
+1. **Document vision review — already built, 1–2 hours to review + test**
 
    `POST /api/upload` is fully implemented using Claude multimodal vision — not a stub.
    `GET /api/upload/suggestions/{veteran_id}` is also real — it tells the frontend which
-   document type has the veteran's missing fields, so the UI can show the “📷 From DD-214”
+   document type has the veteran's missing fields, so the UI can show the "📷 From DD-214"
    button on the right row.
 
    The frontend also has the full upload flow: hidden file input, upload button per missing field,
    vision confirm modal with editable fields, and `confirmVisionFields()` that merges into state.
 
-   **Your job:** test the full flow end-to-end with a real API key:
+   **The job:** test the full flow end-to-end with a real API key:
    ```bash
    # Load Maria (vet_001), select the 21-0781 form
    # Click "From DD-214" on a missing field row
@@ -216,13 +211,13 @@ who can speak credibly to Joe (CTO) when he asks the hard questions.
    Don't add a test framework — just confirm the happy path and the fallback are bulletproof.
 
 3. **Architecture defense — read CLAUDE.md first**
-   When judges or Joe ask "how would this work at scale?" or "what would the federal
-   deployment look like?" — you're the person who can answer credibly.
-   The CLAUDE.md file has the full roadmap: local JSON → VA API → Bedrock on GovCloud.
-   Help me stress-test that story so we can answer follow-up questions confidently.
+   When judges ask "how would this work at scale?" or "what would the federal
+   deployment look like?" — this role answers credibly.
+   `CLAUDE.md` has the full roadmap: local JSON → VA API → Bedrock on GovCloud.
+   Help stress-test that story so follow-up questions land well.
 
-4. **Clean install verification on your machine**
-   Before we record the demo video, do one full clean install on your laptop:
+4. **Clean install verification**
+   Before recording the demo video, do one full clean install:
    ```bash
    git clone https://github.com/akaseahawk/VetAssist
    cd VetAssist
@@ -234,8 +229,8 @@ who can speak credibly to Joe (CTO) when he asks the hard questions.
    quality gate before recording.
 
 **Time ask:** 4–8 hours across the week.
-**What you'd own:** Document vision end-to-end test, edge case testing, architecture Q&A prep,
-clean install verification.
+**What this role owns:** Document vision end-to-end test, edge case testing,
+architecture Q&A prep, clean install verification.
 
 ---
 
@@ -244,7 +239,7 @@ clean install verification.
 | Day | Goal |
 |-----|------|
 | Mon Apr 20 | Challenge opens — decide if you're in, run the app locally |
-| Tue–Wed | Amy: UI pass. Nick: code review + upload flow test |
+| Tue–Wed | Frontend: UI pass. Engineering: code review + upload flow test |
 | Thu | Full demo run-through, catch anything broken |
 | Fri | Record video demo, finalize submission materials |
 | Mon Apr 27 | Deadline 11:59 PM ET |

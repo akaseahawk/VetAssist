@@ -23,7 +23,7 @@ HOW THIS WORKS:
         The hardcoded rules engine in eligibility.py runs instead.
         Same "worth exploring" framing — just less nuanced.
         This keeps the app fully runnable without an API key for setup,
-        demos without connectivity, and Nick/Amy during development.
+        demos without connectivity, and collaborators during development.
 
 CRITICAL FRAMING RULES:
     - These are NOT eligibility determinations.
