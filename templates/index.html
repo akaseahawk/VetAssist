@@ -186,13 +186,31 @@
     .benefit-badge.eligible:hover { border-color: #2e7d32; }
 
     /* ------------------------------------------------------------------
-       Form selector tabs
+       Form selector — grouped by benefit
+       WHY group by benefit: the veteran just read the benefits list in
+       Step 2. Grouping forms under the same benefit name creates visual
+       parallelism so they can connect "I want to explore X" directly
+       to "here's the form for X" without having to cross-reference.
     ------------------------------------------------------------------ */
+    .benefit-form-group {
+      margin-bottom: 1.1rem;
+    }
+    /* Benefit name header above each group of form tabs */
+    .benefit-form-group-header {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #1b5e20;
+      border-left: 3px solid #a5d6a7;
+      padding-left: 0.55rem;
+      margin-bottom: 0.45rem;
+    }
     .form-tabs {
       display: flex;
       flex-wrap: wrap;
       gap: 0.4rem;
-      margin-bottom: 1rem;
+      margin-bottom: 0;
     }
     .form-tab {
       padding: 0.4rem 0.9rem;
@@ -622,7 +640,8 @@
       Select a form below. We’ll show everything we already know and everything
       still needed — all at once. Review, correct anything wrong, fill in the gaps, then confirm.
     </p>
-    <div class="form-tabs" id="form-tabs"></div>
+    <!-- Form groups rendered here: one group per benefit, tabs inside each group -->
+    <div id="form-groups"></div>
 
     <!-- Selected form detail: two sections + single confirm button -->
     <div id="form-detail" class="hidden">
@@ -892,25 +911,101 @@ function renderBenefits(benefits, disclaimer, mode) {
 }
 
 // ---------------------------------------------------------------------------
-// Render: form selector tabs
-// WHY we show both the form number AND title: form numbers like "21-526EZ"
-// mean nothing to most veterans. Showing the full title ("Application for
-// Disability Compensation...") tells them what the form is before they click.
+// Render: form selector grouped by benefit
+//
+// WHY group by benefit instead of a flat tab list:
+//   Step 2 showed the veteran a list of benefits worth exploring.
+//   Grouping the forms under those same benefit names creates parallelism —
+//   the veteran can immediately connect "I want to explore Disability
+//   Compensation" to "here are the forms for that benefit".
+//
+// WHY show both form number AND full title:
+//   Form numbers like "21-526EZ" mean nothing to most veterans.
+//   The title tells them what the form actually is before they click.
+//
+// HOW grouping works:
+//   1. Walk the eligible benefits list (state.eligibilityResults) in order
+//      so the form groups appear in the same sequence as the benefits above.
+//   2. For each benefit, find all forms whose benefit_ids include that benefit.
+//   3. Render a header (benefit name) + tabs (forms) for each group.
+//   4. Skip a benefit if no forms matched it (e.g. informational-only benefits).
 // ---------------------------------------------------------------------------
 function renderFormTabs(forms) {
-  const tabs = document.getElementById("form-tabs");
-  tabs.innerHTML = forms.map(f => `
-    <div
-      class="form-tab"
-      id="tab-${f.form_id}"
-      onclick="selectForm('${f.form_id}')"
-      title="${escHtml(f.form_title)}"
-    >
-      <div style="font-weight:700; font-size:0.82rem;">VA ${escHtml(f.form_id)}</div>
-      <div style="font-size:0.73rem; color:#555; margin-top:2px; line-height:1.3;">${escHtml(f.form_title)}</div>
-      ${!f.digitized ? '<span class="not-digital">PAPER FORM</span>' : ''}
-    </div>
-  `).join("");
+  const container = document.getElementById("form-groups");
+
+  // Build a lookup: benefit_id → list of forms that belong to it
+  // WHY build the lookup instead of nesting loops: O(n) not O(n²),
+  // and it's easier to read for a junior developer.
+  const byBenefit = {};
+  forms.forEach(f => {
+    (f.benefit_ids || []).forEach(bid => {
+      if (!byBenefit[bid]) byBenefit[bid] = [];
+      byBenefit[bid].push(f);
+    });
+  });
+
+  // Walk benefits in the order the eligibility engine returned them
+  // so the form groups mirror the benefits list above
+  const benefitOrder = (state.eligibilityResults || []).map(b => ({
+    id:    b.benefit_id,
+    title: b.title,
+  }));
+
+  // Track which forms have already been rendered so a form that belongs
+  // to multiple benefits (e.g. 21-526EZ → disability + PTSD) only
+  // appears once — under the first matching benefit.
+  const rendered = new Set();
+
+  let html = "";
+  benefitOrder.forEach(benefit => {
+    const matchedForms = (byBenefit[benefit.id] || []).filter(
+      f => !rendered.has(f.form_id)
+    );
+    if (matchedForms.length === 0) return; // no forms for this benefit
+
+    matchedForms.forEach(f => rendered.add(f.form_id));
+
+    html += `
+      <div class="benefit-form-group">
+        <div class="benefit-form-group-header">${escHtml(benefit.title)}</div>
+        <div class="form-tabs">
+          ${matchedForms.map(f => `
+            <div
+              class="form-tab"
+              id="tab-${f.form_id}"
+              onclick="selectForm('${f.form_id}')"
+              title="${escHtml(f.form_title)}"
+            >
+              <div style="font-weight:700; font-size:0.82rem;">VA ${escHtml(f.form_id)}</div>
+              <div style="font-size:0.73rem; color:#555; margin-top:2px; line-height:1.3;">
+                ${escHtml(f.form_title)}
+              </div>
+              ${!f.digitized ? '<span class="not-digital">PAPER FORM</span>' : ''}
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  });
+
+  // Fallback: if eligibilityResults wasn't populated yet, show ungrouped tabs
+  // WHY: defensive — the grouped view depends on state.eligibilityResults
+  // being set before renderFormTabs() is called. The call order in
+  // loadProfileAndBenefits() guarantees this, but a safe fallback prevents
+  // a blank forms section if something changes later.
+  if (!html) {
+    html = `<div class="form-tabs">${
+      forms.map(f => `
+        <div class="form-tab" id="tab-${f.form_id}" onclick="selectForm('${f.form_id}')">
+          <div style="font-weight:700; font-size:0.82rem;">VA ${escHtml(f.form_id)}</div>
+          <div style="font-size:0.73rem; color:#555; margin-top:2px;">${escHtml(f.form_title)}</div>
+          ${!f.digitized ? '<span class="not-digital">PAPER FORM</span>' : ''}
+        </div>
+      `).join("")
+    }</div>`;
+  }
+
+  container.innerHTML = html;
 }
 
 // ---------------------------------------------------------------------------

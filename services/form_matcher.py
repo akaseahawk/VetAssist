@@ -130,11 +130,16 @@ def prefill_fields(form: dict, veteran: dict) -> dict:
         })
 
     return {
-        "form_id": form["id"],
+        "form_id":    form["id"],
         "form_title": form["title"],
-        "digitized": form.get("digitized", True),
-        "info_url": form.get("info_url", ""),
-        "fields": fields_out,
+        "digitized":  form.get("digitized", True),
+        "info_url":   form.get("info_url", ""),
+        # WHY include benefit_ids: the frontend groups forms under their
+        # matching benefit section, so it needs to know which benefit(s)
+        # each form belongs to. Passing it through from the catalog keeps
+        # the grouping logic data-driven and out of the template.
+        "benefit_ids": form.get("benefit_ids", []),
+        "fields":     fields_out,
     }
 
 
