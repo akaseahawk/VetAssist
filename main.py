@@ -675,5 +675,19 @@ async def generate_output(request: GenerateOutputRequest):
 
 @app.get("/health")
 async def health():
-    """Simple health check. Used to verify the server is running."""
-    return {"status": "ok", "app": "VetAssist", "version": "0.1.0-mvp"}
+    """
+    Health check.
+    WHY include api_key_set: Railway and other hosts sometimes pass env vars
+    with extra quotes or whitespace. Exposing whether the key is detected
+    (not the key itself) makes it easy to diagnose Claude not working on
+    a hosted environment without exposing secrets.
+    """
+    api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    return {
+        "status":      "ok",
+        "app":         "VetAssist",
+        "version":     "0.1.0-mvp",
+        # True/False only — never expose the actual key value
+        "api_key_set": bool(api_key),
+        "model":       os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5"),
+    }

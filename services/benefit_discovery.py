@@ -252,8 +252,11 @@ def discover_benefits(veteran: dict) -> dict:
             "disclaimer":  str — shown to veteran in the UI
         }
     """
-    api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
-    model   = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5")
+    # WHY strip + strip quotes: some hosting platforms (Railway, Render) wrap
+    # env var values in double quotes when set via their UI. Stripping both
+    # whitespace and surrounding quotes ensures the key is always clean.
+    api_key = os.getenv("ANTHROPIC_API_KEY", "").strip().strip('"').strip("'")
+    model   = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5").strip().strip('"').strip("'")
 
     catalog = _load_benefits_catalog()
 
