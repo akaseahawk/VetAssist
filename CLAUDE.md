@@ -224,9 +224,6 @@ cp .env.example .env   # optionally add ANTHROPIC_API_KEY=sk-...
 
 **Run / re-run**
 ```bash
-# WHY python -m uvicorn instead of plain uvicorn:
-# Codespaces (and many virtual envs) don't add the uvicorn binary to PATH,
-# but the module is always reachable via the active Python interpreter.
 python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 # open http://localhost:8000
 ```
