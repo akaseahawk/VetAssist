@@ -100,7 +100,7 @@ they need. VetAssist prepares them. The VA and VSO make the final call.
 
 ```mermaid
 flowchart TD
-    U1(["Veteran profile loaded"])
+    U1(["Veteran profile loaded\nor self-entered by veteran"])
     U1 --> U2
 
     U2["🔍 UNDERSTAND\nClaude reviews service history\nbranch · discharge · conditions\nSurfaces benefits worth exploring\nnot a ruling — plain language"]
@@ -212,7 +212,7 @@ and saved 2 hours each, that's ~200,000 veteran-hours recovered per year.
 flowchart TD
     Browser["🌐 Veteran's Browser\ntemplates/index.html\nvanilla JS · no build step"]
 
-    API["⚙️ FastAPI Application\nmain.py\nGET / · GET /api/veterans\nGET /api/eligibility · GET /api/forms\nPOST /api/chat\nPOST /api/upload · GET /api/upload/suggestions/{id}"]
+    API["⚙️ FastAPI Application\nmain.py\nGET / · GET /api/veterans\nGET /api/eligibility/{id} · POST /api/eligibility/own\nGET /api/forms/{id} · POST /api/forms/own\nPOST /api/chat\nPOST /api/upload · GET /api/upload/suggestions/{id}"]
 
     BD["benefit_discovery.py\nClaude-first discovery\nrules fallback"]
     FM["form_matcher.py\nMaps benefits → forms\nPrefills fields · Flags missing\nReturns source_documents per field"]
@@ -307,8 +307,8 @@ flowchart TD
     REQ([HTTP Request]) --> MAIN
 
     subgraph MAIN["main.py — all routes"]
-        R1["GET /api/eligibility/{id}"]
-        R2["GET /api/forms/{id}"]
+        R1["GET /api/eligibility/{id}\nPOST /api/eligibility/own"]
+        R2["GET /api/forms/{id}\nPOST /api/forms/own"]
         R3["POST /api/chat"]
         R4["POST /api/upload\nGET /api/upload/suggestions/{id}"]
         R5["GET /api/veterans · GET /health"]
@@ -401,7 +401,8 @@ and offline environments without compromising the default experience.
 | Veteran profile loading | **Real** | Reads from `data/veterans.json` |
 | Benefit discovery | **Real** | Claude-first; rules fallback |
 | Form field prefill | **Real** | Maps profile fields to form field metadata |
-| VA form titles and VA.gov links | **Real** | 5 actual VA forms with public URLs |
+| VA form titles and VA.gov links | **Real** | 5 actual VA forms with public URLs — 16–34 fields each |
+| Manual profile entry | **Real** | Veterans can enter their own info instead of picking a demo profile |
 | Conversational assistant | **Real** (with API key) | Graceful placeholder without |
 | Document photo → prefill (Claude vision) | **Real** (with API key) | Veteran photos a DD-214 or other doc; Claude extracts fields; veteran confirms before anything populates |
 | Document type suggestions | **Real** | System tells veteran which document likely has each missing field |
@@ -529,7 +530,7 @@ in Iraq and Afghanistan. She tries to file a claim but doesn't know where to sta
 She Googles "VA disability forms," finds a 47-page PDF, and gives up.
 
 **With VetAssist:**
-1. Maria opens VetAssist and selects her profile
+1. Maria opens VetAssist and selects her profile (or enters her own information directly)
 2. In seconds, she sees benefits worth exploring: disability compensation, PTSD benefits, VA health care
 3. She sees matching forms — one flagged as "not fully digitized"
 4. Most fields are already filled in from her profile (name, service dates, branch, conditions)

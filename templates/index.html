@@ -290,6 +290,65 @@
     }
     .field-upload-btn:hover { border-color: #1a3a6b; color: #1a3a6b; background: #f0f4ff; }
 
+    /* ------------------------------------------------------------------
+       Spinner — inline animated indicator for real async operations.
+       WHY CSS animation not a GIF: no external asset needed, scales cleanly.
+       Shown during: profile load, benefit check, chat response, doc upload.
+    ------------------------------------------------------------------ */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid #c0cce0;
+      border-top-color: #1a3a6b;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    /* ------------------------------------------------------------------
+       Profile mode toggle buttons (Demo / Enter My Own)
+    ------------------------------------------------------------------ */
+    .profile-mode-btn { font-size: 0.85rem; padding: 0.4rem 1rem; }
+    .profile-mode-btn.active {
+      background: #1a3a6b;
+      color: #fff;
+      border-color: #1a3a6b;
+    }
+
+    /* ------------------------------------------------------------------
+       Own-profile entry grid — two columns on wider screens
+    ------------------------------------------------------------------ */
+    .own-profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    @media (max-width: 600px) { .own-profile-grid { grid-template-columns: 1fr; } }
+    .own-field label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 0.25rem;
+    }
+    .own-field input,
+    .own-field select {
+      width: 100%;
+      padding: 0.45rem 0.6rem;
+      border: 1.5px solid #ccc;
+      border-radius: 5px;
+      font-size: 0.88rem;
+      color: #1a1a2e;
+    }
+    .own-field input:focus, .own-field select:focus {
+      outline: none;
+      border-color: #1a3a6b;
+      box-shadow: 0 0 0 2px rgba(26,58,107,0.12);
+    }
+
     /* Progress bar */
     .progress-wrap { height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; margin: 0.5rem 0; }
     .progress-bar  { height: 100%; background: #2e7d32; border-radius: 4px; transition: width 0.3s; }
@@ -408,17 +467,117 @@
   <!-- STEP 1: Select Veteran Profile -->
   <div class="card" id="card-select">
     <h2><span class="step-num">1</span> Select Your Profile</h2>
-    <div class="select-row">
-      <label for="veteran-select" style="font-size:0.88rem; font-weight:600;">Veteran:</label>
-      <select id="veteran-select">
-        <option value="">— choose a profile —</option>
-      </select>
-      <button class="btn btn-primary" onclick="loadVeteran()">Load Profile</button>
+
+    <!--
+      Two options: pick a demo profile OR enter your own information.
+      WHY: This tool is for real veterans. Demo profiles exist for testing
+      and demonstration, but a real veteran needs to be able to enter their
+      own data without being forced to pick from a fake name.
+    -->
+    <div style="display:flex; gap:0.5rem; margin-bottom:1rem; flex-wrap:wrap;">
+      <button class="btn btn-outline profile-mode-btn active" id="btn-mode-demo"
+        onclick="setProfileMode('demo')">
+        Use a demo profile
+      </button>
+      <button class="btn btn-outline profile-mode-btn" id="btn-mode-own"
+        onclick="setProfileMode('own')">
+        Enter my own information
+      </button>
     </div>
-    <p class="note">
-      Demo uses synthetic profiles. No real veteran data is stored or transmitted.
-      Nothing you enter here is saved — all data stays in your browser session only.
-    </p>
+
+    <!-- DEMO MODE: select from synthetic profiles -->
+    <div id="profile-demo-section">
+      <div class="select-row">
+        <label for="veteran-select" style="font-size:0.88rem; font-weight:600;">Demo profile:</label>
+        <select id="veteran-select">
+          <option value="">— choose a profile —</option>
+        </select>
+        <button class="btn btn-primary" id="btn-load-demo" onclick="loadVeteran()">Load Profile</button>
+      </div>
+      <p class="note">
+        These are synthetic profiles for demonstration only. No real veteran data is stored or transmitted.
+      </p>
+    </div>
+
+    <!-- OWN INFO MODE: manual entry form -->
+    <div id="profile-own-section" style="display:none;">
+      <p class="note" style="margin-bottom:1rem;">
+        Fill in what you know. You can leave anything blank — VetAssist will ask about it later.
+        Nothing you enter is stored or transmitted anywhere outside this browser session.
+      </p>
+      <div class="own-profile-grid">
+        <div class="own-field"><label>First Name *</label><input type="text" id="own-name-first" placeholder="First name" /></div>
+        <div class="own-field"><label>Last Name *</label><input type="text" id="own-name-last" placeholder="Last name" /></div>
+        <div class="own-field"><label>Date of Birth</label><input type="date" id="own-dob" /></div>
+        <div class="own-field">
+          <label>Branch of Service *</label>
+          <select id="own-branch">
+            <option value="">— select —</option>
+            <option>Army</option><option>Navy</option><option>Marine Corps</option>
+            <option>Air Force</option><option>Space Force</option><option>Coast Guard</option>
+          </select>
+        </div>
+        <div class="own-field"><label>Service Start Date</label><input type="date" id="own-service-start" /></div>
+        <div class="own-field"><label>Service End Date</label><input type="date" id="own-service-end" /></div>
+        <div class="own-field">
+          <label>Type of Discharge</label>
+          <select id="own-discharge">
+            <option value="">— select —</option>
+            <option>Honorable</option><option>General</option>
+            <option>Other Than Honorable</option><option>Bad Conduct</option><option>Dishonorable</option>
+          </select>
+        </div>
+        <div class="own-field">
+          <label>Combat Deployment?</label>
+          <select id="own-combat">
+            <option value="">— select —</option>
+            <option value="true">Yes</option><option value="false">No</option>
+          </select>
+        </div>
+        <div class="own-field"><label>Deployment Locations (if any)</label><input type="text" id="own-deployments" placeholder="e.g. Iraq, Afghanistan" /></div>
+        <div class="own-field">
+          <label>Service-Connected Disability?</label>
+          <select id="own-scd">
+            <option value="">— select —</option>
+            <option value="true">Yes</option><option value="false">No</option>
+          </select>
+        </div>
+        <div class="own-field"><label>Disability Rating % (if any)</label><input type="number" id="own-rating" min="0" max="100" placeholder="e.g. 30" /></div>
+        <div class="own-field"><label>Disability Conditions (if any)</label><input type="text" id="own-conditions" placeholder="e.g. PTSD, hearing loss" /></div>
+        <div class="own-field">
+          <label>Enrolled in VA Health Care?</label>
+          <select id="own-va-hc">
+            <option value="">— select —</option>
+            <option value="true">Yes</option><option value="false">No</option>
+          </select>
+        </div>
+        <div class="own-field">
+          <label>Currently Receiving Disability Comp?</label>
+          <select id="own-comp">
+            <option value="">— select —</option>
+            <option value="true">Yes</option><option value="false">No</option>
+          </select>
+        </div>
+        <div class="own-field"><label>Annual Income (approximate)</label><input type="number" id="own-income" placeholder="e.g. 42000" /></div>
+        <div class="own-field"><label>Number of Dependents</label><input type="number" id="own-dependents" min="0" placeholder="e.g. 2" /></div>
+        <div class="own-field"><label>Street Address</label><input type="text" id="own-addr-street" placeholder="123 Main St" /></div>
+        <div class="own-field"><label>City</label><input type="text" id="own-addr-city" /></div>
+        <div class="own-field"><label>State</label><input type="text" id="own-addr-state" maxlength="2" placeholder="e.g. CA" /></div>
+        <div class="own-field"><label>ZIP Code</label><input type="text" id="own-addr-zip" /></div>
+        <div class="own-field"><label>Phone Number</label><input type="text" id="own-phone" placeholder="555-000-0000" /></div>
+        <div class="own-field"><label>Email Address</label><input type="email" id="own-email" placeholder="your@email.com" /></div>
+      </div>
+      <p style="font-size:0.78rem; color:#888; margin-top:0.5rem;">* Required to find relevant benefits</p>
+      <button class="btn btn-primary" style="margin-top:1rem;" onclick="loadOwnProfile()">
+        Continue with My Information
+      </button>
+      <div id="own-error" style="display:none; color:#c00; font-size:0.85rem; margin-top:0.5rem;"></div>
+    </div>
+
+    <!-- Loading indicator shown while eligibility is running -->
+    <div id="profile-loading" style="display:none; margin-top:1rem; font-size:0.9rem; color:#1a3a6b;">
+      <span class="spinner"></span> Loading your profile and checking benefits...
+    </div>
 
     <!-- Profile summary, shown after loading -->
     <div id="profile-summary" class="hidden" style="margin-top:1rem;">
@@ -450,7 +609,9 @@
       <span id="mode-badge" style="margin-left:0.5rem; font-size:0.75rem; color:#888;"></span>
     </div>
 
-    <p class="section-note" id="benefit-spinner">Reviewing your profile...</p>
+    <div id="benefit-spinner" style="font-size:0.9rem; color:#1a3a6b; padding:0.5rem 0;">
+      <span class="spinner"></span> Reviewing your profile and finding benefits...
+    </div>
     <div class="benefit-grid" id="benefit-grid"></div>
   </div>
 
@@ -520,9 +681,14 @@
         type="text"
         id="chat-input"
         placeholder="Type your answer or question..."
-        onkeydown="if(event.key==='Enter') sendChat()"
+        onkeydown="if(event.key==='Enter' && !event.shiftKey) sendChat()"
       />
-      <button class="btn btn-primary" onclick="sendChat()">Send</button>
+      <!-- WHY the button text changes: showing 'Thinking...' with the spinner
+           gives the veteran real feedback that the AI is working, not broken. -->
+      <button class="btn btn-primary" id="chat-send-btn" onclick="sendChat()">Send</button>
+    </div>
+    <div id="chat-thinking" style="display:none; font-size:0.85rem; color:#1a3a6b; padding:0.3rem 0;">
+      <span class="spinner"></span> Thinking...
     </div>
     <p class="note" id="chat-mode-note"></p>
   </div>
@@ -588,6 +754,7 @@ async function loadVeteran() {
   show("card-benefits");
   hide("card-forms");
   hide("card-chat");
+  document.getElementById("profile-loading").style.display = "block";
 
   // Load profile and eligibility in parallel — both are needed before showing Step 2
   const [profileRes, eligRes] = await Promise.all([
@@ -605,7 +772,9 @@ async function loadVeteran() {
   // Show benefits — pass disclaimer text and mode badge from the API response
   // WHY three args: renderBenefits() needs the disclaimer string and mode label
   // from the backend, not just the benefit list, so it can show the right framing
-  document.getElementById("benefit-spinner").classList.add("hidden");
+  // Hide loading indicators now that data has arrived
+  document.getElementById("profile-loading").style.display = "none";
+  document.getElementById("benefit-spinner").style.display = "none";
   renderBenefits(eligData.benefits || [], eligData.disclaimer || "", eligData.mode || "rules_fallback");
 
   // Load forms (prefill data) in the background
@@ -724,6 +893,9 @@ function renderBenefits(benefits, disclaimer, mode) {
 
 // ---------------------------------------------------------------------------
 // Render: form selector tabs
+// WHY we show both the form number AND title: form numbers like "21-526EZ"
+// mean nothing to most veterans. Showing the full title ("Application for
+// Disability Compensation...") tells them what the form is before they click.
 // ---------------------------------------------------------------------------
 function renderFormTabs(forms) {
   const tabs = document.getElementById("form-tabs");
@@ -732,8 +904,10 @@ function renderFormTabs(forms) {
       class="form-tab"
       id="tab-${f.form_id}"
       onclick="selectForm('${f.form_id}')"
+      title="${escHtml(f.form_title)}"
     >
-      VA ${escHtml(f.form_id)}
+      <div style="font-weight:700; font-size:0.82rem;">VA ${escHtml(f.form_id)}</div>
+      <div style="font-size:0.73rem; color:#555; margin-top:2px; line-height:1.3;">${escHtml(f.form_title)}</div>
       ${!f.digitized ? '<span class="not-digital">PAPER FORM</span>' : ''}
     </div>
   `).join("");
@@ -843,8 +1017,28 @@ function renderFormDetail(form) {
 //   inputClass — "is-known" (green) or "is-needed" (amber)
 //   showUpload — whether to show the photo upload button if source_documents exist
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Build a single field row as an editable input
+//
+// WHY each field_type gets its own control:
+//   - date fields use type="date" so the browser provides a date picker.
+//     Veterans shouldn't need to remember date formats.
+//   - select fields render a <select> from the options list in the catalog.
+//     This prevents invalid values and reduces typing.
+//   - textarea fields give space for narrative answers (e.g. stressor descriptions).
+//   - text is the fallback for everything else.
+//
+// WHY always editable (never display-only):
+//   The veteran needs to be able to correct any prefilled value.
+//   Displaying a value as plain text implies it's locked. Nothing is locked.
+// ---------------------------------------------------------------------------
 function buildFieldRow(field, inputClass, showUpload) {
-  const sourceDocs = field.source_documents || [];
+  const sourceDocs  = field.source_documents || [];
+  const fieldType   = field.field_type || "text";
+  const options     = field.options || [];
+  const isRequired  = field.required || (inputClass === "is-needed");
+  const placeholder = inputClass === "is-needed" ? "Type your answer here…" : "";
+
   const uploadBtn = (showUpload && sourceDocs.length > 0)
     ? `<button class="field-upload-btn"
          onclick="triggerDocUpload('${field.key}', '${escHtml(sourceDocs[0])}', event)"
@@ -853,27 +1047,80 @@ function buildFieldRow(field, inputClass, showUpload) {
        </button>`
     : "";
 
-  // Source doc hint shown under the label for missing fields
   const hint = (showUpload && sourceDocs.length > 0)
     ? `<div class="field-hint">Your ${sourceDocs.join(" or ")} may have this</div>`
     : "";
 
-  return `
-    <div class="field-row" id="row-${field.key}">
-      <div class="field-label">
-        ${escHtml(field.label)}
-        ${hint}
-      </div>
+  const requiredMark = isRequired
+    ? `<span style="color:#c00; margin-left:2px;" title="Required">*</span>`
+    : "";
+
+  // Build the input control based on field_type
+  let inputHtml;
+  if (fieldType === "select" && options.length > 0) {
+    // WHY <select>: constrained options prevent invalid values and reduce typing burden
+    const opts = options.map(o =>
+      `<option value="${escHtml(o)}" ${field.displayVal === o ? 'selected' : ''}>${escHtml(o)}</option>`
+    ).join("");
+    inputHtml = `
+      <select
+        id="input-${field.key}"
+        class="field-input ${inputClass}"
+        data-field-key="${field.key}"
+        data-required="${isRequired}"
+        onchange="this.classList.remove('is-error')">
+        <option value="">— select —</option>
+        ${opts}
+      </select>`;
+  } else if (fieldType === "date") {
+    // WHY type="date": gives the browser's native date picker.
+    // The text fallback (type="text") is used only if the browser doesn't support it.
+    inputHtml = `
+      <input
+        type="date"
+        id="input-${field.key}"
+        class="field-input ${inputClass}"
+        value="${escHtml(field.displayVal)}"
+        data-field-key="${field.key}"
+        data-required="${isRequired}"
+        oninput="this.classList.remove('is-error')"
+      />`;
+  } else if (fieldType === "textarea") {
+    // WHY <textarea>: narrative fields like stressor descriptions need more space.
+    // A single-line input creates a frustrating UX for multi-sentence answers.
+    inputHtml = `
+      <textarea
+        id="input-${field.key}"
+        class="field-input ${inputClass}"
+        placeholder="${placeholder}"
+        data-field-key="${field.key}"
+        data-required="${isRequired}"
+        oninput="this.classList.remove('is-error')"
+        rows="3"
+        style="resize:vertical;"
+      >${escHtml(field.displayVal)}</textarea>`;
+  } else {
+    // Default: plain text input
+    inputHtml = `
       <input
         type="text"
         id="input-${field.key}"
         class="field-input ${inputClass}"
         value="${escHtml(field.displayVal)}"
-        placeholder="${inputClass === 'is-needed' ? 'Type your answer here…' : ''}"
+        placeholder="${placeholder}"
         data-field-key="${field.key}"
-        data-required="${inputClass === 'is-needed' ? 'true' : 'false'}"
+        data-required="${isRequired}"
         oninput="this.classList.remove('is-error')"
-      />
+      />`;
+  }
+
+  return `
+    <div class="field-row" id="row-${field.key}">
+      <div class="field-label">
+        ${escHtml(field.label)}${requiredMark}
+        ${hint}
+      </div>
+      ${inputHtml}
       ${uploadBtn}
     </div>`;
 }
@@ -960,15 +1207,27 @@ function confirmFields() {
 
 // ---------------------------------------------------------------------------
 // Chat: send a message
+// WHY we disable the input and show 'Thinking...' during the request:
+//   Real AI responses take 1–10 seconds. Without a loading indicator, the
+//   veteran has no feedback that anything is happening — it looks broken.
+//   We show a real spinner only while the request is actually in flight.
 // ---------------------------------------------------------------------------
 async function sendChat() {
-  const input = document.getElementById("chat-input");
+  const input   = document.getElementById("chat-input");
+  const sendBtn = document.getElementById("chat-send-btn");
+  const thinking = document.getElementById("chat-thinking");
   const message = input.value.trim();
   if (!message || !state.veteranId) return;
 
   input.value = "";
   addMessage("user", message);
   state.conversationHistory.push({ role: "user", content: message });
+
+  // Show loading state while waiting for API response
+  input.disabled   = true;
+  sendBtn.disabled = true;
+  sendBtn.textContent = "Sending...";
+  thinking.style.display = "block";
 
   try {
     const res = await fetch("/api/chat", {
@@ -988,11 +1247,8 @@ async function sendChat() {
 
     addMessage("assist", reply);
     state.conversationHistory.push({ role: "assistant", content: reply });
-
-    // Update step indicator
     setStep(5);
 
-    // Show which model is responding
     const modeNote = document.getElementById("chat-mode-note");
     if (data.model === "placeholder") {
       modeNote.textContent = "Conversational assistant unavailable — AI connection not configured in this environment.";
@@ -1002,6 +1258,13 @@ async function sendChat() {
 
   } catch (e) {
     addMessage("assist", "Something went wrong — please check your connection and try again.");
+  } finally {
+    // Always restore input regardless of success or error
+    input.disabled      = false;
+    sendBtn.disabled    = false;
+    sendBtn.textContent = "Send";
+    thinking.style.display = "none";
+    input.focus();
   }
 }
 
@@ -1048,6 +1311,153 @@ function escHtml(str) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+// ---------------------------------------------------------------------------
+// Profile mode toggle: switch between demo profiles and own-info entry
+// WHY two modes: Demo profiles exist for testing and demonstration.
+// Real veterans need to be able to enter their own data.
+// ---------------------------------------------------------------------------
+function setProfileMode(mode) {
+  const demoSection = document.getElementById("profile-demo-section");
+  const ownSection  = document.getElementById("profile-own-section");
+  const btnDemo     = document.getElementById("btn-mode-demo");
+  const btnOwn      = document.getElementById("btn-mode-own");
+
+  if (mode === "demo") {
+    demoSection.style.display = "block";
+    ownSection.style.display  = "none";
+    btnDemo.classList.add("active");
+    btnOwn.classList.remove("active");
+  } else {
+    demoSection.style.display = "none";
+    ownSection.style.display  = "block";
+    btnOwn.classList.add("active");
+    btnDemo.classList.remove("active");
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Load a veteran's own manually entered profile
+// WHY we build a profile object client-side:
+//   Real veterans enter their own information. We construct a profile object
+//   that matches the same shape as the synthetic profiles so the rest of the
+//   app works identically regardless of where the data came from.
+// WHY we call /api/eligibility with POST:
+//   The veteran profile isn't in veterans.json, so we can't use the GET
+//   /api/eligibility/{id} endpoint. We pass the profile directly in the body.
+// ---------------------------------------------------------------------------
+async function loadOwnProfile() {
+  const firstName = document.getElementById("own-name-first").value.trim();
+  const lastName  = document.getElementById("own-name-last").value.trim();
+  const branch    = document.getElementById("own-branch").value;
+  const errorEl   = document.getElementById("own-error");
+
+  // Validate required fields before proceeding
+  if (!firstName || !lastName) {
+    errorEl.textContent = "Please enter your first and last name.";
+    errorEl.style.display = "block";
+    return;
+  }
+  if (!branch) {
+    errorEl.textContent = "Please select your branch of service.";
+    errorEl.style.display = "block";
+    return;
+  }
+  errorEl.style.display = "none";
+
+  // Build a profile object from the form fields
+  // WHY we normalize booleans from string selects:
+  //   HTML selects return strings. The backend and eligibility engine
+  //   expect booleans for fields like combat_deployment.
+  const tooBool = id => {
+    const v = document.getElementById(id).value;
+    if (v === "true")  return true;
+    if (v === "false") return false;
+    return null;
+  };
+
+  const profile = {
+    id:                          "own",
+    name:                        `${firstName} ${lastName}`,
+    branch,
+    discharge_type:              document.getElementById("own-discharge").value || null,
+    service_start:               document.getElementById("own-service-start").value || null,
+    service_end:                 document.getElementById("own-service-end").value || null,
+    combat_deployment:           tooBool("own-combat"),
+    deployment_locations:        document.getElementById("own-deployments").value
+                                   .split(",").map(s => s.trim()).filter(Boolean),
+    service_connected_disability: tooBool("own-scd"),
+    disability_rating_pct:       parseInt(document.getElementById("own-rating").value) || 0,
+    disability_conditions:       document.getElementById("own-conditions").value
+                                   .split(",").map(s => s.trim()).filter(Boolean),
+    dob:                         document.getElementById("own-dob").value || null,
+    enrolled_va_healthcare:      tooBool("own-va-hc"),
+    receiving_disability_comp:   tooBool("own-comp"),
+    income_annual:               parseInt(document.getElementById("own-income").value) || null,
+    dependents:                  parseInt(document.getElementById("own-dependents").value) || 0,
+    address: {
+      street: document.getElementById("own-addr-street").value || "",
+      city:   document.getElementById("own-addr-city").value   || "",
+      state:  document.getElementById("own-addr-state").value  || "",
+      zip:    document.getElementById("own-addr-zip").value    || "",
+    },
+    phone:  document.getElementById("own-phone").value  || null,
+    email:  document.getElementById("own-email").value  || null,
+    dd214_on_file: null,
+    notes: "Real veteran — self-entered profile",
+  };
+
+  // Store the profile and a synthetic ID
+  state.veteran            = profile;
+  state.veteranId          = "own";
+  state.conversationHistory = [];
+  state.verifiedFields     = {};
+  state.activeFormId       = null;
+  state.activeForm         = null;
+
+  // Show loading state
+  document.getElementById("profile-loading").style.display = "block";
+  setStep(1);
+  show("card-benefits");
+  hide("card-forms");
+  hide("card-chat");
+
+  try {
+    // Run eligibility directly with the veteran profile in the request body
+    // WHY POST not GET: there's no veteran ID in the database to look up.
+    const eligRes = await fetch("/api/eligibility/own", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ veteran: profile }),
+    });
+    const eligData = await eligRes.json();
+
+    // Load forms with the same inline profile
+    const formsRes = await fetch("/api/forms/own", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ veteran: profile }),
+    });
+    const formsData = await formsRes.json();
+
+    state.eligibilityResults = eligData.benefits || [];
+    state.forms = formsData.forms || [];
+
+    document.getElementById("profile-loading").style.display = "none";
+    document.getElementById("benefit-spinner").style.display = "none";
+
+    renderProfile(state.veteran);
+    renderBenefits(eligData.benefits || [], eligData.disclaimer || "", eligData.mode || "rules_fallback");
+    renderFormTabs(state.forms);
+    show("card-forms");
+    setStep(2);
+
+  } catch (e) {
+    document.getElementById("profile-loading").style.display = "none";
+    document.getElementById("own-error").textContent = "Something went wrong loading your profile. Please try again.";
+    document.getElementById("own-error").style.display = "block";
+  }
 }
 
 // ---------------------------------------------------------------------------

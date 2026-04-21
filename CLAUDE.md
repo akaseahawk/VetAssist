@@ -52,14 +52,11 @@ flowchart TD
     REQ([HTTP Request]) --> MAIN
 
     subgraph MAIN["main.py — all routes"]
-        R1["GET /api/eligibility/{id}"]
-        R2["GET /api/forms/{id}"]
+        R1["GET /api/eligibility/{id}\nPOST /api/eligibility/own"]
+        R2["GET /api/forms/{id}\nPOST /api/forms/own"]
         R3["POST /api/chat"]
-        R4["POST /api/upload
-GET /api/upload/suggestions/{id}"]
-        R5["GET /api/veterans
-GET /api/veterans/{id}
-GET /health"]
+        R4["POST /api/upload\nGET /api/upload/suggestions/{id}"]
+        R5["GET /api/veterans\nGET /api/veterans/{id}\nGET /health"]
         R6["POST /api/generate-output stub"]
     end
 
@@ -192,8 +189,9 @@ These apply in BOTH modes and cannot be relaxed:
 | Component | Status | Notes |
 |---|---|---|
 | Veteran profile loading | REAL | Reads from data/veterans.json |
+| Manual profile entry | REAL | Veteran enters their own info via form in the UI; POST /api/eligibility/own and POST /api/forms/own accept the profile inline |
 | Benefit discovery | REAL | Claude-first; rules fallback |
-| Form field prefill | REAL | Maps profile fields to form fields |
+| Form field prefill | REAL | Maps profile fields to form fields (16–34 fields per form, with field_type, options, required metadata) |
 | Document type suggestions | REAL | suggest_source_documents() — tells veteran which doc has missing fields |
 | Document photo → field extraction | REAL (with API key) | Claude multimodal vision in document_vision.py; veteran confirms every field |
 | Conversational assistant | REAL (with API key) | Placeholder string without key |
@@ -234,8 +232,8 @@ and Claude chat responses show a placeholder message.
 ## Happy-path demo flow
 
 1. User opens http://localhost:8000
-2. Selects a veteran from the dropdown (e.g. Maria Sanchez)
-3. Clicks "Load Profile" — sees profile summary and appreciative greeting
+2. Selects a veteran from the dropdown (e.g. Maria Sanchez) OR clicks "Enter my own information" and fills out the 20-field manual entry form
+3. Clicks "Load Profile" / "Continue with My Information" — sees profile summary and appreciative greeting
 4. Sees disclaimer banner, then benefit cards with reasons and VA.gov links
 5. Sees suggested VA forms — tabs for each, with prefilled fields and missing fields
 6. Veteran reviews prefilled fields (green) and missing fields (amber) — all shown as editable inputs

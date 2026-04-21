@@ -114,6 +114,15 @@ def prefill_fields(form: dict, veteran: dict) -> dict:
             "label":            label,
             "value":            value,
             "status":           status,
+            # WHY include field_type: the frontend uses this to render the
+            # correct input control (date picker, select, textarea, text).
+            # Keeping it in the catalog means UI decisions stay data-driven.
+            "field_type":       field.get("field_type", "text"),
+            # WHY include options: select fields need their allowed values.
+            # Passing from the catalog keeps the frontend from hardcoding them.
+            "options":          field.get("options", []),
+            # WHY include required: lets the frontend validate before confirming.
+            "required":         field.get("required", False),
             # WHY include source_documents: the frontend uses this to show
             # a '📷 From DD-214' upload button on missing fields.
             # Passing it through from the catalog keeps the frontend stateless.

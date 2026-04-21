@@ -36,8 +36,10 @@ API ENDPOINTS:
     GET  /                          → serves the frontend HTML page
     GET  /api/veterans              → list all veteran profiles (id, name, branch)
     GET  /api/veterans/{id}         → full profile for one veteran
-    GET  /api/eligibility/{id}      → run benefit eligibility for a veteran
-    GET  /api/forms/{id}            → matched forms + prefilled fields for a veteran
+    GET  /api/eligibility/{id}      → run benefit eligibility for a demo-profile veteran
+    POST /api/eligibility/own       → same as above but accepts inline profile in request body
+    GET  /api/forms/{id}            → matched forms + prefilled fields for a demo-profile veteran
+    POST /api/forms/own             → same as above but accepts inline profile in request body
     POST /api/chat                  → send a message to the conversational assistant
     POST /api/upload                → accept document photo, extract fields via Claude vision
     GET  /api/upload/suggestions/{id}→ return which document types have a veteran's missing fields
@@ -254,6 +256,101 @@ async def get_forms(veteran_id: str):
         "veteran_name":        veteran["name"],
         "eligible_benefit_ids": eligible_ids,
         "forms":               output,
+    }
+
+
+# ---------------------------------------------------------------------------
+# "Enter my own info" routes
+# ---------------------------------------------------------------------------
+# WHY these routes exist:
+#   The profile picker lets veterans enter their own information instead of
+#   selecting a demo profile. Since there is no veteran ID to look up,
+#   the frontend sends the full profile in the request body. These routes
+#   mirror the GET /api/eligibility/{id} and GET /api/forms/{id} endpoints
+#   exactly — same logic, same response shape — but accept an inline profile.
+
+class OwnProfileRequest(BaseModel):
+    """
+    Request body for /api/eligibility/own and /api/forms/own.
+    WHY a Pydantic model: gives us automatic validation and clear API docs.
+    The veteran dict is passed through directly to the service functions.
+    """
+    veteran: dict
+
+
+@app.post("/api/eligibility/own")
+async def get_eligibility_own(request: OwnProfileRequest):
+    """
+    Discover benefits worth exploring for a veteran whose profile was entered
+    manually in the UI (not loaded from veterans.json).
+
+    WHY POST: the veteran has no stored ID to look up. We receive the full
+    profile in the request body and pass it straight to the eligibility engine.
+
+    Response shape is identical to GET /api/eligibility/{id} so the frontend
+    can handle both paths with the same rendering code.
+
+    IMPORTANT: This system does not determine eligibility.
+    The VA and the veteran's VSO make that determination.
+    We help veterans understand what to ask about and prepare paperwork.
+    """
+    veteran = request.veteran
+
+    from services.benefit_discovery import discover_benefits
+    result = discover_benefits(veteran)
+
+    return {
+        # Use the name from the entered profile, or a friendly fallback
+        "veteran_id":   "own",
+        "veteran_name": veteran.get("name", "Veteran"),
+        "branch":       veteran.get("branch", ""),
+        "benefits":     result["benefits"],
+        "mode":         result["mode"],
+        "disclaimer":   result["disclaimer"],
+    }
+
+
+@app.post("/api/forms/own")
+async def get_forms_own(request: OwnProfileRequest):
+    """
+    Return VA forms and prefilled fields for a veteran whose profile was
+    entered manually in the UI.
+
+    WHY POST: same reason as /api/eligibility/own — no stored veteran ID.
+
+    Flow is identical to GET /api/forms/{id}:
+      1. Run eligibility to determine which benefits are worth exploring
+      2. Match eligible benefits to forms in the catalog
+      3. Prefill fields from the veteran's entered profile
+      4. Return prefilled fields + known vs. missing summary
+
+    Response shape is identical to GET /api/forms/{id} so the frontend
+    can handle both paths with the same rendering code.
+    """
+    veteran = request.veteran
+
+    from services.benefit_discovery import discover_benefits
+    from services.form_matcher import get_forms_for_benefits, prefill_fields, build_field_summary
+
+    # Step 1: Discover which benefits are worth exploring for this veteran
+    discovery    = discover_benefits(veteran)
+    eligible_ids = [b["benefit_id"] for b in discovery["benefits"]]
+
+    # Step 2: Find forms that correspond to those eligible benefits
+    matched_forms = get_forms_for_benefits(eligible_ids, get_forms_catalog())
+
+    # Step 3: For each form, prefill what we know and flag what's missing
+    output = []
+    for form in matched_forms:
+        prefilled = prefill_fields(form, veteran)
+        summary   = build_field_summary(prefilled)
+        output.append({**prefilled, "summary": summary})
+
+    return {
+        "veteran_id":           "own",
+        "veteran_name":         veteran.get("name", "Veteran"),
+        "eligible_benefit_ids": eligible_ids,
+        "forms":                output,
     }
 
 
