@@ -678,6 +678,30 @@
         </button>
         <div id="confirm-error">Please fill in the fields highlighted above before continuing.</div>
       </div>
+
+      <!--
+        Download button — shown after confirming fields.
+        WHY here too (not just chat): the veteran may want to download
+        as soon as they've confirmed fields, before going through chat.
+        We show it hidden and reveal it after confirmFields() succeeds.
+      -->
+      <div id="download-btn-forms" style="display:none; margin-top:0.6rem;">
+        <button class="btn" onclick="downloadPackage()"
+          style="
+            width:100%;
+            background:#fff;
+            color:#1a3a6b;
+            border:1.5px solid #1a3a6b;
+            font-size:0.9rem;
+            padding:0.6rem;
+          ">
+          ⬇ Download My Preparation Package (PDF)
+        </button>
+        <p style="font-size:0.75rem; color:#888; margin-top:0.3rem; text-align:center;">
+          Includes a cover page with your VSO contacts and a field summary for each form.
+          Bring this to your VSO appointment.
+        </p>
+      </div>
     </div>
   </div>
 
@@ -710,6 +734,27 @@
       <span class="spinner"></span> Thinking...
     </div>
     <p class="note" id="chat-mode-note"></p>
+
+    <!-- Download button at end of chat flow — the logical 'I'm done' moment -->
+    <div style="margin-top:1rem; border-top:1px solid #e8ecf1; padding-top:0.85rem;">
+      <button class="btn" onclick="downloadPackage()"
+        style="
+          width:100%;
+          background:#1a3a6b;
+          color:#fff;
+          border:none;
+          font-size:0.95rem;
+          padding:0.7rem;
+          border-radius:6px;
+          cursor:pointer;
+        ">
+        ⬇ Download My Preparation Package (PDF)
+      </button>
+      <p style="font-size:0.75rem; color:#888; margin-top:0.4rem; text-align:center;">
+        Cover page with your VSO contacts + field summary for every form you reviewed.
+        Bring this to your VSO — it has everything they need to help you file.
+      </p>
+    </div>
   </div>
 
 </div><!-- /.container -->
@@ -1272,7 +1317,12 @@ function confirmFields() {
     return;
   }
 
-  // All good — move to chat
+  // All good — reveal the download button on the form card so the veteran
+  // can download immediately without waiting until the end of chat
+  const dlForms = document.getElementById("download-btn-forms");
+  if (dlForms) dlForms.style.display = "block";
+
+  // Move to chat
   show("card-chat");
   setStep(4);
 
@@ -1561,6 +1611,103 @@ async function loadOwnProfile() {
     document.getElementById("profile-loading").style.display = "none";
     document.getElementById("own-error").textContent = "Something went wrong loading your profile. Please try again.";
     document.getElementById("own-error").style.display = "block";
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Download preparation package
+// ---------------------------------------------------------------------------
+// WHY this function collects all forms from state:
+//   The backend is stateless — it has no memory of what the veteran confirmed.
+//   We send the full current state (veteran profile + all forms with their
+//   confirmed field values) so the PDF reflects everything from this session.
+//
+// WHY we include all forms, not just the active one:
+//   The veteran may have worked through multiple forms. The PDF package
+//   should cover all of them, not just whichever tab was last selected.
+//
+// WHY we use a temporary <a> click to trigger the download:
+//   The response is a PDF file stream. Creating an object URL from the
+//   blob and clicking a hidden anchor is the standard browser pattern
+//   for triggering a file download from a fetch() response.
+// ---------------------------------------------------------------------------
+async function downloadPackage() {
+  if (!state.veteran || !state.forms || state.forms.length === 0) {
+    alert("Please load a profile and review your forms before downloading.");
+    return;
+  }
+
+  // Build the forms payload with current verified field values merged in.
+  // WHY merge verifiedFields into the forms payload:
+  //   state.verifiedFields holds the veteran's edits from the current session.
+  //   The backend needs these latest values — not the original prefilled ones —
+  //   so the PDF reflects what the veteran actually confirmed.
+  const formsPayload = state.forms.map(form => {
+    const updatedFields = form.fields.map(f => ({
+      ...f,
+      // Use the verified value if the veteran edited or confirmed it;
+      // otherwise fall back to the original prefilled value.
+      value: (state.verifiedFields[f.key] !== undefined)
+        ? state.verifiedFields[f.key]
+        : f.value,
+      status: (state.verifiedFields[f.key] !== undefined && state.verifiedFields[f.key] !== "")
+        ? "prefilled"
+        : f.status,
+    }));
+
+    // Recompute the summary so field counts are accurate in the PDF
+    const prefilled = updatedFields.filter(f => f.status === "prefilled").length;
+    const missing   = updatedFields.filter(f => f.status !== "prefilled").length;
+    return {
+      ...form,
+      fields: updatedFields,
+      summary: {
+        total:           updatedFields.length,
+        prefilled_count: prefilled,
+        missing_count:   missing,
+        missing_fields:  updatedFields
+          .filter(f => f.status !== "prefilled")
+          .map(f => ({ key: f.key, label: f.label })),
+      },
+    };
+  });
+
+  // Show a loading indicator on whichever button was clicked
+  const btns = document.querySelectorAll("[onclick='downloadPackage()']");
+  btns.forEach(b => { b.disabled = true; b.textContent = "Generating PDF..."; });
+
+  try {
+    const res = await fetch("/api/generate-output", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        veteran:    state.veteran,
+        forms:      formsPayload,
+        veteran_id: state.veteranId || "veteran",
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Server returned ${res.status}`);
+    }
+
+    // Convert the PDF response stream to a blob and trigger a browser download
+    const blob     = await res.blob();
+    const url      = URL.createObjectURL(blob);
+    const anchor   = document.createElement("a");
+    anchor.href     = url;
+    anchor.download = `vetassist_package.pdf`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+
+  } catch (err) {
+    alert("Could not generate the PDF. Please try again or contact support.");
+    console.error("downloadPackage error:", err);
+  } finally {
+    // Always restore button state whether download succeeded or failed
+    btns.forEach(b => { b.disabled = false; b.textContent = "⬇ Download My Preparation Package (PDF)"; });
   }
 }
 

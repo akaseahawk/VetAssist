@@ -309,9 +309,10 @@ you add a targeted search tool for that uncertainty. Not before.
    - Endpoint: POST /api/upload is real and working; GET /api/upload/suggestions/{id} is also live.
    - See services/document_vision.py for the extraction logic and field definitions.
 
-2. **Printable output** — Generate a PDF package with prefilled fields, cover note, next steps
-   - Tools: reportlab or weasyprint
-   - Endpoint: POST /api/generate-output (stub already exists)
+2. **XFA form fill** — Write field values directly into the official VA fillable PDF
+   - Requires Adobe SDK or a cloud PDF service (VA forms use proprietary XFA format)
+   - Current implementation (REAL): cover page + field summary sheet via reportlab
+   - Endpoint: POST /api/generate-output (fully implemented)
 
 3. **Multi-turn conversation history** — Persist chat turns server-side per session
 

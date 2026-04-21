@@ -43,11 +43,12 @@ API ENDPOINTS:
     POST /api/chat                  → send a message to the conversational assistant
     POST /api/upload                → accept document photo, extract fields via Claude vision
     GET  /api/upload/suggestions/{id}→ return which document types have a veteran's missing fields
-    POST /api/generate-output       → (stub) future: produce printable/email output
+    POST /api/generate-output       → generate + stream a PDF package (cover page + field summary)
     GET  /health                    → health check
 
 TODO (post-MVP — do not add these to the MVP):
-    - POST /api/generate-output: produce a printable PDF or email-ready package
+    - POST /api/generate-output: actual XFA form filling (requires Adobe SDK or
+      cloud service; current implementation generates a summary sheet instead)
     - Expand document_vision.py: add more DOCUMENT_FIELD_DEFINITIONS beyond DD-214 and 21-4142
     - Authentication via login.gov or VA identity service
     - Replace JSON files with PostgreSQL or DynamoDB
@@ -583,33 +584,89 @@ async def get_document_suggestions(veteran_id: str, form_id: Optional[str] = Non
 
 
 # ---------------------------------------------------------------------------
-# Output generation stub
-# Post-MVP: produce a printable PDF or email-ready package
+# Output generation — PDF download package
 # ---------------------------------------------------------------------------
 
+class GenerateOutputRequest(BaseModel):
+    """
+    Request body for POST /api/generate-output.
+
+    WHY accept both veteran and forms in the body:
+        PDF generation needs the full confirmed field state from the browser
+        session. The backend has no session state, so the frontend sends
+        everything it collected — the veteran profile and all confirmed
+        field values — in one request.
+
+    Fields:
+        veteran:    the veteran profile (name, branch, service_dates, etc.)
+        forms:      list of prefilled form dicts — each must include the
+                    'fields' list with current values (as edited by the veteran)
+                    and a 'summary' dict from build_field_summary().
+                    The frontend builds this from its local state after Confirm All.
+        veteran_id: optional — if provided, used only for the filename.
+    """
+    veteran:    dict
+    forms:      list
+    veteran_id: str = "veteran"
+
+
 @app.post("/api/generate-output")
-async def generate_output():
+async def generate_output(request: GenerateOutputRequest):
     """
-    STUB — not implemented in the MVP.
+    Generate and return a downloadable PDF package for the veteran.
 
-    What this will do (future sprint):
-      1. Take the veteran's profile + verified form fields
-      2. Generate a prefilled PDF using pypdf or reportlab
-      3. Include a cover sheet with: submission instructions, who to contact,
-         what to bring, and next steps — all customized to their branch and benefit
-      4. Return as a downloadable file or email it directly
+    The package has two parts:
+      1. Cover page — appreciation, disclaimer, what to do next, branch-specific
+         VSO contacts, VA phone line, and branch-specific benefit notes.
+      2. Prefill summary sheet — one section per form, with a green table of
+         confirmed field values and an amber table of still-missing fields with
+         source document hints.
 
-    WHY this is valuable:
-    The veteran gets a complete package they can print, bring to a VSO, or
-    email to their VA regional office — with no repeated data entry.
+    WHY a summary sheet and not a filled PDF:
+        VA forms use Adobe XFA interactive format. Python PDF libraries cannot
+        write into XFA fields reliably. A clean summary sheet the veteran or
+        VSO uses as a reference while filing on VA.gov is more honest and
+        more useful than a fragile overlay that might not be accepted.
+
+    WHY stream as FileResponse via a temp file:
+        reportlab writes to a BytesIO buffer. FastAPI's StreamingResponse
+        accepts raw bytes. We use a temp file to be safe with large PDFs
+        and to set correct headers for browser download.
     """
-    return {
-        "status":  "not_implemented",
-        "message": (
-            "Printable/email output generation is planned for a future sprint. "
-            "In the MVP, form field data is displayed in the browser and can be reviewed there."
-        ),
-    }
+    import tempfile
+    from fastapi.responses import FileResponse
+    from services.pdf_generator import build_veteran_package
+
+    veteran    = request.veteran
+    forms      = request.forms
+    veteran_id = request.veteran_id
+
+    # Load branch contacts for the cover page
+    # WHY load here: the route needs the full contacts dict, not just the
+    # branch key. Loading once per request is fine — it's a small JSON file.
+    branch_contacts = json.load(
+        open(os.path.join(DATA_DIR, "branch_contacts.json"))
+    )
+
+    # Generate the PDF bytes
+    pdf_bytes = build_veteran_package(veteran, forms, branch_contacts)
+
+    # Write to a named temp file so FastAPI can stream it with correct headers
+    # WHY delete=False: FileResponse reads the file after this function returns,
+    # so the file must still exist. We set a safe filename so the browser
+    # uses it as the download name.
+    suffix     = f"vetassist_{veteran_id}_package.pdf"
+    tmp        = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+    tmp.write(pdf_bytes)
+    tmp.flush()
+    tmp.close()
+
+    return FileResponse(
+        path=tmp.name,
+        media_type="application/pdf",
+        filename=suffix,
+        headers={"Content-Disposition": f'attachment; filename="{suffix}"'},
+    )
 
 
 # ---------------------------------------------------------------------------

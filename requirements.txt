@@ -12,9 +12,12 @@ python-dotenv==1.0.1
 # Remove this line if running fully offline / placeholder mode
 anthropic>=0.20.0
 
+# PDF generation — cover page + field summary sheet for veteran download
+# WHY reportlab: mature library, no native deps beyond Pillow, full layout control
+reportlab>=4.0.0
+
 # TODO (post-MVP additions — do not add to MVP):
-# pypdf             # for reading and filling PDF forms
+# pypdf             # for reading and filling XFA PDF forms (requires Adobe SDK for write)
 # pytesseract       # for OCR on scanned/flat PDF images
 # Pillow            # image processing for OCR pipeline
-# reportlab         # for generating printable output PDFs
 # boto3             # for AWS Bedrock endpoint in federal deployment

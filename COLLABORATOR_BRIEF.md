@@ -90,8 +90,11 @@ The foundation is built and running locally. Here's where things stand:
   use these to demo the document photo-to-prefill flow during the video
 
 **Not built yet (intentionally):**
-- PDF output / printable package (deferred — doesn't affect the main demo)
+- XFA form fill (writing into actual VA PDF fields requires Adobe SDK — deferred)
 - Authentication / database (not needed for a local MVP)
+
+**Built and working:**
+- PDF download package — cover page with VSO contacts + field summary sheet (reportlab)
 
 ---
 
