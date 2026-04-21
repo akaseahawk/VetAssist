@@ -255,7 +255,7 @@ def chat(
     # env var values in double quotes when set via their UI. Stripping both
     # whitespace and surrounding quotes ensures the key is always clean.
     api_key = os.getenv("ANTHROPIC_API_KEY", "").strip().strip('"').strip("'")
-    model   = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5").strip().strip('"').strip("'")
+    model   = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-6").strip().strip('"').strip("'")
 
     # ------------------------------------------------------------------
     # PLACEHOLDER MODE

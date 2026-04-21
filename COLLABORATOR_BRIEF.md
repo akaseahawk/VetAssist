@@ -43,7 +43,7 @@ flowchart TD
     S5B --> S6["Step 6\nChat fills the rest\none question at a time"]
     S5 -->|"No source doc\nask directly"| S6
 
-    S1 -.->|"Veteran dropdown OR\nEnter my own information"| S1
+    S1 -.->|"Veteran dropdown\nEnter my own information\nOR Scan a DD-214 / military ID"| S1
     S2 -.->|"Disclaimer banner first\nBenefit cards: reason + VA.gov link"| S2
     S3 -.->|"Form tabs per benefit\ne.g. VA 21-526EZ"| S3
     S4 -.->|"Known fields (green) + Missing fields (amber)\nAll editable inputs\n'Confirm All & Continue'"| S4
@@ -76,7 +76,7 @@ The foundation is built and running locally. Here's where things stand:
   and surfaces what's worth exploring. Hardcoded rules engine kicks in as a fallback
   when no API key is set. **No hardcoded decisions in the default path.**
 - 5 real VA forms with field-level metadata and VA.gov links (16–34 real fields per form, with field types, select options, and required flags)
-- Profile picker with two modes: demo veteran dropdown AND "Enter my own information" form (20 fields, feeds the same backend with a real POST route)
+- Profile picker with three modes: demo veteran dropdown, "Enter my own information" form (20 fields), and "Scan a document" (photograph a DD-214, military ID, or VA letter — Claude extracts identity/service fields and pre-fills the form; veteran reviews every value before continuing)
 - Field prefill logic — knows which fields it can fill vs. what to ask for
 - **Document photo-to-prefill** — when a field is missing, the UI shows which document
   likely has it (e.g. DD-214). The veteran can photograph that document; Claude reads it

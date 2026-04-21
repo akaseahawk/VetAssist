@@ -41,8 +41,10 @@ API ENDPOINTS:
     GET  /api/forms/{id}            → matched forms + prefilled fields for a demo-profile veteran
     POST /api/forms/own             → same as above but accepts inline profile in request body
     POST /api/chat                  → send a message to the conversational assistant
-    POST /api/upload                → accept document photo, extract fields via Claude vision
+    POST /api/upload                → accept document photo, extract fields via Claude vision (Step 3)
     GET  /api/upload/suggestions/{id}→ return which document types have a veteran's missing fields
+    POST /api/scan-identity         → Step 1 only — photo of DD-214/military ID/VA letter → prefill own-info form
+    GET  /api/scan-identity/document-types → list of scannable document types for Step 1 picker
     POST /api/generate-output       → generate + stream a PDF package (cover page + field summary)
     GET  /health                    → health check
 
@@ -584,6 +586,84 @@ async def get_document_suggestions(veteran_id: str, form_id: Optional[str] = Non
 
 
 # ---------------------------------------------------------------------------
+# Step 1 identity scan — photo of DD-214, military ID, or VA letter
+# ---------------------------------------------------------------------------
+# WHY a separate route from /api/upload:
+#   /api/upload is tied to Step 3 — it extracts fields for a specific VA form
+#   that the veteran is working through. It requires a veteran_id and a list
+#   of form fields to look for.
+#
+#   /api/scan-identity is for Step 1 — the veteran hasn't loaded a profile yet.
+#   We extract basic identity and service history fields to pre-populate the
+#   own-info entry form so they don't have to type everything manually.
+#   No veteran_id, no form context — just "who are you and when did you serve?"
+
+@app.post("/api/scan-identity")
+async def scan_identity(file: UploadFile = File(...), document_type: str = Form("DD-214")):
+    """
+    Accept a photo of a military document and extract identity/service fields
+    to pre-populate the Step 1 own-info entry form.
+
+    Supported document_type values: DD-214, MILITARY_ID, VA_LETTER, GENERIC
+
+    WHY we let the veteran choose document type:
+        Telling Claude what kind of document it is dramatically improves
+        extraction accuracy. We can't reliably auto-detect document type
+        from a phone photo, so we ask the veteran to select it first.
+
+    Returns:
+        extracted_fields: dict of field_key → value (null if not found)
+        note:             human-readable summary for the veteran
+        success:          bool
+    """
+    from services.document_vision import extract_fields_from_image, IDENTITY_SCAN_DOCUMENTS
+
+    # Validate document type
+    valid_types = {d["id"] for d in IDENTITY_SCAN_DOCUMENTS}
+    if document_type not in valid_types:
+        document_type = "GENERIC"
+
+    # Validate MIME type — same check as /api/upload
+    allowed_mime = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+    if file.content_type not in allowed_mime:
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=415,
+            detail=f"Unsupported file type: {file.content_type}. Use JPEG, PNG, WebP, or GIF.",
+        )
+
+    # Find the field list for the selected document type
+    doc_def = next((d for d in IDENTITY_SCAN_DOCUMENTS if d["id"] == document_type), None)
+    requested_fields = doc_def["fields"] if doc_def else [
+        "name", "branch", "service_start", "service_end", "discharge_type", "dob"
+    ]
+
+    image_bytes = await file.read()
+    result = extract_fields_from_image(
+        image_bytes=image_bytes,
+        mime_type=file.content_type,
+        document_type=document_type,
+        requested_fields=requested_fields,
+    )
+
+    return result
+
+
+@app.get("/api/scan-identity/document-types")
+async def get_identity_document_types():
+    """
+    Return the list of document types the veteran can choose from in Step 1.
+
+    WHY a dedicated endpoint:
+        The frontend needs the labels, descriptions, and field lists to render
+        the document type picker. Keeping this in the backend means the UI
+        stays in sync with document_vision.py without duplicating the list.
+    """
+    from services.document_vision import IDENTITY_SCAN_DOCUMENTS
+    return {"document_types": IDENTITY_SCAN_DOCUMENTS}
+
+
+# ---------------------------------------------------------------------------
 # Output generation — PDF download package
 # ---------------------------------------------------------------------------
 
@@ -689,5 +769,5 @@ async def health():
         "version":     "0.1.0-mvp",
         # True/False only — never expose the actual key value
         "api_key_set": bool(api_key),
-        "model":       os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5"),
+        "model":       os.getenv("CLAUDE_MODEL", "claude-sonnet-4-6"),
     }

@@ -39,6 +39,43 @@ logger = logging.getLogger(__name__)
 # WHY a lookup table: each document has a known layout and known field positions.
 # Telling Claude exactly what to look for improves accuracy vs. open-ended extraction.
 
+# ---------------------------------------------------------------------------
+# WHAT DOCUMENTS WE CAN SCAN AT STEP 1 (identity/profile prefill)
+# ---------------------------------------------------------------------------
+# WHY a separate list: Step 1 scanning is about getting the veteran's basic
+# identity and service history into the own-profile form quickly. These are
+# documents a veteran might realistically have on them or nearby.
+# Driver's license is intentionally excluded — it has no military service data.
+# VA letters are included because they confirm branch, period of service, and
+# sometimes disability rating from a single page.
+
+IDENTITY_SCAN_DOCUMENTS = [
+    {
+        "id":          "DD-214",
+        "label":       "DD-214 (Discharge Papers)",
+        "description": "Best option — contains your name, branch, service dates, discharge type, and MOS.",
+        "fields":      ["name", "branch", "service_start", "service_end", "discharge_type", "rank", "mos"],
+    },
+    {
+        "id":          "MILITARY_ID",
+        "label":       "Military ID / CAC Card",
+        "description": "Contains your name, branch, and sometimes rank. Limited but quick.",
+        "fields":      ["name", "branch", "rank", "dob"],
+    },
+    {
+        "id":          "VA_LETTER",
+        "label":       "VA Award Letter or Rating Decision",
+        "description": "Contains your name, disability rating, and sometimes branch and service dates.",
+        "fields":      ["name", "branch", "service_start", "service_end", "disability_rating", "conditions"],
+    },
+    {
+        "id":          "GENERIC",
+        "label":       "Other military or VA document",
+        "description": "Any other military record or VA correspondence — we'll extract what we can.",
+        "fields":      ["name", "branch", "service_start", "service_end", "discharge_type", "dob"],
+    },
+]
+
 DOCUMENT_FIELD_DEFINITIONS = {
     "DD-214": {
         "document_description": (
@@ -72,6 +109,36 @@ DOCUMENT_FIELD_DEFINITIONS = {
             "address": "Current mailing address (street, city, state, ZIP)",
             "phone":   "Daytime phone number",
             "email":   "Email address if present",
+        }
+    },
+    "MILITARY_ID": {
+        "document_description": (
+            "A U.S. military ID card or Common Access Card (CAC). "
+            "Contains the service member's full name, branch of service, "
+            "rank/grade, and date of birth. May also show an expiration date "
+            "and DoD ID number. Does not contain service history or discharge information."
+        ),
+        "fields": {
+            "name":   "Full name as printed on the card (usually Last, First Middle or First Last)",
+            "branch": "Branch of service shown on the card (Army, Navy, Marine Corps, Air Force, Space Force, Coast Guard)",
+            "rank":   "Rank or grade printed on the card (e.g. SGT, CPT, E-5, O-3)",
+            "dob":    "Date of birth printed on the card (YYYY-MM-DD if possible)",
+        }
+    },
+    "VA_LETTER": {
+        "document_description": (
+            "A VA award letter, rating decision, or benefits summary letter. "
+            "These letters are printed on official VA letterhead and contain "
+            "the veteran's name, VA file number, combined disability rating, "
+            "individual condition ratings, and sometimes branch and service dates."
+        ),
+        "fields": {
+            "name":             "Veteran's full name as addressed in the letter",
+            "branch":           "Branch of service if mentioned in the letter",
+            "service_start":    "Service entry date if mentioned",
+            "service_end":      "Service separation date if mentioned",
+            "disability_rating":"Combined disability rating percentage (e.g. 70%)",
+            "conditions":       "Individual rated conditions listed in the letter (comma-separated)",
         }
     },
     "GENERIC": {
@@ -204,7 +271,7 @@ def extract_fields_from_image(
         import anthropic
 
         client = anthropic.Anthropic(api_key=api_key)
-        model = os.environ.get("CLAUDE_MODEL", "claude-opus-4-5")
+        model = os.environ.get("CLAUDE_MODEL", "claude-sonnet-4-6")
 
         # WHY base64: the Anthropic vision API requires images encoded as base64 strings,
         # not raw bytes or URLs. This is standard for multimodal API calls.

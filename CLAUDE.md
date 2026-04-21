@@ -55,7 +55,7 @@ flowchart TD
         R1["GET /api/eligibility/{id}\nPOST /api/eligibility/own"]
         R2["GET /api/forms/{id}\nPOST /api/forms/own"]
         R3["POST /api/chat"]
-        R4["POST /api/upload\nGET /api/upload/suggestions/{id}"]
+        R4["POST /api/upload\nGET /api/upload/suggestions/{id}\nPOST /api/scan-identity\nGET /api/scan-identity/document-types"]
         R5["GET /api/veterans\nGET /api/veterans/{id}\nGET /health"]
         R6["POST /api/generate-output stub"]
     end
@@ -190,10 +190,11 @@ These apply in BOTH modes and cannot be relaxed:
 |---|---|---|
 | Veteran profile loading | REAL | Reads from data/veterans.json |
 | Manual profile entry | REAL | Veteran enters their own info via form in the UI; POST /api/eligibility/own and POST /api/forms/own accept the profile inline |
+| Step 1 document scan | REAL (with API key) | Veteran photographs DD-214, military ID, or VA letter on Step 1; POST /api/scan-identity extracts identity/service fields via Claude vision; maps to own-info form inputs; veteran reviews before continuing |
 | Benefit discovery | REAL | Claude-first; rules fallback |
 | Form field prefill | REAL | Maps profile fields to form fields (16–34 fields per form, with field_type, options, required metadata) |
 | Document type suggestions | REAL | suggest_source_documents() — tells veteran which doc has missing fields |
-| Document photo → field extraction | REAL (with API key) | Claude multimodal vision in document_vision.py; veteran confirms every field |
+| Document photo → field extraction (Step 3) | REAL (with API key) | Claude multimodal vision in document_vision.py; veteran confirms every field |
 | Conversational assistant | REAL (with API key) | Placeholder string without key |
 | PDF generation / output | STUB | Endpoint exists, returns descriptive message |
 | VA API integration | STUB | Uses local JSON instead |
@@ -236,7 +237,7 @@ and Claude chat responses show a placeholder message.
 ## Happy-path demo flow
 
 1. User opens http://localhost:8000
-2. Selects a veteran from the dropdown (e.g. Maria Sanchez) OR clicks "Enter my own information" and fills out the 20-field manual entry form
+2. Selects a veteran from the dropdown (e.g. Maria Sanchez) OR clicks "Enter my own information" and fills out the 20-field form OR clicks "Scan a document" and photographs their DD-214/military ID/VA letter to auto-fill the form
 3. Clicks "Load Profile" / "Continue with My Information" — sees profile summary and appreciative greeting
 4. Sees disclaimer banner, then benefit cards with reasons and VA.gov links
 5. Sees suggested VA forms — tabs for each, with prefilled fields and missing fields

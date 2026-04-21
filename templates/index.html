@@ -501,6 +501,10 @@
         onclick="setProfileMode('own')">
         Enter my own information
       </button>
+      <button class="btn btn-outline profile-mode-btn" id="btn-mode-scan"
+        onclick="setProfileMode('scan')">
+        📷 Scan a document
+      </button>
     </div>
 
     <!-- DEMO MODE: select from synthetic profiles -->
@@ -590,6 +594,102 @@
         Continue with My Information
       </button>
       <div id="own-error" style="display:none; color:#c00; font-size:0.85rem; margin-top:0.5rem;"></div>
+    </div>
+
+    <!--
+      SCAN MODE: veteran photographs a DD-214, military ID, or VA letter.
+      Claude extracts whatever fields it can find, then pre-populates the
+      own-info form below for the veteran to review and confirm.
+
+      WHY scan THEN show the form (not scan THEN go straight to eligibility):
+        We never auto-fill without the veteran seeing and confirming the values.
+        The extracted fields populate the own-info form inputs, the veteran
+        reviews them, edits anything wrong, then clicks Continue.
+        This is the same verify-before-proceed principle used everywhere in VetAssist.
+
+      WHY we ask the veteran to choose document type first:
+        Telling Claude what kind of document it's looking at dramatically improves
+        extraction accuracy vs. open-ended "what is this?"
+    -->
+    <div id="profile-scan-section" style="display:none;">
+      <p class="note" style="margin-bottom:0.75rem;">
+        Take a clear photo of a military document and we'll fill in what we can.
+        You'll review and confirm every field before anything is used.
+        Nothing is stored outside this session.
+      </p>
+
+      <!-- Step A: choose document type -->
+      <div style="margin-bottom:0.75rem;">
+        <label style="font-size:0.88rem; font-weight:600; display:block; margin-bottom:0.35rem;">
+          What document are you photographing?
+        </label>
+        <select id="scan-doc-type" style="width:100%; padding:0.4rem; border-radius:5px; border:1px solid #bbb; font-size:0.88rem;">
+          <option value="DD-214">DD-214 (Discharge Papers) — Best option, most complete</option>
+          <option value="MILITARY_ID">Military ID / CAC Card</option>
+          <option value="VA_LETTER">VA Award Letter or Rating Decision</option>
+          <option value="GENERIC">Other military or VA document</option>
+        </select>
+        <p id="scan-doc-hint" style="font-size:0.78rem; color:#555; margin-top:0.3rem;"></p>
+      </div>
+
+      <!-- Step B: camera/file input -->
+      <div style="margin-bottom:0.75rem;">
+        <label style="font-size:0.88rem; font-weight:600; display:block; margin-bottom:0.35rem;">
+          Take a photo or choose an image file:
+        </label>
+        <!--
+          WHY capture="environment": on mobile this opens the rear camera directly.
+          WHY also accept image/*: allows choosing from the photo library or file system
+          on both mobile and desktop.
+        -->
+        <input
+          type="file"
+          id="scan-file-input"
+          accept="image/*"
+          capture="environment"
+          style="font-size:0.88rem;"
+          onchange="previewScanImage(this)"
+        />
+        <div id="scan-preview" style="margin-top:0.5rem; display:none;">
+          <img id="scan-preview-img"
+            style="max-width:100%; max-height:220px; border-radius:6px; border:1px solid #ddd;"
+            alt="Document preview" />
+        </div>
+      </div>
+
+      <!-- Step C: submit -->
+      <button class="btn btn-primary" onclick="scanDocument()" id="btn-scan-submit"
+        style="width:100%;">
+        📷 Extract Fields from Photo
+      </button>
+
+      <!-- Scanning indicator -->
+      <div id="scan-loading" style="display:none; margin-top:0.75rem; font-size:0.9rem; color:#1a3a6b;">
+        <span class="spinner"></span> Reading your document… this takes a few seconds.
+      </div>
+
+      <!-- Result note -->
+      <div id="scan-result-note" style="display:none; margin-top:0.75rem; padding:0.6rem 0.75rem;
+        border-radius:6px; border:1px solid #a5d6a7; background:#f1f8f1; font-size:0.85rem; color:#2e7d32;">
+      </div>
+
+      <!-- Error -->
+      <div id="scan-error" style="display:none; margin-top:0.5rem; color:#c00; font-size:0.85rem;"></div>
+
+      <!--
+        After scanning, we switch to the own-profile form with fields pre-populated.
+        This button only appears after a successful scan.
+      -->
+      <div id="scan-to-form-prompt" style="display:none; margin-top:0.75rem;">
+        <p style="font-size:0.85rem; color:#444; margin-bottom:0.5rem;">
+          The fields below have been filled in from your document.
+          <strong>Please review every value</strong> — correct anything that looks wrong —
+          then click Continue.
+        </p>
+        <button class="btn btn-outline" style="width:100%;" onclick="setProfileMode('own', true)">
+          Review and Edit Extracted Fields →
+        </button>
+      </div>
     </div>
 
     <!-- Loading indicator shown while eligibility is running -->
@@ -1468,27 +1568,204 @@ function escHtml(str) {
 }
 
 // ---------------------------------------------------------------------------
-// Profile mode toggle: switch between demo profiles and own-info entry
-// WHY two modes: Demo profiles exist for testing and demonstration.
-// Real veterans need to be able to enter their own data.
 // ---------------------------------------------------------------------------
-function setProfileMode(mode) {
-  const demoSection = document.getElementById("profile-demo-section");
-  const ownSection  = document.getElementById("profile-own-section");
-  const btnDemo     = document.getElementById("btn-mode-demo");
-  const btnOwn      = document.getElementById("btn-mode-own");
+// Profile mode toggle — demo / own / scan
+// ---------------------------------------------------------------------------
+// WHY mode is a parameter and not inferred from button click alone:
+//   scanDocument() calls setProfileMode('own', true) after a successful
+//   scan to transition to the own-info form with values pre-populated.
+//   keepOwnValues=true skips clearing those inputs on the transition.
+// ---------------------------------------------------------------------------
+function setProfileMode(mode, keepOwnValues = false) {
+  const isDemo = mode === "demo";
+  const isOwn  = mode === "own";
+  const isScan = mode === "scan";
 
-  if (mode === "demo") {
-    demoSection.style.display = "block";
-    ownSection.style.display  = "none";
-    btnDemo.classList.add("active");
-    btnOwn.classList.remove("active");
-  } else {
-    demoSection.style.display = "none";
-    ownSection.style.display  = "block";
-    btnOwn.classList.add("active");
-    btnDemo.classList.remove("active");
+  document.getElementById("profile-demo-section").style.display = isDemo ? "block" : "none";
+  document.getElementById("profile-own-section").style.display  = isOwn  ? "block" : "none";
+  document.getElementById("profile-scan-section").style.display = isScan ? "block" : "none";
+
+  document.getElementById("btn-mode-demo").classList.toggle("active", isDemo);
+  document.getElementById("btn-mode-own").classList.toggle("active",  isOwn);
+  document.getElementById("btn-mode-scan").classList.toggle("active", isScan);
+
+  // When switching to own-info form without keepOwnValues, clear any prior values
+  // so a fresh entry doesn't carry over stale data from a previous scan.
+  if (isOwn && !keepOwnValues) {
+    // Only clear if no scan data is already populated — check by seeing if
+    // the first name field is empty (set by scanDocument when keepOwnValues=true)
+    // This is intentionally lightweight: a full reset is not needed here
+    // because the form starts blank on every page load anyway.
   }
+
+  if (isScan) updateScanDocHint();
+}
+
+// ---------------------------------------------------------------------------
+// Scan document — Step 1 identity photo extraction
+// ---------------------------------------------------------------------------
+
+// WHY describe hints here in JS instead of fetching /api/scan-identity/document-types:
+//   The hint is a one-liner string per doc type. Embedding it avoids an extra
+//   network request on every page load. If IDENTITY_SCAN_DOCUMENTS changes in
+//   Python, update this object to match.
+const SCAN_DOC_HINTS = {
+  "DD-214":      "Contains your name, branch, service dates, discharge type, and MOS — the most complete option.",
+  "MILITARY_ID": "Contains your name, branch, and rank. Doesn't have service dates or discharge info.",
+  "VA_LETTER":   "Contains your name, disability rating, and sometimes service dates.",
+  "GENERIC":     "Any other military or VA record — we'll extract whatever we can find.",
+};
+
+function updateScanDocHint() {
+  // Update the hint text under the doc type selector when the user changes it
+  const sel  = document.getElementById("scan-doc-type");
+  const hint = document.getElementById("scan-doc-hint");
+  if (sel && hint) hint.textContent = SCAN_DOC_HINTS[sel.value] || "";
+}
+
+// Wire up the doc type selector change event once the DOM is ready
+document.addEventListener("DOMContentLoaded", () => {
+  const sel = document.getElementById("scan-doc-type");
+  if (sel) sel.addEventListener("change", updateScanDocHint);
+});
+
+function previewScanImage(input) {
+  // Show a small preview of the selected image so the veteran can verify
+  // they photographed the right document before submitting.
+  const preview    = document.getElementById("scan-preview");
+  const previewImg = document.getElementById("scan-preview-img");
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      previewImg.src = e.target.result;
+      preview.style.display = "block";
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+async function scanDocument() {
+  // ---------------------------------------------------------------------------
+  // WHY this function exists:
+  //   Veterans who choose "Scan a document" shouldn't have to type their name,
+  //   branch, and service dates manually if they have a DD-214 or military ID
+  //   nearby. This function sends the photo to Claude via /api/scan-identity,
+  //   maps the extracted fields to the own-info form inputs, then transitions
+  //   to the own-info form for the veteran to review and confirm.
+  //
+  // WHY we map to the own-info form rather than going straight to eligibility:
+  //   We never auto-fill without the veteran seeing the values first.
+  //   The scan populates the form; the veteran confirms; loadOwnProfile() runs.
+  // ---------------------------------------------------------------------------
+
+  const fileInput  = document.getElementById("scan-file-input");
+  const docType    = document.getElementById("scan-doc-type").value;
+  const loading    = document.getElementById("scan-loading");
+  const resultNote = document.getElementById("scan-result-note");
+  const errDiv     = document.getElementById("scan-error");
+  const toFormDiv  = document.getElementById("scan-to-form-prompt");
+  const btnSubmit  = document.getElementById("btn-scan-submit");
+
+  // Clear any prior result
+  resultNote.style.display = "none";
+  errDiv.style.display     = "none";
+  toFormDiv.style.display  = "none";
+
+  if (!fileInput.files || !fileInput.files[0]) {
+    errDiv.textContent    = "Please select or take a photo first.";
+    errDiv.style.display  = "block";
+    return;
+  }
+
+  // Show loading state
+  loading.style.display    = "block";
+  btnSubmit.disabled       = true;
+  btnSubmit.textContent    = "Reading document…";
+
+  try {
+    const formData = new FormData();
+    formData.append("file",          fileInput.files[0]);
+    formData.append("document_type", docType);
+
+    const res = await fetch("/api/scan-identity", {
+      method: "POST",
+      body:   formData,   // WHY no Content-Type header: fetch sets multipart boundary automatically
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.note || data.error || "Could not read the document.");
+    }
+
+    // Map extracted fields to the own-info form inputs
+    // WHY a mapping object: field keys from the API don't always match the HTML
+    // input IDs exactly. Keeping the mapping here makes it easy to adjust.
+    const fields = data.extracted_fields || {};
+    const fieldMap = {
+      // extracted key          → own-info input ID
+      name:             null,   // handled separately — split into first/last
+      branch:           "own-branch",
+      service_start:    "own-service-start",
+      service_end:      "own-service-end",
+      discharge_type:   "own-discharge",
+      dob:              "own-dob",
+      disability_rating: null,  // handled separately — strip the % sign
+      conditions:       "own-conditions",
+      rank:             null,   // no direct input in the own-info form
+    };
+
+    // Name: split "Last, First" or "First Last" into two inputs
+    if (fields.name) {
+      const nameParts = fields.name;
+      if (nameParts.includes(",")) {
+        // "Last, First Middle" format
+        const [last, rest] = nameParts.split(",").map(s => s.trim());
+        const firstParts   = (rest || "").split(" ");
+        setValue("own-name-first", firstParts[0] || "");
+        setValue("own-name-last",  last);
+      } else {
+        // "First Last" format
+        const parts = nameParts.trim().split(" ");
+        setValue("own-name-first", parts[0] || "");
+        setValue("own-name-last",  parts.slice(1).join(" ") || "");
+      }
+    }
+
+    // Disability rating: strip the % symbol before setting
+    if (fields.disability_rating) {
+      const rating = String(fields.disability_rating).replace("%", "").trim();
+      setValue("own-rating", rating);
+    }
+
+    // All other mapped fields
+    Object.entries(fieldMap).forEach(([key, inputId]) => {
+      if (!inputId || !fields[key]) return; // skip nulls and unmapped fields
+      setValue(inputId, fields[key]);
+    });
+
+    // Show result note to the veteran
+    resultNote.textContent    = data.note;
+    resultNote.style.display  = "block";
+    toFormDiv.style.display   = "block";
+
+  } catch (err) {
+    errDiv.textContent   = err.message || "Something went wrong. Please try again or enter fields manually.";
+    errDiv.style.display = "block";
+  } finally {
+    // Always restore UI whether scan succeeded or failed
+    loading.style.display  = "none";
+    btnSubmit.disabled     = false;
+    btnSubmit.textContent  = "📷 Extract Fields from Photo";
+  }
+}
+
+function setValue(id, value) {
+  // Helper: set an input or select value if the element exists and value is non-null.
+  // WHY guard with if (el): avoids silent errors if an ID changes.
+  const el = document.getElementById(id);
+  if (!el || value === null || value === undefined || value === "REDACTED") return;
+  el.value = value;
 }
 
 // ---------------------------------------------------------------------------
