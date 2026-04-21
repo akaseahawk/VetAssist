@@ -6,12 +6,20 @@
 > VetAssist identifies likely benefits, explains required forms, prefills what it can,
 > and asks plain-language follow-up questions for the rest.
 
+**Setup (one time)**
 ```bash
 git clone https://github.com/akaseahawk/VetAssist
 cd VetAssist
 pip install -r requirements.txt
-cp .env.example .env          # optionally add ANTHROPIC_API_KEY
-uvicorn main:app --reload
+cp .env.example .env          # optionally add ANTHROPIC_API_KEY=sk-...
+```
+
+**Run / re-run**
+```bash
+# WHY python -m uvicorn instead of plain uvicorn:
+# Codespaces (and many virtual envs) don't add the uvicorn binary to PATH,
+# but the module is always reachable via the active Python interpreter.
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 # open http://localhost:8000
 ```
 

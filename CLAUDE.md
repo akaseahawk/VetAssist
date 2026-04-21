@@ -206,7 +206,7 @@ These apply in BOTH modes and cannot be relaxed:
 
 - **No database.** JSON files are the data layer.
 - **No authentication.** Not needed for a local demo.
-- **No cloud deployment.** This runs locally with `uvicorn`.
+- **No cloud deployment.** This runs locally with `python -m uvicorn`.
 - **No complex frontend framework.** One HTML file with vanilla JS.
 - **No overengineering.** If a feature is not needed for the main happy-path demo, skip it.
 - **Minimal dependencies.** Only what is in requirements.txt.
@@ -216,11 +216,18 @@ These apply in BOTH modes and cannot be relaxed:
 
 ## Running the app
 
+**Setup (one time)**
 ```bash
 pip install -r requirements.txt
-cp .env.example .env
-# optionally add your ANTHROPIC_API_KEY to .env
-uvicorn main:app --reload
+cp .env.example .env   # optionally add ANTHROPIC_API_KEY=sk-...
+```
+
+**Run / re-run**
+```bash
+# WHY python -m uvicorn instead of plain uvicorn:
+# Codespaces (and many virtual envs) don't add the uvicorn binary to PATH,
+# but the module is always reachable via the active Python interpreter.
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 # open http://localhost:8000
 ```
 
