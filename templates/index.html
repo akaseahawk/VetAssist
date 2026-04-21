@@ -951,38 +951,43 @@ function renderFormTabs(forms) {
     title: b.title,
   }));
 
-  // Track which forms have already been rendered so a form that belongs
-  // to multiple benefits (e.g. 21-526EZ → disability + PTSD) only
-  // appears once — under the first matching benefit.
-  const rendered = new Set();
-
+  // WHY no deduplication: if a form belongs to two benefits (e.g. 21-526EZ
+  // covers both Disability Compensation and PTSD Benefits), we show it under
+  // BOTH benefit groups. The veteran needs to know it applies to both —
+  // either so they fill it out once and use it for both, or so they
+  // understand the full scope of what that one form covers.
   let html = "";
   benefitOrder.forEach(benefit => {
-    const matchedForms = (byBenefit[benefit.id] || []).filter(
-      f => !rendered.has(f.form_id)
-    );
+    const matchedForms = byBenefit[benefit.id] || [];
     if (matchedForms.length === 0) return; // no forms for this benefit
-
-    matchedForms.forEach(f => rendered.add(f.form_id));
 
     html += `
       <div class="benefit-form-group">
         <div class="benefit-form-group-header">${escHtml(benefit.title)}</div>
         <div class="form-tabs">
-          ${matchedForms.map(f => `
-            <div
-              class="form-tab"
-              id="tab-${f.form_id}"
-              onclick="selectForm('${f.form_id}')"
-              title="${escHtml(f.form_title)}"
-            >
-              <div style="font-weight:700; font-size:0.82rem;">VA ${escHtml(f.form_id)}</div>
-              <div style="font-size:0.73rem; color:#555; margin-top:2px; line-height:1.3;">
-                ${escHtml(f.form_title)}
+          ${matchedForms.map(f => {
+            // WHY check benefit_ids.length > 1: if a form covers multiple
+            // benefits, show a subtle note so the veteran knows one form
+            // serves both — they don't have to fill it out twice.
+            const multiNote = (f.benefit_ids || []).length > 1
+              ? `<span style="font-size:0.68rem; color:#1a3a6b; display:block; margin-top:3px;">covers multiple benefits</span>`
+              : '';
+            return `
+              <div
+                class="form-tab"
+                id="tab-${f.form_id}-${benefit.id}"
+                onclick="selectForm('${f.form_id}')"
+                title="${escHtml(f.form_title)}"
+              >
+                <div style="font-weight:700; font-size:0.82rem;">VA ${escHtml(f.form_id)}</div>
+                <div style="font-size:0.73rem; color:#555; margin-top:2px; line-height:1.3;">
+                  ${escHtml(f.form_title)}
+                </div>
+                ${multiNote}
+                ${!f.digitized ? '<span class="not-digital">PAPER FORM</span>' : ''}
               </div>
-              ${!f.digitized ? '<span class="not-digital">PAPER FORM</span>' : ''}
-            </div>
-          `).join("")}
+            `;
+          }).join("")}
         </div>
       </div>
     `;
@@ -1015,10 +1020,14 @@ function selectForm(formId) {
   state.activeFormId = formId;
   state.activeForm   = state.forms.find(f => f.form_id === formId);
 
-  // Update tab styling
+  // Update tab styling — mark ALL tabs for this form active (a form can
+  // appear under multiple benefit groups, so there may be more than one tab).
+  // WHY querySelectorAll + startsWith: tab IDs are now "tab-{formId}-{benefitId}"
+  // so we can't do a single getElementById lookup anymore.
   document.querySelectorAll(".form-tab").forEach(t => t.classList.remove("active"));
-  const tab = document.getElementById(`tab-${formId}`);
-  if (tab) tab.classList.add("active");
+  document.querySelectorAll(".form-tab").forEach(t => {
+    if (t.id.startsWith(`tab-${formId}`)) t.classList.add("active");
+  });
 
   if (!state.activeForm) return;
   renderFormDetail(state.activeForm);
