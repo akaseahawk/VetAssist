@@ -24,14 +24,24 @@ demo works locally even in an offline environment.
 
 ### Why Veterans Are Left Behind
 
-> *"The average VA disability claim takes 102.4 days to process — and that clock
-> doesn't even start until the veteran submits their first form."*
-> — VA Benefits Administration, FY2023 Annual Benefits Report
+> *"The average VA disability claim takes over 125 days to be considered backlogged —
+> and the confusion before that clock even starts is the part no one has solved."*
+>
+> The VA defines a backlogged claim as one pending more than 125 days.
+> In January 2025, the average processing time was 141.5 days.
+> As of early 2026 the VA has reduced this to roughly 80 days — real progress.
+> But the barrier VetAssist addresses comes *before* any of that:
+> figuring out which benefits to apply for, which forms are needed, and what goes on each one.
+> Most veterans never file because they don't know where to begin.
+>
+> *Sources: [VA Benefits Claims Backlog Under 100K — VA.gov Press Room, Feb 2026](https://news.va.gov/press-room/va-benefits-claims-backlog-under-100k-for-first-time-since-2020/) ·
+> [VA Announces Major Improvements in Benefits Processing — VA.gov, Apr 2026](https://news.va.gov/press-room/va-announces-major-improvements-in-benefits-processing-and-delivery/)*
 
-To be precise: VetAssist doesn't cut the 102-day adjudication window — the VA controls that.
-What it does is remove the barrier *before* that clock starts: figuring out which benefits
-to apply for, which forms those require, and what information goes on each one.
-Most veterans never file because they don't know where to begin. VetAssist solves that part.
+VetAssist doesn't touch the adjudication window — the VA controls that.
+It removes the barrier *before* the clock starts: helping veterans know which benefits
+are worth exploring, which forms those require, which documents they already have
+that contain the needed information, and how to fill in what's left conversationally.
+The problem isn't just how long claims take — it's how many veterans never file at all.
 
 Veterans earned their benefits through service and sacrifice. Getting those benefits
 should not require a law degree, a research project, or a stack of paper forms
@@ -54,9 +64,9 @@ flowchart TD
     C --> D[47-page PDF form\nmanual fill-out]
     D --> E[Re-enter same info\non 3–5 forms]
     E --> F{Submission}
-    F -->|Incomplete| G([❌ Rejected\n102+ day delay])
+    F -->|Incomplete| G([❌ Rejected\n125+ day clock restarted])
     F -->|Wrong form| G
-    F -->|Correct| H([✅ Claim begins\n102+ day wait])
+    F -->|Correct| H([✅ Claim begins\n125+ day adjudication])
 
     style A fill:#f5f5f5,stroke:#999
     style G fill:#ffe0e0,stroke:#cc0000
@@ -90,37 +100,28 @@ they need. VetAssist prepares them. The VA and VSO make the final call.
 
 ```mermaid
 flowchart TD
-    subgraph UNDERSTAND["🔍 UNDERSTAND"]
-        U1[Load veteran profile]
-        U2[Claude reviews service history\nbranch · discharge · conditions]
-        U3[Surface benefits worth exploring\nnot a ruling — plain language]
-        U1 --> U2 --> U3
-    end
+    U1(["Veteran profile loaded"])
+    U1 --> U2
 
-    subgraph PREPARE["📋 PREPARE"]
-        P1[Show required forms]
-        P2[Prefill every known field\nfrom veteran profile]
-        P3[Flag missing fields]
-        P4["Suggest source documents:\nYour DD-214 has 4 of these fields"]
-        P5["📷 Veteran photos document\nClaude vision reads it\n— not OCR —"]
-        P6[Veteran reviews + confirms\neach extracted field]
-        P7[Remaining gaps filled\nconversationally via chat]
-        P8[Veteran edits any\nprefilled field before continuing]
-        P1 --> P2 --> P3
-        P3 --> P4 --> P5 --> P6 --> P7
-        P3 --> P7
-        P7 --> P8
-    end
+    U2["🔍 UNDERSTAND\nClaude reviews service history\nbranch · discharge · conditions\nSurfaces benefits worth exploring\nnot a ruling — plain language"]
+    U2 --> P1
 
-    subgraph CONNECT["🔗 CONNECT"]
-        C1[VA.gov link on\nevery benefit card]
-        C2[VSO contacts\nby branch]
-        C3[Warm handoff\ninstructions per benefit]
-        C4[VetAssist prepares.\nVSO + VA decide.]
-        C1 --> C2 --> C3 --> C4
-    end
+    P1["📋 PREPARE — Step 1: Forms & Prefill\nMatch benefits to required VA forms\nPrefill every field already in the profile\nFlag fields that are still missing"]
+    P1 --> P2
 
-    UNDERSTAND --> PREPARE --> CONNECT
+    P2["📋 PREPARE — Step 2: Document Photo\nTell veteran which document has missing fields\ne.g. 'Your DD-214 has 4 of these'\n📷 Veteran photographs that document\nClaude reads it — vision, not OCR\nVeteran confirms every extracted value"]
+    P2 --> P3
+
+    P3["📋 PREPARE — Step 3: Conversational Fill\nRemaining gaps filled one at a time\nClaude asks in plain language\nVeteran types answers in chat"]
+    P3 --> C1
+
+    C1["🔗 CONNECT\nVA.gov link on every benefit card\nVSO contacts by branch\nVetAssist prepares.\nVSO + VA decide."]
+
+    style U2 fill:#e8f0fe,stroke:#4285f4
+    style P1 fill:#fef9e7,stroke:#f0ad4e
+    style P2 fill:#fff3cd,stroke:#ffc107
+    style P3 fill:#fff3cd,stroke:#ffc107
+    style C1 fill:#e0f0e0,stroke:#34a853
 ```
 
 ### Before vs. After
@@ -128,28 +129,32 @@ flowchart TD
 **Diagram 3 — Experience comparison:**
 
 ```mermaid
-flowchart LR
-    subgraph BEFORE["❌ Before VetAssist"]
-        direction TB
-        B1[Veteran guesses\nwhat they qualify for]
-        B2[Searches VA.gov manually\nfinds 47-page PDFs]
-        B3[Re-enters same info\non 3–5 separate forms]
-        B4[Prints · Handwrites\nScans · Mails]
-        B5([102+ days\nConfusion])
-        B1 --> B2 --> B3 --> B4 --> B5
-    end
+flowchart TD
+    B0(["❌ Before VetAssist"])
+    B0 --> B1
+    B1["Veteran guesses what they qualify for\nSearches VA.gov — finds 47-page PDFs"]
+    B1 --> B2
+    B2["Re-enters name · SSN · service dates\non 3 to 5 separate forms"]
+    B2 --> B3
+    B3["Prints · Handwrites · Scans · Mails\nHopes nothing is missing"]
+    B3 --> B4
+    B4(["125+ days just to start adjudication\nRejected if anything is incomplete"])
 
-    subgraph AFTER["✅ With VetAssist"]
-        direction TB
-        A1[Profile loads automatically\nbenefits identified in seconds]
-        A2[Matching forms displayed\nfields prefilled from profile]
-        A3[Chat asks only what's missing\none question at a time]
-        A4[Printable / email-ready package\nnext steps + VSO contacts]
-        A5([30 minutes\nGuided · Clear])
-        A1 --> A2 --> A3 --> A4 --> A5
-    end
+    A0(["✅ With VetAssist"])
+    A0 --> A1
+    A1["Profile loads — Claude surfaces benefits\nworth exploring in plain language"]
+    A1 --> A2
+    A2["Matching forms shown\nEvery known field prefilled from profile"]
+    A2 --> A3
+    A3["Missing fields: VetAssist identifies\nwhich document has them\n📷 Veteran photographs it\nClaude reads it — vision, not OCR\nVeteran confirms each extracted value"]
+    A3 --> A4
+    A4["Remaining gaps filled conversationally\nClaude asks · Veteran answers in chat"]
+    A4 --> A5
+    A5(["Under 30 minutes · Guided · Clear\nReady to bring to VSO or VA"])
 
-    style B5 fill:#ffe0e0,stroke:#cc0000
+    style B0 fill:#ffe0e0,stroke:#cc0000
+    style B4 fill:#ffe0e0,stroke:#cc0000
+    style A0 fill:#e0f0e0,stroke:#006600
     style A5 fill:#e0f0e0,stroke:#006600
 ```
 
@@ -180,7 +185,7 @@ VA.gov has the information. VetAssist connects it to the veteran's specific situ
 
 > **CEO lens:** Wilcore is an SDVOSB built to serve veterans. This project does exactly that —
 > and it comes with a credible path to a federal proposal. A working prototype today is a BD
-> asset tomorrow. The before/after story is memorable: veterans go from a 102-day confusion
+> asset tomorrow. The before/after story is memorable: veterans go from a confusion and delay
 > to a guided 30-minute process. That's the kind of impact that wins challenges and opens
 > doors with VA program offices.
 
@@ -536,7 +541,7 @@ She Googles "VA disability forms," finds a 47-page PDF, and gives up.
 10. She sees a summary ready to bring to her VSO or the VA
 
 **The before/after:** hours of confusion just to know where to start → under 30 minutes, guided.
-The 102-day adjudication clock is the VA's. The confusion before it starts is ours to solve.
+The adjudication clock is the VA's — still measured in months. The confusion before it starts is ours to solve.
 
 ---
 

@@ -15,7 +15,7 @@ and complete the required paperwork.
 
 Here's the short version of why it matters:
 
-> The average VA disability claim takes **102 days** to process —
+> The average VA disability claim can take well over 125 days to process — and that's defined as "backlogged" by the VA itself —
 > and that clock doesn't even start until the veteran figures out which forms to file.
 > Most of them are still paper.
 
@@ -269,7 +269,7 @@ Wilcore is an SDVOSB. We work with the VA. This project:
 - Has a credible path from this demo to a Wilcore federal proposal
 - Could realistically become a real thing if it wins
 
-And honestly — it's a project worth doing. Veterans deserve better than a 102-day wait
+And honestly — it's a project worth doing. Veterans deserve better than months of waiting
 and a stack of paper forms they have to figure out alone.
 
 ---
