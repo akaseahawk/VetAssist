@@ -96,8 +96,19 @@ def prefill_fields(form: dict, veteran: dict) -> dict:
                 for part in parts:
                     val = val[part]
                 if val is not None and val != "" and val != []:
+                    # WHY special-case booleans: profile stores True/False but
+                    # select fields use "Yes"/"No" as display options. We convert
+                    # here so the <select> pre-selects the right option.
+                    if isinstance(val, bool):
+                        value = "Yes" if val else "No"
+                    # WHY normalize gender codes: the profile may store abbreviated
+                    # codes ("M", "F") but VA forms use full words. Map to the
+                    # standard option labels so the select pre-selects correctly.
+                    elif key == "gender" and isinstance(val, str):
+                        gender_map = {"M": "Male", "F": "Female", "m": "Male", "f": "Female"}
+                        value = gender_map.get(val, val)  # pass through if already full word
                     # Serialize lists as comma-separated strings
-                    if isinstance(val, list):
+                    elif isinstance(val, list):
                         value = ", ".join(str(v) for v in val)
                     else:
                         value = str(val)

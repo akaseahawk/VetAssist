@@ -57,7 +57,7 @@ flowchart TD
         R3["POST /api/chat"]
         R4["POST /api/upload\nGET /api/upload/suggestions/{id}\nPOST /api/scan-identity\nGET /api/scan-identity/document-types"]
         R5["GET /api/veterans\nGET /api/veterans/{id}\nGET /health"]
-        R6["POST /api/generate-output stub"]
+        R6["POST /api/generate-output"]
     end
 
     R1 & R2 & R3 --> BD
@@ -196,7 +196,7 @@ These apply in BOTH modes and cannot be relaxed:
 | Document type suggestions | REAL | suggest_source_documents() — tells veteran which doc has missing fields |
 | Document photo → field extraction (Step 3) | REAL (with API key) | Claude multimodal vision in document_vision.py; veteran confirms every field |
 | Conversational assistant | REAL (with API key) | Placeholder string without key |
-| PDF generation / output | STUB | Endpoint exists, returns descriptive message |
+| PDF generation / output | REAL | POST /api/generate-output generates a PDF package (cover page + field summary sheet) via reportlab; returns as file download |
 | VA API integration | STUB | Uses local JSON instead |
 | Authentication | NOT IMPLEMENTED | Not needed for MVP |
 | Database | NOT IMPLEMENTED | Not needed for MVP |

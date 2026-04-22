@@ -940,6 +940,9 @@ async function loadVeteran() {
   document.getElementById("profile-loading").style.display = "none";
   document.getElementById("benefit-spinner").style.display = "none";
   renderBenefits(eligData.benefits || [], eligData.disclaimer || "", eligData.mode || "rules_fallback");
+  // WHY setStep(2) here, not earlier: the stepper reflects what the veteran
+  // can actually act on. Benefits are visible now, so step 2 is active.
+  setStep(2);
 
   // Load forms (prefill data) in the background
   const formsRes = await fetch(`/api/forms/${state.veteranId}`);
@@ -948,7 +951,8 @@ async function loadVeteran() {
 
   renderFormTabs(state.forms);
   show("card-forms");
-  setStep(2);
+  // WHY setStep(3): forms are now visible — veteran can pick one. Step 3 is active.
+  setStep(3);
 }
 
 // ---------------------------------------------------------------------------
@@ -1265,9 +1269,6 @@ function renderFormDetail(form) {
 //   field      — field object from the API
 //   inputClass — "is-known" (green) or "is-needed" (amber)
 //   showUpload — whether to show the photo upload button if source_documents exist
-// ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
-// Build a single field row as an editable input
 //
 // WHY each field_type gets its own control:
 //   - date fields use type="date" so the browser provides a date picker.
@@ -1880,9 +1881,12 @@ async function loadOwnProfile() {
 
     renderProfile(state.veteran);
     renderBenefits(eligData.benefits || [], eligData.disclaimer || "", eligData.mode || "rules_fallback");
+    // WHY setStep(2) after benefits render: step 2 "Review Benefits" is now active.
+    setStep(2);
     renderFormTabs(state.forms);
     show("card-forms");
-    setStep(2);
+    // WHY setStep(3): forms section is visible, veteran can now choose one.
+    setStep(3);
 
   } catch (e) {
     document.getElementById("profile-loading").style.display = "none";
