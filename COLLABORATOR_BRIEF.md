@@ -24,8 +24,9 @@ benefits you likely qualify for, shows you which forms you need, and prefills
 everything it already knows. For the rest, it asks you in plain language — one
 question at a time — like a conversation, not a questionnaire.
 
-The output is printable or email-ready. No re-entering the same name, SSN, and
-service dates on five different forms. Done once. Done right.
+The output is a downloadable PDF package — cover page with VSO contacts plus a
+field summary sheet. No re-entering the same name, SSN, and service dates on
+five different forms. Done once. Done right.
 
 ---
 
@@ -225,7 +226,7 @@ speak credibly to the CTO when hard questions come up.
    git clone https://github.com/akaseahawk/VetAssist
    cd VetAssist
    pip install -r requirements.txt
-   uvicorn main:app --reload
+   python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
    # open http://localhost:8000, run the full happy path with Maria
    ```
    Find anything broken and we fix it together. This is the most important
@@ -255,7 +256,7 @@ architecture Q&A prep, clean install verification.
 git clone https://github.com/akaseahawk/VetAssist
 cd VetAssist
 pip install -r requirements.txt
-uvicorn main:app --reload
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 # open http://localhost:8000
 ```
 

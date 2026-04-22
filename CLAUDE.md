@@ -207,7 +207,7 @@ These apply in BOTH modes and cannot be relaxed:
 
 - **No database.** JSON files are the data layer.
 - **No authentication.** Not needed for a local demo.
-- **No cloud deployment.** This runs locally with `python -m uvicorn`.
+- **No cloud deployment required for MVP demo.** Runs locally with `python -m uvicorn`. Railway deployment is live for judging convenience (auto-deploys on push to main).
 - **No complex frontend framework.** One HTML file with vanilla JS.
 - **No overengineering.** If a feature is not needed for the main happy-path demo, skip it.
 - **Minimal dependencies.** Only what is in requirements.txt.

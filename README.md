@@ -217,14 +217,14 @@ and saved 2 hours each, that's ~200,000 veteran-hours recovered per year.
 flowchart TD
     Browser["🌐 Veteran's Browser\ntemplates/index.html\nvanilla JS · no build step"]
 
-    API["⚙️ FastAPI Application\nmain.py\nGET / · GET /api/veterans\nGET /api/eligibility/{id} · POST /api/eligibility/own\nGET /api/forms/{id} · POST /api/forms/own\nPOST /api/chat\nPOST /api/upload · GET /api/upload/suggestions/{id}\nPOST /api/scan-identity · GET /api/scan-identity/document-types"]
+    API["⚙️ FastAPI Application\nmain.py\nGET / · GET /api/veterans\nGET /api/eligibility/{id} · POST /api/eligibility/own\nGET /api/forms/{id} · POST /api/forms/own\nPOST /api/chat\nPOST /api/upload · GET /api/upload/suggestions/{id}\nPOST /api/scan-identity · GET /api/scan-identity/document-types\nPOST /api/generate-output · GET /health"]
 
     BD["benefit_discovery.py\nClaude-first discovery\nrules fallback"]
     FM["form_matcher.py\nMaps benefits → forms\nPrefills fields · Flags missing\nReturns source_documents per field"]
     CC["claude_chat.py\nConversational assistant\nBranch-aware greeting"]
     DV["document_vision.py\nClaude multimodal vision\nExtract fields from photo\nsuggest_source_documents()"]
 
-    DATA["data/\nveternas.json\nbenefits_rules.json\nforms_catalog.json\nbranch_contacts.json"]
+    DATA["data/\nveterans.json\nbenefits_rules.json\nforms_catalog.json\nbranch_contacts.json"]
 
     CLAUDE["☁️ Anthropic Claude API\nor placeholder mode\nwithout API key"]
 
@@ -572,7 +572,9 @@ VetAssist/
 │   ├── benefit_discovery.py   # Claude-first discovery; rules fallback
 │   ├── eligibility.py         # Hardcoded rules engine (fallback mode)
 │   ├── form_matcher.py        # Form selection and field prefill
-│   └── claude_chat.py         # Conversational assistant (Claude API)
+│   ├── claude_chat.py         # Conversational assistant (Claude API)
+│   ├── document_vision.py     # Claude multimodal vision — reads document photos, extracts fields
+│   └── pdf_generator.py       # PDF package generator (cover page + field summary sheet)
 ├── forms_to_verify/
 │   ├── README.md              # Explains folder purpose
 │   ├── DD_214_mockup_example.png
