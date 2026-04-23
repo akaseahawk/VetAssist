@@ -221,6 +221,7 @@ These apply in BOTH modes and cannot be relaxed:
 ```bash
 pip install -r requirements.txt
 cp .env.example .env   # optionally add ANTHROPIC_API_KEY=sk-...
+                        # optional: CLAUDE_MODEL=claude-sonnet-4-6 (this is the default)
 ```
 
 **Run / re-run**

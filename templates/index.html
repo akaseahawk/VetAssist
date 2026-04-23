@@ -740,6 +740,13 @@
       Select a form below. We’ll show everything we already know and everything
       still needed — all at once. Review, correct anything wrong, fill in the gaps, then confirm.
     </p>
+    <!-- WHY forms-loading: the /api/forms call runs after benefits render and can
+         take 1-3 seconds. Without this spinner the card appears blank, which looks
+         broken. We show it immediately when the card becomes visible, then hide it
+         once renderFormTabs() has populated form-groups. -->
+    <div id="forms-loading" style="font-size:0.9rem; color:#1a3a6b; padding:0.5rem 0;">
+      <span class="spinner"></span> Matching forms to your benefits&hellip;
+    </div>
     <!-- Form groups rendered here: one group per benefit, tabs inside each group -->
     <div id="form-groups"></div>
 
@@ -944,13 +951,19 @@ async function loadVeteran() {
   // can actually act on. Benefits are visible now, so step 2 is active.
   setStep(2);
 
-  // Load forms (prefill data) in the background
+  // Load forms (prefill data) in the background.
+  // WHY show card-forms early: we reveal the card immediately so the veteran
+  // can see the spinner while the fetch is in flight — avoids a visual jump.
+  show("card-forms");
+  document.getElementById("forms-loading").style.display = "block";
+
   const formsRes = await fetch(`/api/forms/${state.veteranId}`);
   const formsData = await formsRes.json();
   state.forms = formsData.forms || [];
 
+  // Hide spinner now that tabs are about to render
+  document.getElementById("forms-loading").style.display = "none";
   renderFormTabs(state.forms);
-  show("card-forms");
   // WHY setStep(3): forms are now visible — veteran can pick one. Step 3 is active.
   setStep(3);
 }
@@ -1883,8 +1896,12 @@ async function loadOwnProfile() {
     renderBenefits(eligData.benefits || [], eligData.disclaimer || "", eligData.mode || "rules_fallback");
     // WHY setStep(2) after benefits render: step 2 "Review Benefits" is now active.
     setStep(2);
-    renderFormTabs(state.forms);
+    // Show card-forms + spinner first so the veteran sees activity immediately
     show("card-forms");
+    document.getElementById("forms-loading").style.display = "block";
+    // Hide spinner now that tabs are about to render
+    document.getElementById("forms-loading").style.display = "none";
+    renderFormTabs(state.forms);
     // WHY setStep(3): forms section is visible, veteran can now choose one.
     setStep(3);
 
