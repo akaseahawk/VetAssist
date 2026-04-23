@@ -199,7 +199,7 @@ VA.gov has the information. VetAssist connects it to the veteran's specific situ
 - Reduce incomplete submissions through prefill and guided follow-ups
 - Scalable to any federal benefit program with known forms and eligibility rules
 - Maps directly to active VA modernization priorities
-- Credible BD path for Wilcore: VA T4NG (Transformation Twenty-One Total Technology Next Generation) Task Order, CIO-SP4, or 8(a) sole-source under 38 U.S.C. § 8127 as a certified SDVOSB — no competitive tender required below $4M
+> - *Credible BD path for Wilcore: VA T4NG (Transformation Twenty-One Total Technology Next Generation) Task Order, CIO-SP4, or 8(a) sole-source under 38 U.S.C. § 8127 as a certified SDVOSB — no competitive tender required below $M, SPRUCE IDIQ.* **needs review**
 
 Quantified (conservative): If 10% of ~1M annual VA disability claims used a tool like this
 and saved 2 hours each, that's ~200,000 veteran-hours recovered per year.
