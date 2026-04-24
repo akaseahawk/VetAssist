@@ -26,6 +26,8 @@ WHY source_documents pass through here:
     button on missing fields without needing to know the catalog structure itself.
 """
 
+from typing import Optional
+
 
 def get_forms_for_benefits(eligible_benefit_ids: list, forms_catalog: list) -> list:
     """
@@ -185,7 +187,7 @@ def build_field_summary(prefilled_form: dict) -> dict:
 def get_missing_fields_for_veteran(
     veteran: dict,
     forms_data: dict,
-    form_id: str | None = None,
+    form_id: Optional[str] = None,
 ) -> list[str]:
     """
     Return a list of field keys that are still missing for a veteran

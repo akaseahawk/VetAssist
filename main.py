@@ -81,7 +81,7 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# Mount static files (CSS, images) if that folder exists.
+# Mount static files (CSS, JavaScript, images) if that folder exists.
 # WHY conditional: keeps the app runnable even if /static doesn't exist yet.
 static_dir = Path(__file__).parent / "static"
 if static_dir.exists():
@@ -137,8 +137,9 @@ def get_forms_catalog() -> list:
 async def serve_index():
     """
     Serve the single-page HTML frontend.
-    WHY not use a template engine: one static HTML file is simpler to read,
-    edit, and demo. No Jinja2, no build step needed.
+    WHY not use a template engine: a static single-page shell plus static
+    CSS/JavaScript assets keeps the demo easy to read and run. No Jinja2,
+    no build step needed.
     """
     template = Path(__file__).parent / "templates" / "index.html"
     if not template.exists():

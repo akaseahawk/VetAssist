@@ -1,0 +1,748 @@
+    /* ------------------------------------------------------------------
+       Base reset and typography
+       WHY minimal styles: easy for a frontend collaborator to restyle without untangling a
+       complex CSS framework. Every rule here has a clear purpose.
+    ------------------------------------------------------------------ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --color-bg-page: #f0f2f5;
+      --color-text-primary: #1a1a2e;
+      --color-text-heading: #333;
+      --color-text-label: #444;
+      --color-text-body-muted: #555;
+      --color-text-secondary: #666;
+      --color-text-subtle: #888;
+      --color-text-muted: #999;
+      --color-bg-muted: #f5f5f5;
+      --color-white: #fff;
+      --color-va-blue: #1a3a6b;
+      --color-va-blue-dark: #14305a;
+      --color-va-red: #c8102e;
+      --color-red-light: #ffb3b3;
+      --color-green: #2e7d32;
+      --color-green-dark: #245e27;
+      --color-green-strong: #1b5e20;
+      --color-green-bg: #e8f5e9;
+      --color-green-border: #a5d6a7;
+      --color-known-bg: #f6fef7;
+      --color-benefit-bg: #f1f8f1;
+      --color-benefit-text: #2d4a2d;
+      --color-amber-text: #b45309;
+      --color-amber-border: #fcd34d;
+      --color-needed-bg: #fffdf0;
+      --color-warning-bg: #fff8e1;
+      --color-warning-border: #f9a825;
+      --color-warning-text: #5d4037;
+      --color-orange-bg: #fff3e0;
+      --color-orange-text: #bf360c;
+      --color-note-brown: #795548;
+      --color-error-red: #c00;
+      --color-error-text: #c62828;
+      --color-error-border: #ef5350;
+      --color-error-bg: #fff5f5;
+      --color-border-light: #ddd;
+      --color-border-muted: #ccc;
+      --color-border-control: #bbb;
+      --color-border-field: #d0d5dd;
+      --color-border-section: #e0e4ef;
+      --color-divider: #e8ecf1;
+      --color-progress-bg: #e0e0e0;
+      --color-chat-bg: #f9fafb;
+      --color-blue-subtle: #e8edf7;
+      --color-blue-hover-bg: #f0f4ff;
+      --color-spinner-border: #c0cce0;
+      --focus-ring: rgba(26,58,107,0.12);
+      --shadow-card: rgba(0,0,0,0.10);
+      --shadow-modal: rgba(0,0,0,0.20);
+      --backdrop-modal: rgba(0,0,0,0.55);
+    }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--color-bg-page);
+      color: var(--color-text-primary);
+      min-height: 100vh;
+      font-size: 15px;
+    }
+
+    /* ------------------------------------------------------------------
+       Header
+    ------------------------------------------------------------------ */
+    header {
+      background: var(--color-va-blue);
+      color: var(--color-white);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      border-bottom: 4px solid var(--color-va-red); /* VA red accent */
+    }
+    header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: 0.02em; }
+    header .tagline { font-size: 0.8rem; opacity: 0.75; margin-top: 2px; }
+    header .wilcore-badge {
+      margin-left: auto;
+      font-size: 0.7rem;
+      opacity: 0.6;
+      text-align: right;
+      align-self: center;
+    }
+
+    /* ------------------------------------------------------------------
+       Flow steps indicator
+       Shows the veteran where they are in the process
+    ------------------------------------------------------------------ */
+    .step-bar {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: var(--color-white);
+      border-bottom: 1px solid var(--color-border-light);
+      padding: 0.6rem 2rem;
+      font-size: 0.78rem;
+      overflow-x: auto;
+    }
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--color-text-muted);
+      white-space: nowrap;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+    }
+    .step.active { color: var(--color-va-blue); font-weight: 700; background: var(--color-blue-subtle); }
+    .step.done   { color: var(--color-green); }
+    .step-arrow  { color: var(--color-border-muted); padding: 0 0.25rem; }
+
+    /* ------------------------------------------------------------------
+       Main layout
+    ------------------------------------------------------------------ */
+    .container { max-width: 920px; margin: 1.5rem auto; padding: 0 1rem; }
+
+    /* ------------------------------------------------------------------
+       Cards — each step in the flow is a card
+    ------------------------------------------------------------------ */
+    .card {
+      background: var(--color-white);
+      border-radius: 10px;
+      box-shadow: 0 1px 4px var(--shadow-card);
+      padding: 1.4rem 1.6rem;
+      margin-bottom: 1.25rem;
+    }
+    .card h2 {
+      font-size: 1rem;
+      color: var(--color-va-blue);
+      font-weight: 700;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .card h2 .step-num {
+      background: var(--color-va-blue);
+      color: var(--color-white);
+      border-radius: 50%;
+      width: 22px; height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    /* ------------------------------------------------------------------
+       Veteran selector
+    ------------------------------------------------------------------ */
+    .select-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    select, input[type="text"] {
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--color-border-control);
+      font-size: 0.9rem;
+      background: var(--color-white);
+    }
+    select:focus, input[type="text"]:focus { outline: 2px solid var(--color-va-blue); border-color: transparent; }
+
+    /* ------------------------------------------------------------------
+       Buttons
+    ------------------------------------------------------------------ */
+    .btn {
+      padding: 0.45rem 1.1rem;
+      border-radius: 6px;
+      border: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    .btn-primary { background: var(--color-va-blue); color: var(--color-white); }
+    .btn-primary:hover { background: var(--color-va-blue-dark); }
+    .btn-success { background: var(--color-green); color: var(--color-white); }
+    .btn-success:hover { background: var(--color-green-dark); }
+    .btn-outline {
+      background: transparent;
+      color: var(--color-va-blue);
+      border: 1.5px solid var(--color-va-blue);
+    }
+    .btn-outline:hover { background: var(--color-blue-subtle); }
+    .btn-edit {
+      background: transparent;
+      color: var(--color-text-secondary);
+      border: 1px solid var(--color-border-muted);
+      font-size: 0.78rem;
+      padding: 0.2rem 0.5rem;
+    }
+    .btn-edit:hover { background: var(--color-bg-muted); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ------------------------------------------------------------------
+       Profile summary
+    ------------------------------------------------------------------ */
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    .profile-item { font-size: 0.85rem; }
+    .profile-item .label { font-weight: 700; color: var(--color-text-body-muted); font-size: 0.75rem; text-transform: uppercase; }
+    .profile-item .value { color: var(--color-text-primary); }
+
+    /* ------------------------------------------------------------------
+       Benefit badges
+    ------------------------------------------------------------------ */
+    .benefit-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .benefit-badge {
+      padding: 0.4rem 0.9rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: default;
+      border: 2px solid transparent;
+      transition: border-color 0.15s;
+    }
+    .benefit-badge.eligible   { background: var(--color-green-bg); color: var(--color-green-strong); border-color: var(--color-green-border); }
+    .benefit-badge.ineligible { background: var(--color-bg-muted); color: var(--color-text-muted); }
+    .benefit-badge.eligible:hover { border-color: var(--color-green); }
+
+    /* ------------------------------------------------------------------
+       Form selector — grouped by benefit
+       WHY group by benefit: the veteran just read the benefits list in
+       Step 2. Grouping forms under the same benefit name creates visual
+       parallelism so they can connect "I want to explore X" directly
+       to "here's the form for X" without having to cross-reference.
+    ------------------------------------------------------------------ */
+    .benefit-form-group {
+      margin-bottom: 1.1rem;
+    }
+    /* Benefit name header above each group of form tabs */
+    .benefit-form-group-header {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-green-strong);
+      border-left: 3px solid var(--color-green-border);
+      padding-left: 0.55rem;
+      margin-bottom: 0.45rem;
+    }
+    .form-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0;
+    }
+    .form-tab {
+      padding: 0.4rem 0.9rem;
+      border-radius: 6px;
+      border: 1.5px solid var(--color-border-control);
+      font-size: 0.83rem;
+      cursor: pointer;
+      background: var(--color-white);
+      color: var(--color-text-body-muted);
+      transition: all 0.15s;
+    }
+    .form-tab:hover  { border-color: var(--color-va-blue); color: var(--color-va-blue); }
+    .form-tab.active { background: var(--color-va-blue); color: var(--color-white); border-color: var(--color-va-blue); }
+    .form-tab .not-digital { font-size: 0.7rem; color: var(--color-va-red); font-weight: 700; }
+    .form-tab.active .not-digital { color: var(--color-red-light); }
+
+    /* ------------------------------------------------------------------
+       Field review sections (Step 3 redesign)
+       WHY two sections and not one table:
+       Veterans need a clear mental model of what’s already known vs.
+       what they need to provide. Mixing them in one table creates confusion.
+       Each field is an editable input so the veteran can correct or fill
+       everything at once, then confirm with a single button.
+    ------------------------------------------------------------------ */
+
+    .field-section-header {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: 0.35rem 0;
+      margin: 1rem 0 0.5rem;
+      border-bottom: 2px solid;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .field-section-header.known  { color: var(--color-green); border-color: var(--color-green-border); }
+    .field-section-header.needed { color: var(--color-amber-text); border-color: var(--color-amber-border); }
+
+    /* Two-column layout per field: label left, input + optional upload right */
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1.8fr auto;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--color-bg-page);
+    }
+    .field-row:last-child { border-bottom: none; }
+
+    .field-label {
+      display: block;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--color-text-heading);
+      line-height: 1.3;
+    }
+    .field-hint {
+      font-size: 0.72rem;
+      color: var(--color-text-subtle);
+      margin-top: 2px;
+      font-weight: 400;
+    }
+
+    /* All fields rendered as editable inputs — pre-populated or blank */
+    .field-input {
+      padding: 0.35rem 0.55rem;
+      border: 1.5px solid var(--color-border-field);
+      border-radius: 5px;
+      font-size: 0.85rem;
+      width: 100%;
+      transition: border-color 0.15s;
+      background: var(--color-white);
+      box-sizing: border-box;
+    }
+    .field-input:focus  { border-color: var(--color-va-blue); outline: none; box-shadow: 0 0 0 2px var(--focus-ring); }
+    /* Green tint — we already have this value */
+    .field-input.is-known  { border-color: var(--color-green-border); background: var(--color-known-bg); }
+    /* Amber tint — veteran still needs to fill this */
+    .field-input.is-needed { border-color: var(--color-amber-border); background: var(--color-needed-bg); }
+    /* Red border — required field still empty when they try to confirm */
+    .field-input.is-error  { border-color: var(--color-error-border); background: var(--color-error-bg); }
+
+    .field-upload-btn {
+      white-space: nowrap;
+      font-size: 0.75rem;
+      padding: 0.3rem 0.65rem;
+      border: 1.5px solid var(--color-border-control);
+      border-radius: 5px;
+      background: var(--color-white);
+      cursor: pointer;
+      color: var(--color-text-body-muted);
+      transition: all 0.15s;
+      line-height: 1.4;
+    }
+    .field-upload-btn:hover { border-color: var(--color-va-blue); color: var(--color-va-blue); background: var(--color-blue-hover-bg); }
+
+    /* ------------------------------------------------------------------
+       Spinner — inline animated indicator for real async operations.
+       WHY CSS animation not a GIF: no external asset needed, scales cleanly.
+       Shown during: profile load, benefit check, chat response, doc upload.
+    ------------------------------------------------------------------ */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid var(--color-spinner-border);
+      border-top-color: var(--color-va-blue);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    /* ------------------------------------------------------------------
+       Profile mode toggle buttons (Demo / Enter My Own)
+    ------------------------------------------------------------------ */
+    .profile-mode-btn { font-size: 0.85rem; padding: 0.4rem 1rem; }
+    .profile-mode-btn.active {
+      background: var(--color-va-blue);
+      color: var(--color-white);
+      border-color: var(--color-va-blue);
+    }
+
+    /* ------------------------------------------------------------------
+       Own-profile entry grid — two columns on wider screens
+    ------------------------------------------------------------------ */
+    .own-profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    @media (max-width: 600px) { .own-profile-grid { grid-template-columns: 1fr; } }
+    .own-field label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--color-text-label);
+      margin-bottom: 0.25rem;
+    }
+    .own-field input,
+    .own-field select {
+      width: 100%;
+      padding: 0.45rem 0.6rem;
+      border: 1.5px solid var(--color-border-muted);
+      border-radius: 5px;
+      font-size: 0.88rem;
+      color: var(--color-text-primary);
+    }
+    .own-field input:focus, .own-field select:focus {
+      outline: none;
+      border-color: var(--color-va-blue);
+      box-shadow: 0 0 0 2px var(--focus-ring);
+    }
+
+    /* Progress bar */
+    .progress-wrap { height: 8px; background: var(--color-progress-bg); border-radius: 4px; overflow: hidden; margin: 0.5rem 0; }
+    .progress-bar  { height: 100%; background: var(--color-green); border-radius: 4px; transition: width 0.3s; }
+    .progress-label { font-size: 0.78rem; color: var(--color-text-secondary); margin-bottom: 0.3rem; }
+
+    /* ------------------------------------------------------------------
+       Confirm All button row
+    ------------------------------------------------------------------ */
+    .confirm-row {
+      margin-top: 1.25rem;
+      padding-top: 0.85rem;
+      border-top: 2px solid var(--color-border-section);
+    }
+    #confirm-error {
+      color: var(--color-error-text);
+      font-size: 0.82rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+
+    /* ------------------------------------------------------------------
+       Chat area
+    ------------------------------------------------------------------ */
+    #chat-messages {
+      min-height: 140px;
+      max-height: 320px;
+      overflow-y: auto;
+      background: var(--color-chat-bg);
+      border: 1px solid var(--color-border-section);
+      border-radius: 8px;
+      padding: 0.85rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.88rem;
+      scroll-behavior: smooth;
+    }
+    .msg { margin-bottom: 0.7rem; display: flex; }
+    .msg-user   { justify-content: flex-end; }
+    .msg-assist { justify-content: flex-start; }
+    .bubble {
+      max-width: 80%;
+      padding: 0.5rem 0.9rem;
+      border-radius: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+    .msg-user   .bubble { background: var(--color-va-blue); color: var(--color-white); border-radius: 12px 12px 0 12px; }
+    .msg-assist .bubble { background: var(--color-blue-subtle); color: var(--color-text-primary); border-radius: 12px 12px 12px 0; }
+
+    .chat-input-row { display: flex; gap: 0.5rem; }
+    .chat-input-row input {
+      flex: 1;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      border: 1.5px solid var(--color-border-control);
+      font-size: 0.88rem;
+    }
+    .chat-input-row input:focus { outline: 2px solid var(--color-va-blue); border-color: transparent; }
+
+    /* ------------------------------------------------------------------
+       Misc utility
+    ------------------------------------------------------------------ */
+    .note         { font-size: 0.78rem; color: var(--color-text-subtle); font-style: italic; margin-top: 0.4rem; }
+    .section-note { font-size: 0.83rem; color: var(--color-text-body-muted); margin-bottom: 0.75rem; }
+    .not-digital-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      background: var(--color-orange-bg);
+      color: var(--color-orange-text);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 700;
+      margin-left: 0.5rem;
+    }
+    .hidden { display: none; }
+    .spinner { color: var(--color-text-subtle); font-size: 0.82rem; margin-top: 0.4rem; }
+    .error-msg { color: var(--color-error-text); font-size: 0.83rem; }
+    .va-link { font-size: 0.78rem; color: var(--color-va-blue); text-decoration: none; }
+    .va-link:hover { text-decoration: underline; }
+    hr.section-divider { border: none; border-top: 1px solid var(--color-divider); margin: 0.75rem 0; }
+
+    /* Document vision confirmation modal */
+    .vision-modal {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      width: min(90vw, 540px);
+      max-height: 80vh;
+      overflow: visible;
+    }
+    .vision-modal::backdrop { background: var(--backdrop-modal); }
+    .vision-modal-panel {
+      background: var(--color-white);
+      border-radius: 10px;
+      padding: 2rem;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px var(--shadow-modal);
+    }
+    .vision-modal-title { margin: 0 0 0.5rem; color: var(--color-va-blue); }
+    .vision-modal-note { font-size: 0.9rem; color: var(--color-text-body-muted); margin: 0 0 1rem; }
+    .vision-modal-warning { font-size: 0.82rem; color: var(--color-text-body-muted); margin: 0 0 1rem; }
+    .vision-modal-actions {
+      margin-top: 1.2rem;
+      display: flex;
+      gap: 0.7rem;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+    .vision-field-group { margin-bottom: 0.8rem; }
+    .vision-field-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--color-va-blue);
+      margin-bottom: 0.2rem;
+    }
+    .vision-field-input {
+      width: 100%;
+      padding: 0.4rem 0.6rem;
+      border: 1px solid var(--color-border-muted);
+      border-radius: 5px;
+      font-size: 0.9rem;
+      box-sizing: border-box;
+    }
+
+    /* Extracted styles for static and JS-rendered markup */
+    .profile-mode-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .demo-profile-label { font-size: 0.88rem; font-weight: 600; }
+    .note-spaced-lg { margin-bottom: 1rem; }
+    .note-spaced-md { margin-bottom: 0.75rem; }
+    .note-chat { margin-bottom: 0.6rem; }
+    .required-note { font-size: 0.78rem; color: var(--color-text-subtle); margin-top: 0.5rem; }
+    .mt-1 { margin-top: 1rem; }
+    .mt-05 { margin-top: 0.5rem; }
+    .full-width { width: 100%; }
+    .inline-error {
+      display: none;
+      color: var(--color-error-red);
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+    .scan-control-group { margin-bottom: 0.75rem; }
+    .scan-control-label {
+      font-size: 0.88rem;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+    .scan-doc-select {
+      width: 100%;
+      padding: 0.4rem;
+      border-radius: 5px;
+      border: 1px solid var(--color-border-control);
+      font-size: 0.88rem;
+    }
+    .scan-doc-hint { font-size: 0.78rem; color: var(--color-text-body-muted); margin-top: 0.3rem; }
+    .scan-image-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .scan-file-label { display: inline-flex; align-items: center; }
+    .scan-file-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .scan-camera-panel {
+      display: none;
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      border: 1px solid var(--color-border-light);
+      border-radius: 6px;
+      background: var(--color-chat-bg);
+    }
+    .scan-camera-video {
+      width: 100%;
+      max-height: 360px;
+      border-radius: 6px;
+      background: var(--color-text-primary);
+      object-fit: contain;
+    }
+    .scan-camera-canvas { display: none; }
+    .scan-camera-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.6rem;
+    }
+    .scan-preview { margin-top: 0.5rem; display: none; }
+    .scan-preview-img {
+      max-width: 100%;
+      max-height: 220px;
+      border-radius: 6px;
+      border: 1px solid var(--color-border-light);
+    }
+    .loading-status {
+      display: none;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: var(--color-va-blue);
+    }
+    .loading-status-compact {
+      font-size: 0.9rem;
+      color: var(--color-va-blue);
+      padding: 0.5rem 0;
+    }
+    .scan-loading { margin-top: 0.75rem; }
+    .scan-result-note {
+      display: none;
+      margin-top: 0.75rem;
+      padding: 0.6rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--color-green-border);
+      background: var(--color-benefit-bg);
+      font-size: 0.85rem;
+      color: var(--color-green);
+    }
+    .scan-to-form-prompt { display: none; margin-top: 0.75rem; }
+    .scan-review-copy { font-size: 0.85rem; color: var(--color-text-label); margin-bottom: 0.5rem; }
+    .profile-summary { margin-top: 1rem; }
+    .profile-greeting {
+      font-size: 0.9rem;
+      color: var(--color-va-blue);
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+    }
+    .disclaimer-alert {
+      background: var(--color-warning-bg);
+      border-left: 4px solid var(--color-warning-border);
+      border-radius: 4px;
+      padding: 0.65rem 0.9rem;
+      font-size: 0.82rem;
+      color: var(--color-warning-text);
+      margin-bottom: 0.85rem;
+      display: none;
+    }
+    .mode-badge { margin-left: 0.5rem; font-size: 0.75rem; color: var(--color-text-subtle); }
+    .form-header { margin-bottom: 0.6rem; }
+    .progress-bar { width: 0%; }
+    .confirm-button { width: 100%; font-size: 1rem; padding: 0.75rem; letter-spacing: 0.01em; }
+    .download-panel { display: none; margin-top: 0.6rem; }
+    .download-btn-outline {
+      width: 100%;
+      background: var(--color-white);
+      color: var(--color-va-blue);
+      border: 1.5px solid var(--color-va-blue);
+      font-size: 0.9rem;
+      padding: 0.6rem;
+    }
+    .download-helper {
+      font-size: 0.75rem;
+      color: var(--color-text-subtle);
+      margin-top: 0.3rem;
+      text-align: center;
+    }
+    .chat-thinking {
+      display: none;
+      font-size: 0.85rem;
+      color: var(--color-va-blue);
+      padding: 0.3rem 0;
+    }
+    .chat-download-wrap {
+      margin-top: 1rem;
+      border-top: 1px solid var(--color-divider);
+      padding-top: 0.85rem;
+    }
+    .chat-download-btn {
+      width: 100%;
+      background: var(--color-va-blue);
+      color: var(--color-white);
+      border: none;
+      font-size: 0.95rem;
+      padding: 0.7rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .chat-download-helper {
+      font-size: 0.75rem;
+      color: var(--color-text-subtle);
+      margin-top: 0.4rem;
+      text-align: center;
+    }
+    .benefit-empty { color: var(--color-text-subtle); font-size: 0.88rem; }
+    .benefit-card {
+      background: var(--color-benefit-bg);
+      border: 1.5px solid var(--color-green-border);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+    .benefit-card-inner {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .benefit-title {
+      font-weight: 700;
+      color: var(--color-green-strong);
+      font-size: 0.93rem;
+      margin-bottom: 0.25rem;
+    }
+    .benefit-reason { font-size: 0.83rem; color: var(--color-benefit-text); margin-bottom: 0.4rem; }
+    .benefit-note { font-size: 0.78rem; color: var(--color-note-brown); font-style: italic; }
+    .benefit-link {
+      white-space: nowrap;
+      font-size: 0.78rem;
+      color: var(--color-va-blue);
+      text-decoration: none;
+      border: 1px solid var(--color-va-blue);
+      border-radius: 4px;
+      padding: 0.25rem 0.6rem;
+      flex-shrink: 0;
+    }
+    .multi-benefit-note {
+      font-size: 0.68rem;
+      color: var(--color-va-blue);
+      display: block;
+      margin-top: 3px;
+    }
+    .form-tab-id { font-weight: 700; font-size: 0.82rem; }
+    .form-tab-title { font-size: 0.73rem; color: var(--color-text-body-muted); margin-top: 2px; line-height: 1.3; }
+    .required-mark { color: var(--color-error-red); margin-left: 2px; }
+    .textarea-resize { resize: vertical; }
+    .hidden-file-input { display: none; }
+    .modal-empty-state { color: var(--color-text-subtle); }
