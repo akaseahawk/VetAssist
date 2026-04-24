@@ -86,6 +86,9 @@ DOCUMENT_FIELD_DEFINITIONS = {
         ),
         "fields": {
             "name":           "Box 1 — full name of the service member (Last, First, Middle)",
+            "name_first":     "Box 1 — first/given name of the service member",
+            "name_middle":    "Box 1 — middle name or middle initial of the service member",
+            "name_last":      "Box 1 — last/family name of the service member",
             "branch":         "Box 9 — branch of service (e.g. Army, Navy, Marine Corps, Air Force, Coast Guard)",
             "service_start":  "Box 12a — date entered active duty this period (YYYYMMDD or MM/DD/YYYY format)",
             "service_end":    "Box 12b — separation date this period (YYYYMMDD or MM/DD/YYYY format)",
@@ -94,6 +97,12 @@ DOCUMENT_FIELD_DEFINITIONS = {
             "mos":            "Box 11 — primary specialty (MOS/AFSC/Rating code and title)",
             "deployment_info":"Box 18 — remarks section, which often contains deployment locations and dates",
             "decorations":    "Box 13 — decorations, medals, badges, commendations, citations, campaign ribbons",
+            "unit_assignment":"Unit, command, or last duty assignment if visible",
+            "combat_deployment":"Whether remarks or awards indicate combat deployment; return Yes, No, or null",
+            "pow":            "Whether the document indicates prisoner of war status; return Yes, No, or null",
+            "purple_heart":   "Whether Box 13 awards include Purple Heart; return Yes, No, or null",
+            "event_location": "Deployment or event location if listed in remarks",
+            "in_service_event":"Visible remarks, deployment notes, awards, or duty details relevant to an in-service event",
         }
     },
     "21-4142": {
@@ -103,12 +112,19 @@ DOCUMENT_FIELD_DEFINITIONS = {
             "It contains the veteran's personal identification information."
         ),
         "fields": {
-            "name":    "Veteran's full name field",
-            "ssn":     "Social Security Number field (may be partially redacted — extract what is visible)",
-            "dob":     "Veteran's date of birth",
-            "address": "Current mailing address (street, city, state, ZIP)",
-            "phone":   "Daytime phone number",
-            "email":   "Email address if present",
+            "name":           "Veteran's full name field",
+            "name_first":     "Veteran's first/given name",
+            "name_middle":    "Veteran's middle name or initial",
+            "name_last":      "Veteran's last/family name",
+            "ssn":            "Social Security Number field (may be partially redacted — extract what is visible)",
+            "dob":            "Veteran's date of birth",
+            "address":        "Current mailing address (street, city, state, ZIP)",
+            "address_street": "Street line of the current mailing address",
+            "address_city":   "City of the current mailing address",
+            "address_state":  "State of the current mailing address",
+            "address_zip":    "ZIP code of the current mailing address",
+            "phone":          "Daytime phone number",
+            "email":          "Email address if present",
         }
     },
     "MILITARY_ID": {
@@ -119,10 +135,14 @@ DOCUMENT_FIELD_DEFINITIONS = {
             "and DoD ID number. Does not contain service history or discharge information."
         ),
         "fields": {
-            "name":   "Full name as printed on the card (usually Last, First Middle or First Last)",
-            "branch": "Branch of service shown on the card (Army, Navy, Marine Corps, Air Force, Space Force, Coast Guard)",
-            "rank":   "Rank or grade printed on the card (e.g. SGT, CPT, E-5, O-3)",
-            "dob":    "Date of birth printed on the card (YYYY-MM-DD if possible)",
+            "name":        "Full name as printed on the card (usually Last, First Middle or First Last)",
+            "name_first":  "First/given name printed on the card",
+            "name_middle": "Middle name or initial printed on the card",
+            "name_last":   "Last/family name printed on the card",
+            "branch":      "Branch of service shown on the card (Army, Navy, Marine Corps, Air Force, Space Force, Coast Guard)",
+            "rank":        "Rank or grade printed on the card (e.g. SGT, CPT, E-5, O-3)",
+            "dob":         "Date of birth printed on the card (YYYY-MM-DD if possible)",
+            "gender":      "Gender marker if printed on the card",
         }
     },
     "VA_LETTER": {
@@ -133,12 +153,224 @@ DOCUMENT_FIELD_DEFINITIONS = {
             "individual condition ratings, and sometimes branch and service dates."
         ),
         "fields": {
-            "name":             "Veteran's full name as addressed in the letter",
-            "branch":           "Branch of service if mentioned in the letter",
-            "service_start":    "Service entry date if mentioned",
-            "service_end":      "Service separation date if mentioned",
-            "disability_rating":"Combined disability rating percentage (e.g. 70%)",
-            "conditions":       "Individual rated conditions listed in the letter (comma-separated)",
+            "name":                  "Veteran's full name as addressed in the letter",
+            "name_first":            "Veteran's first/given name",
+            "name_last":             "Veteran's last/family name",
+            "va_file_number":        "VA file number, claim number, or claim ID if visible",
+            "branch":                "Branch of service if mentioned in the letter",
+            "service_start":         "Service entry date if mentioned",
+            "service_end":           "Service separation date if mentioned",
+            "disability_rating":     "Combined disability rating percentage (e.g. 70%)",
+            "disability_conditions": "Individual rated conditions listed in the letter (comma-separated)",
+            "conditions":            "Individual rated conditions listed in the letter (comma-separated)",
+            "service_connected":     "Whether the letter indicates service-connected disability; return Yes, No, or null",
+            "receiving_comp":        "Whether the letter indicates current disability compensation; return Yes, No, or null",
+            "enrolled_va_hc":        "Whether the letter indicates current VA health care enrollment; return Yes, No, or null",
+            "mental_health_diagnosis":"Mental health condition or diagnosis listed in the letter if visible",
+            "agent_orange":          "Whether the letter mentions Agent Orange exposure or a related presumptive condition",
+            "radiation_exposure":    "Whether the letter mentions radiation exposure or a related presumptive condition",
+            "benefit_type":          "VA benefit program named in the letter if relevant",
+            "prior_education_benefits":"Whether the letter mentions previous VA education benefits; return Yes, No, or null",
+            "prior_va_loans":        "Whether the letter mentions a prior VA home loan; return Yes, No, or null",
+            "address_street":        "Street line of the mailing address if visible",
+            "address_city":          "City of the mailing address if visible",
+            "address_state":         "State of the mailing address if visible",
+            "address_zip":           "ZIP code of the mailing address if visible",
+        }
+    },
+    "MEDICAL_RECORD": {
+        "document_description": (
+            "A VA or other federal medical record, visit summary, diagnosis list, "
+            "treatment note, problem list, or appointment record. It may contain "
+            "diagnoses, treatment dates, provider or facility names, and contact information."
+        ),
+        "fields": {
+            "gender":                  "Gender marker if visible in the patient demographics section",
+            "phone":                   "Patient phone number if visible",
+            "email":                   "Patient email if visible",
+            "disability_conditions":   "Diagnoses, problem list, or claimed conditions that appear in the record",
+            "mental_health_diagnosis": "Mental health diagnosis or condition listed in the record",
+            "disability_onset":        "Earliest onset date, diagnosis date, or symptom-start date if visible",
+            "current_treatment":       "Whether the record shows current treatment; return Yes — VA, Yes — private provider, Yes — both, No, or null",
+            "treatment_history":       "VA/federal facilities, clinics, treatment dates, or treatment summary",
+            "treatment_provider":      "Provider, clinic, hospital, or facility name",
+            "first_treatment_date":    "Earliest mental health or relevant treatment date visible",
+            "enrolled_va_hc":          "Whether the record indicates VA health care enrollment or VA treatment; return Yes, No, or null",
+            "unable_to_work":          "Whether the record indicates the veteran is unable to work due to disability",
+            "in_service_event":        "Medical note tying a condition to military service if visible",
+            "traumatic_event_description":"Traumatic event description if stated in the clinical note",
+            "event_date":              "Date of traumatic event if stated",
+        }
+    },
+    "PRIVATE_MEDICAL_RECORD": {
+        "document_description": (
+            "A private medical record, provider letter, diagnosis note, treatment plan, "
+            "or visit summary from a non-VA provider. It may contain diagnoses, "
+            "provider names, treatment dates, and treatment history."
+        ),
+        "fields": {
+            "disability_conditions":   "Diagnoses, problem list, or claimed conditions that appear in the record",
+            "mental_health_diagnosis": "Mental health diagnosis or condition listed in the record",
+            "disability_onset":        "Earliest onset date, diagnosis date, or symptom-start date if visible",
+            "current_treatment":       "Whether the record shows current treatment; return Yes — private provider, Yes — both, No, or null",
+            "treatment_history":       "Private provider names, facilities, treatment dates, or treatment summary",
+            "private_records":         "Whether this document is a private medical record; return Yes if it clearly is",
+            "treatment_provider":      "Provider, clinic, hospital, or facility name",
+            "first_treatment_date":    "Earliest mental health or relevant treatment date visible",
+        }
+    },
+    "INSURANCE_CARD": {
+        "document_description": (
+            "A health insurance card or coverage letter. It usually contains an insurance "
+            "provider name, member or policy number, plan name, and contact phone numbers."
+        ),
+        "fields": {
+            "insurance_provider": "Insurance company, plan, or coverage provider name",
+            "insurance_policy":   "Member ID, policy number, group number, or subscriber number",
+            "medicare_enrolled":  "Return Yes if the card clearly indicates Medicare coverage; otherwise null",
+            "medicaid_enrolled":  "Return Yes if the card clearly indicates Medicaid coverage; otherwise null",
+            "phone":              "Member services or contact phone number if visible",
+        }
+    },
+    "MEDICARE_CARD": {
+        "document_description": "A Medicare card or Medicare coverage document.",
+        "fields": {
+            "medicare_enrolled": "Return Yes if this is a Medicare card or Medicare coverage document",
+            "insurance_provider":"Coverage provider or plan name if visible",
+            "insurance_policy":  "Medicare number, member ID, or policy number if visible",
+        }
+    },
+    "MEDICAID_CARD": {
+        "document_description": "A Medicaid card or Medicaid coverage document.",
+        "fields": {
+            "medicaid_enrolled": "Return Yes if this is a Medicaid card or Medicaid coverage document",
+            "insurance_provider":"Coverage provider or plan name if visible",
+            "insurance_policy":  "Medicaid ID, member ID, or policy number if visible",
+        }
+    },
+    "BANK_RECORD": {
+        "document_description": (
+            "A bank statement, direct deposit form, voided check, or account document. "
+            "It may contain bank name, routing number, account number, mailing address, "
+            "and account balances."
+        ),
+        "fields": {
+            "direct_deposit_bank":    "Bank or financial institution name",
+            "direct_deposit_routing": "Routing number if visible",
+            "direct_deposit_account": "Account number if visible; preserve redaction if partially hidden",
+            "address_street":         "Street line of mailing address if visible",
+            "address_city":           "City of mailing address if visible",
+            "address_state":          "State of mailing address if visible",
+            "address_zip":            "ZIP code of mailing address if visible",
+            "net_worth":              "Account balance or total assets visible on the record",
+        }
+    },
+    "TAX_RETURN": {
+        "document_description": "A tax return or tax transcript that may include income and dependent information.",
+        "fields": {
+            "income_annual": "Prior year gross annual income or adjusted gross income if visible",
+            "income_spouse": "Spouse income if separately visible",
+            "dependents":    "Number or names of dependents claimed",
+            "net_worth":     "Asset or investment values if visible; otherwise null",
+        }
+    },
+    "W2": {
+        "document_description": "A W-2 or wage statement showing yearly employment income.",
+        "fields": {
+            "income_annual": "Wages, tips, or total income shown on the W-2",
+            "income_spouse": "Spouse income if the document is clearly for the spouse",
+        }
+    },
+    "PAY_STUB": {
+        "document_description": "A pay stub or earning statement showing current employment and wages.",
+        "fields": {
+            "income_annual":      "Year-to-date or annualized income if visible",
+            "income_spouse":      "Spouse income if the document is clearly for the spouse",
+            "currently_employed": "Return Yes if the pay stub indicates current employment",
+        }
+    },
+    "EMPLOYMENT_RECORD": {
+        "document_description": "An employment record, employer letter, leave record, or work status document.",
+        "fields": {
+            "currently_employed": "Whether the document indicates current employment; return Yes or No if clear",
+            "unable_to_work":     "Whether the document indicates the veteran is unable to work due to disability",
+        }
+    },
+    "RETIREMENT_PAY_STATEMENT": {
+        "document_description": "A military retirement pay statement, DFAS statement, or retirement benefits letter.",
+        "fields": {
+            "receiving_retirement": "Whether the document indicates military retirement pay; return Yes or No if clear",
+        }
+    },
+    "SCHOOL_RECORD": {
+        "document_description": (
+            "A school enrollment certification, acceptance letter, schedule, transcript, "
+            "tuition bill, or training program record."
+        ),
+        "fields": {
+            "benefit_type":              "VA education benefit or chapter named on the record if visible",
+            "school_name":               "School, college, university, or training program name",
+            "school_address":            "School mailing or campus address",
+            "program_of_study":          "Program, major, certificate, or training objective",
+            "enrollment_status":         "Enrollment status such as full-time, half-time, etc.",
+            "training_start":            "Expected or actual training start date",
+            "prior_education_benefits":  "Whether the record mentions previous VA education benefits; return Yes, No, or null",
+        }
+    },
+    "LOAN_DOCUMENT": {
+        "document_description": (
+            "A mortgage, lender, preapproval, loan estimate, closing disclosure, or prior "
+            "VA home loan record."
+        ),
+        "fields": {
+            "prior_va_loans":     "Whether the document indicates a prior VA home loan; return Yes, No, or null",
+            "prior_loan_address": "Address of a prior VA-financed property",
+            "loan_purpose":       "Loan purpose such as purchase, refinance, construction, or IRRRL",
+            "property_address":   "Address of the property to be purchased or refinanced",
+            "property_state":     "State where the property is located",
+            "lender_name":        "Lender or mortgage company name",
+            "entitlement_action": "Entitlement action requested if visible",
+        }
+    },
+    "PROPERTY_RECORD": {
+        "document_description": "A property record, purchase agreement, tax bill, or real estate document.",
+        "fields": {
+            "prior_loan_address": "Address of prior property if visible",
+            "property_address":   "Property street address",
+            "property_state":     "Property state",
+        }
+    },
+    "BUDDY_STATEMENT": {
+        "document_description": (
+            "A buddy statement, lay statement, written personal statement, or witness letter "
+            "describing an in-service event or its effects."
+        ),
+        "fields": {
+            "traumatic_event_description": "Description of the traumatic or stressful in-service event",
+            "event_date":                  "Approximate event date if stated",
+            "event_location":              "Event location if stated",
+            "commanding_officer":          "Commanding officer name if stated",
+            "buddy_statement":             "Return Yes if this document is a buddy or lay statement",
+            "in_service_event":            "Description of how a condition or event relates to service",
+        }
+    },
+    "SERVICE_RECORD": {
+        "document_description": (
+            "Military personnel record, orders, award citation, deployment record, evaluation, "
+            "or unit document that may describe assignments, deployments, awards, and service events."
+        ),
+        "fields": {
+            "combat_deployment": "Whether the record indicates combat deployment; return Yes, No, or null",
+            "pow":               "Whether the record indicates prisoner-of-war status; return Yes, No, or null",
+            "purple_heart":      "Whether the record lists a Purple Heart; return Yes, No, or null",
+            "agent_orange":      "Whether the record indicates service in a location/timeframe associated with Agent Orange exposure",
+            "radiation_exposure":"Whether the record indicates radiation exposure during service",
+            "in_service_event":  "Relevant in-service event or duty detail visible in the record",
+            "traumatic_event_description":"Traumatic event description if stated",
+            "event_date":        "Event date if stated",
+            "event_location":    "Event location if stated",
+            "unit_assignment":   "Unit assignment if visible",
+            "commanding_officer":"Commanding officer name if stated",
         }
     },
     "GENERIC": {
@@ -405,8 +637,26 @@ def suggest_source_documents(missing_field_keys: list[str]) -> list[dict]:
     # Build suggestion objects for documents that cover at least one missing field
     suggestions = []
     doc_titles = {
-        "DD-214":  "Certificate of Release or Discharge from Active Duty",
-        "21-4142": "Authorization to Disclose Information to the VA",
+        "DD-214":                   "Certificate of Release or Discharge from Active Duty",
+        "21-4142":                  "Authorization to Disclose Information to the VA",
+        "MILITARY_ID":              "Military ID / CAC Card",
+        "VA_LETTER":                "VA Award Letter or Rating Decision",
+        "MEDICAL_RECORD":           "VA or Federal Medical Record",
+        "PRIVATE_MEDICAL_RECORD":   "Private Medical Record",
+        "INSURANCE_CARD":           "Health Insurance Card",
+        "MEDICARE_CARD":            "Medicare Card",
+        "MEDICAID_CARD":            "Medicaid Card",
+        "BANK_RECORD":              "Bank Statement or Direct Deposit Record",
+        "TAX_RETURN":               "Tax Return",
+        "W2":                       "W-2 Wage Statement",
+        "PAY_STUB":                 "Pay Stub",
+        "EMPLOYMENT_RECORD":        "Employment Record",
+        "RETIREMENT_PAY_STATEMENT": "Retirement Pay Statement",
+        "SCHOOL_RECORD":            "School Enrollment or Acceptance Record",
+        "LOAN_DOCUMENT":            "Mortgage or Lender Document",
+        "PROPERTY_RECORD":          "Property Record",
+        "BUDDY_STATEMENT":          "Buddy Statement or Lay Statement",
+        "SERVICE_RECORD":           "Service Record or Orders",
     }
 
     for doc_type, covered_fields in doc_coverage.items():

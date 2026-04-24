@@ -16,6 +16,114 @@ const state = {
 };
 
 // ---------------------------------------------------------------------------
+// Source-document metadata for the selected-form suggestions panel.
+// The catalog tells us which field can come from which document; this lookup
+// gives the UI human-readable names and scan hints for those document IDs.
+// ---------------------------------------------------------------------------
+const SOURCE_DOCUMENT_META = {
+  "DD-214": {
+    title: "DD-214 discharge papers",
+    description: "Often has service dates, branch, discharge type, rank, MOS, deployments, and awards.",
+    priority: 1,
+  },
+  "21-4142": {
+    title: "VA Form 21-4142 or authorization form",
+    description: "May contain SSN, date of birth, address, phone, and email.",
+    priority: 2,
+  },
+  "VA_LETTER": {
+    title: "VA award letter or rating decision",
+    description: "May contain VA file number, rating, service-connected status, conditions, and mailing address.",
+    priority: 3,
+  },
+  "MILITARY_ID": {
+    title: "Military ID or CAC",
+    description: "Useful for name, branch, rank, and date of birth.",
+    priority: 4,
+  },
+  "SERVICE_RECORD": {
+    title: "Service record, orders, or award citation",
+    description: "May support deployments, unit assignment, combat exposure, awards, or event details.",
+    priority: 5,
+  },
+  "MEDICAL_RECORD": {
+    title: "VA or federal medical record",
+    description: "May contain diagnoses, treatment dates, facilities, providers, and condition history.",
+    priority: 6,
+  },
+  "PRIVATE_MEDICAL_RECORD": {
+    title: "Private medical record",
+    description: "May contain private provider names, treatment dates, diagnoses, and treatment history.",
+    priority: 7,
+  },
+  "BUDDY_STATEMENT": {
+    title: "Buddy statement or lay statement",
+    description: "Can help with event descriptions, dates, locations, witnesses, and service connection details.",
+    priority: 8,
+  },
+  "INSURANCE_CARD": {
+    title: "Health insurance card",
+    description: "May contain insurance provider, policy number, plan type, and contact number.",
+    priority: 9,
+  },
+  "MEDICARE_CARD": {
+    title: "Medicare card",
+    description: "Can confirm Medicare enrollment and member information.",
+    priority: 10,
+  },
+  "MEDICAID_CARD": {
+    title: "Medicaid card",
+    description: "Can confirm Medicaid enrollment and member information.",
+    priority: 11,
+  },
+  "BANK_RECORD": {
+    title: "Bank statement or direct deposit record",
+    description: "May contain bank name, routing number, account number, address, or balances.",
+    priority: 12,
+  },
+  "TAX_RETURN": {
+    title: "Tax return",
+    description: "May contain annual income, spouse income, and dependent count.",
+    priority: 13,
+  },
+  "W2": {
+    title: "W-2 wage statement",
+    description: "May contain annual wages for the prior tax year.",
+    priority: 14,
+  },
+  "PAY_STUB": {
+    title: "Pay stub",
+    description: "May contain current employment status and year-to-date income.",
+    priority: 15,
+  },
+  "EMPLOYMENT_RECORD": {
+    title: "Employment record",
+    description: "May show current employment or work limitations.",
+    priority: 16,
+  },
+  "RETIREMENT_PAY_STATEMENT": {
+    title: "Military retirement pay statement",
+    description: "Can confirm whether military retirement pay is being received.",
+    priority: 17,
+  },
+  "SCHOOL_RECORD": {
+    title: "School enrollment or acceptance record",
+    description: "May contain school, program, enrollment status, and training start date.",
+    priority: 18,
+  },
+  "LOAN_DOCUMENT": {
+    title: "Mortgage or lender document",
+    description: "May contain loan purpose, lender, prior loan, property address, and entitlement details.",
+    priority: 19,
+  },
+  "PROPERTY_RECORD": {
+    title: "Property record",
+    description: "May contain the property address or state for a home loan form.",
+    priority: 20,
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Step 1: Load veteran list on page load
 // ---------------------------------------------------------------------------
 async function init() {
@@ -356,12 +464,14 @@ function renderFormDetail(form) {
     }
   });
 
+  renderDocumentSuggestions(neededFields);
+
   // Render Section A — Known fields
   const knownHeader = document.getElementById("section-known-header");
   const knownDiv    = document.getElementById("fields-known");
   if (knownFields.length > 0) {
     knownHeader.style.display = "flex";
-    knownDiv.innerHTML = knownFields.map(field => buildFieldRow(field, "is-known", false)).join("");
+    knownDiv.innerHTML = knownFields.map(field => buildFieldRow(field, "is-known")).join("");
   } else {
     knownHeader.style.display = "none";
     knownDiv.innerHTML = "";
@@ -372,7 +482,7 @@ function renderFormDetail(form) {
   const neededDiv    = document.getElementById("fields-needed");
   if (neededFields.length > 0) {
     neededHeader.style.display = "flex";
-    neededDiv.innerHTML = neededFields.map(field => buildFieldRow(field, "is-needed", true)).join("");
+    neededDiv.innerHTML = neededFields.map(field => buildFieldRow(field, "is-needed")).join("");
   } else {
     neededHeader.style.display = "none";
     neededDiv.innerHTML = "";
@@ -380,6 +490,119 @@ function renderFormDetail(form) {
 
   // Reset error state
   document.getElementById("confirm-error").style.display = "none";
+}
+
+// ---------------------------------------------------------------------------
+// Render grouped source-document suggestions for the fields still needed.
+//
+// WHY grouped suggestions:
+//   A veteran should not have to notice several small "From DD-214" buttons
+//   scattered through the field list. This panel says which record is worth
+//   finding first and exactly which missing fields it may fill.
+// ---------------------------------------------------------------------------
+function renderDocumentSuggestions(neededFields) {
+  const container = document.getElementById("document-suggestions");
+  if (!container) return;
+
+  const suggestions = buildDocumentSuggestionGroups(neededFields);
+  if (suggestions.length === 0) {
+    container.innerHTML = "";
+    return;
+  }
+
+  const totalDocFillable = new Set(
+    suggestions.flatMap(s => s.fields.map(field => field.key))
+  ).size;
+  const totalNeeded = neededFields.length;
+  const manualCount = Math.max(totalNeeded - totalDocFillable, 0);
+
+  container.innerHTML = `
+    <section class="doc-suggestions-panel" aria-label="Suggested records to scan">
+      <div class="doc-suggestions-header">
+        <div>
+          <div class="doc-suggestions-title">Suggested records to scan</div>
+          <p class="doc-suggestions-copy">
+            ${totalDocFillable} of ${totalNeeded} still-needed field${totalNeeded === 1 ? "" : "s"}
+            may be fillable from records you might already have nearby.
+            ${manualCount > 0 ? `${manualCount} field${manualCount === 1 ? "" : "s"} will still need your answer.` : ""}
+          </p>
+        </div>
+      </div>
+      <div class="doc-suggestion-list">
+        ${suggestions.map(s => buildDocumentSuggestionCard(s)).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function buildDocumentSuggestionGroups(neededFields) {
+  const groups = new Map();
+
+  neededFields.forEach(field => {
+    (field.source_documents || []).forEach(docType => {
+      if (!groups.has(docType)) {
+        groups.set(docType, {
+          documentType: docType,
+          meta: SOURCE_DOCUMENT_META[docType] || {
+            title: docType,
+            description: "May contain one or more values needed for this form.",
+            priority: 99,
+          },
+          fields: [],
+        });
+      }
+      groups.get(docType).fields.push(field);
+    });
+  });
+
+  return Array.from(groups.values())
+    .sort((a, b) => {
+      const coverageDiff = b.fields.length - a.fields.length;
+      if (coverageDiff !== 0) return coverageDiff;
+      return (a.meta.priority || 99) - (b.meta.priority || 99);
+    });
+}
+
+function buildDocumentSuggestionCard(suggestion) {
+  const fieldKeys = suggestion.fields.map(field => field.key).join(",");
+  const fieldLabels = suggestion.fields
+    .slice(0, 4)
+    .map(field => `<span class="doc-field-chip">${escHtml(field.label)}</span>`)
+    .join("");
+  const hiddenCount = suggestion.fields.length - 4;
+  const statusId = `doc-suggest-status-${safeDomId(suggestion.documentType)}`;
+
+  return `
+    <article class="doc-suggestion-card">
+      <div class="doc-suggestion-main">
+        <div class="doc-suggestion-title">${escHtml(suggestion.meta.title)}</div>
+        <p class="doc-suggestion-desc">${escHtml(suggestion.meta.description)}</p>
+        <div class="doc-field-chip-row">
+          ${fieldLabels}
+          ${hiddenCount > 0 ? `<span class="doc-field-chip more">+${hiddenCount} more</span>` : ""}
+        </div>
+        <div class="doc-suggestion-status" id="${statusId}" aria-live="polite"></div>
+      </div>
+      <div class="doc-suggestion-actions">
+        <button
+          type="button"
+          class="btn btn-primary doc-scan-btn"
+          data-doc-type="${escHtml(suggestion.documentType)}"
+          data-field-keys="${escHtml(fieldKeys)}"
+          onclick="triggerSuggestedDocUpload(this, 'camera', event)">
+          Take Photo
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline doc-scan-btn"
+          data-doc-type="${escHtml(suggestion.documentType)}"
+          data-field-keys="${escHtml(fieldKeys)}"
+          onclick="triggerSuggestedDocUpload(this, 'file', event)">
+          Choose Image
+        </button>
+      </div>
+    </article>
+  `;
 }
 
 // ---------------------------------------------------------------------------
@@ -392,7 +615,6 @@ function renderFormDetail(form) {
 // Args:
 //   field      — field object from the API
 //   inputClass — "is-known" (green) or "is-needed" (amber)
-//   showUpload — whether to show the photo upload button if source_documents exist
 //
 // WHY each field_type gets its own control:
 //   - date fields use type="date" so the browser provides a date picker.
@@ -406,24 +628,11 @@ function renderFormDetail(form) {
 //   The veteran needs to be able to correct any prefilled value.
 //   Displaying a value as plain text implies it's locked. Nothing is locked.
 // ---------------------------------------------------------------------------
-function buildFieldRow(field, inputClass, showUpload) {
-  const sourceDocs  = field.source_documents || [];
+function buildFieldRow(field, inputClass) {
   const fieldType   = field.field_type || "text";
   const options     = field.options || [];
   const isRequired  = field.required || (inputClass === "is-needed");
   const placeholder = inputClass === "is-needed" ? "Type your answer here…" : "";
-
-  const uploadBtn = (showUpload && sourceDocs.length > 0)
-    ? `<button class="field-upload-btn"
-         onclick="triggerDocUpload('${field.key}', '${escHtml(sourceDocs[0])}', event)"
-         title="Upload a photo of your ${escHtml(sourceDocs[0])} to fill this field">
-         📷 From ${escHtml(sourceDocs[0])}
-       </button>`
-    : "";
-
-  const hint = (showUpload && sourceDocs.length > 0)
-    ? `<div class="field-hint">Your ${sourceDocs.join(" or ")} may have this</div>`
-    : "";
 
   const requiredMark = isRequired
     ? `<span class="required-mark" title="Required">*</span>`
@@ -493,10 +702,8 @@ function buildFieldRow(field, inputClass, showUpload) {
         <label class="field-label" for="input-${field.key}">
           ${escHtml(field.label)}${requiredMark}
         </label>
-        ${hint}
       </div>
       ${inputHtml}
-      ${uploadBtn}
     </div>`;
 }
 
@@ -691,6 +898,10 @@ function escHtml(str) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function safeDomId(str) {
+  return String(str || "").replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
 // ---------------------------------------------------------------------------
@@ -1251,6 +1462,7 @@ init();
 // Track which field triggered the upload and which document type we're reading
 state.pendingUploadField  = null;  // field key that triggered the upload
 state.pendingDocumentType = null;  // "DD-214", "21-4142", etc.
+state.pendingUploadFieldKeys = null; // field keys targeted by a grouped suggestion
 state.visionExtracted     = {};    // staging area — confirmed fields move to verifiedFields
 state.visionModalTrigger  = null;  // button/input that opened the modal, for focus return
 state.keepVisionExtractedOnClose = false;
@@ -1264,14 +1476,21 @@ if (visionModal) {
   });
 }
 
-function triggerDocUpload(fieldKey, documentType, event) {
-  // WHY we store context before opening the file picker:
-  // The file input's onchange fires without knowing what triggered it,
-  // so we stash which field and document type we're targeting.
-  state.pendingUploadField  = fieldKey;
-  state.pendingDocumentType = documentType;
-  state.visionModalTrigger  = event?.currentTarget || document.activeElement;
-  document.getElementById("doc-upload-input").click();
+function triggerSuggestedDocUpload(button, inputType, event) {
+  const docType = button.dataset.docType;
+  const fieldKeys = (button.dataset.fieldKeys || "")
+    .split(",")
+    .map(key => key.trim())
+    .filter(Boolean);
+
+  state.pendingUploadField = fieldKeys[0] || null;
+  state.pendingDocumentType = docType;
+  state.pendingUploadFieldKeys = fieldKeys;
+  state.visionModalTrigger = event?.currentTarget || button;
+  setDocumentSuggestionStatus(docType, "Waiting for document image...");
+
+  const inputId = inputType === "camera" ? "doc-camera-input" : "doc-upload-input";
+  document.getElementById(inputId)?.click();
 }
 
 async function handleDocUpload(event) {
@@ -1285,18 +1504,22 @@ async function handleDocUpload(event) {
   const fieldKey     = state.pendingUploadField;
   const documentType = state.pendingDocumentType;
   const trigInput    = document.getElementById(`input-${fieldKey}`);
+  const targetedKeys = state.pendingUploadFieldKeys;
   if (trigInput) {
     trigInput.placeholder = "Reading document…";
     trigInput.disabled = true;
   }
+  setDocumentSuggestionStatus(documentType, "Reading document... this takes a few seconds.", false, true);
 
   // Collect all still-needed field keys from the screen (amber inputs)
   // WHY all missing fields, not just the one clicked:
   // If the veteran has their DD-214 open, one upload can fill multiple fields at once.
   // We send everything that’s still blank — Claude extracts what it can find.
-  const allMissingKeys = Array.from(
-    document.querySelectorAll(".field-input.is-needed[data-field-key]")
-  ).map(el => el.dataset.fieldKey).filter(Boolean);
+  const allMissingKeys = targetedKeys && targetedKeys.length > 0
+    ? targetedKeys
+    : Array.from(
+        document.querySelectorAll(".field-input.is-needed[data-field-key]")
+      ).map(el => el.dataset.fieldKey).filter(Boolean);
 
   // Build form data for multipart upload
   const formData = new FormData();
@@ -1331,9 +1554,11 @@ async function handleDocUpload(event) {
         trigInput.placeholder = `⚠ ${result.note}`;
         trigInput.classList.add("is-error");
       }
+      setDocumentSuggestionStatus(documentType, result.note || "Document reading was unavailable.", true);
       return;
     }
 
+    setDocumentSuggestionStatus(documentType, "Values found. Review them before they populate the form.");
     // Show the confirmation modal with extracted fields
     openVisionModal(result);
 
@@ -1346,7 +1571,20 @@ async function handleDocUpload(event) {
       trigInput.classList.add("is-error");
       trigInput.disabled = false;
     }
+    setDocumentSuggestionStatus(documentType, err.message || "Upload failed.", true);
+  } finally {
+    state.pendingUploadFieldKeys = null;
   }
+}
+
+function setDocumentSuggestionStatus(documentType, message, isError = false, isLoading = false) {
+  if (!documentType) return;
+  const status = document.getElementById(`doc-suggest-status-${safeDomId(documentType)}`);
+  if (!status) return;
+  status.classList.toggle("is-error", isError);
+  status.innerHTML = message
+    ? `${isLoading ? '<span class="spinner"></span>' : ""}${escHtml(message)}`
+    : "";
 }
 
 function openVisionModal(result) {
@@ -1466,10 +1704,6 @@ function confirmVisionFields() {
       prefilled_count: prefilled,
       missing_count:   total - prefilled,
     };
-    // Update progress bar label and bar width without a full re-render
-    const pct = total > 0 ? Math.round((prefilled / total) * 100) : 0;
-    document.getElementById("progress-label").textContent =
-      `${prefilled} of ${total} fields known — ${total - prefilled} still needed from you`;
-    document.getElementById("progress-bar").style.width = pct + "%";
+    renderFormDetail(state.activeForm);
   }
 }

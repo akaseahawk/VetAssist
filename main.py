@@ -460,9 +460,9 @@ async def chat_endpoint(request: ChatRequest):
 @app.post("/api/upload")
 async def upload_document(
     file: UploadFile = File(...),
-    document_type: str = "DD-214",
-    veteran_id: Optional[str] = None,
-    requested_fields: Optional[str] = None,  # comma-separated list of field keys
+    document_type: str = Form("DD-214"),
+    veteran_id: Optional[str] = Form(None),
+    requested_fields: Optional[str] = Form(None),  # comma-separated list of field keys
 ):
     """
     Accept a photo or scan of a veteran's document and extract fields using Claude vision.

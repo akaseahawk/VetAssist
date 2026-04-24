@@ -11,44 +11,44 @@
       "info_url": "https://www.va.gov/forms/10-10ez/",
       "required_fields": [
 
-        { "key": "name_first",         "label": "First Name",                          "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name" },
-        { "key": "name_middle",        "label": "Middle Name",                         "field_type": "text",     "required": false, "source": "ask",      "profile_field": null },
-        { "key": "name_last",          "label": "Last Name",                           "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name" },
-        { "key": "dob",                "label": "Date of Birth",                       "field_type": "date",     "required": true,  "source": "profile",  "profile_field": "dob" },
-        { "key": "gender",             "label": "Gender",                              "field_type": "select",   "required": false, "source": "profile",  "profile_field": "gender", "options": ["Male","Female","Non-binary","Prefer not to say"] },
+        { "key": "name_first",         "label": "First Name",                          "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name", "source_documents": ["DD-214","MILITARY_ID","VA_LETTER","21-4142"] },
+        { "key": "name_middle",        "label": "Middle Name",                         "field_type": "text",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["DD-214","MILITARY_ID","21-4142"] },
+        { "key": "name_last",          "label": "Last Name",                           "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name", "source_documents": ["DD-214","MILITARY_ID","VA_LETTER","21-4142"] },
+        { "key": "dob",                "label": "Date of Birth",                       "field_type": "date",     "required": true,  "source": "profile",  "profile_field": "dob", "source_documents": ["MILITARY_ID","21-4142"] },
+        { "key": "gender",             "label": "Gender",                              "field_type": "select",   "required": false, "source": "profile",  "profile_field": "gender", "options": ["Male","Female","Non-binary","Prefer not to say"], "source_documents": ["MILITARY_ID","MEDICAL_RECORD"] },
         { "key": "ssn",                "label": "Social Security Number",              "field_type": "text",     "required": true,  "source": "ask",      "profile_field": null, "source_documents": ["21-4142"] },
-        { "key": "va_file_number",     "label": "VA File Number (if known)",           "field_type": "text",     "required": false, "source": "ask",      "profile_field": null },
+        { "key": "va_file_number",     "label": "VA File Number (if known)",           "field_type": "text",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["VA_LETTER"] },
 
-        { "key": "address_street",     "label": "Street Address",                      "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.street" },
-        { "key": "address_city",       "label": "City",                                "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.city" },
-        { "key": "address_state",      "label": "State",                               "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.state" },
-        { "key": "address_zip",        "label": "ZIP Code",                            "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.zip" },
-        { "key": "phone",              "label": "Daytime Phone Number",                "field_type": "text",     "required": false, "source": "profile",  "profile_field": "phone" },
-        { "key": "email",              "label": "Email Address",                       "field_type": "text",     "required": false, "source": "profile",  "profile_field": "email" },
+        { "key": "address_street",     "label": "Street Address",                      "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.street", "source_documents": ["21-4142","VA_LETTER","BANK_RECORD"] },
+        { "key": "address_city",       "label": "City",                                "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.city", "source_documents": ["21-4142","VA_LETTER","BANK_RECORD"] },
+        { "key": "address_state",      "label": "State",                               "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.state", "source_documents": ["21-4142","VA_LETTER","BANK_RECORD"] },
+        { "key": "address_zip",        "label": "ZIP Code",                            "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.zip", "source_documents": ["21-4142","VA_LETTER","BANK_RECORD"] },
+        { "key": "phone",              "label": "Daytime Phone Number",                "field_type": "text",     "required": false, "source": "profile",  "profile_field": "phone", "source_documents": ["21-4142","MEDICAL_RECORD","INSURANCE_CARD"] },
+        { "key": "email",              "label": "Email Address",                       "field_type": "text",     "required": false, "source": "profile",  "profile_field": "email", "source_documents": ["21-4142","MEDICAL_RECORD"] },
 
-        { "key": "branch",             "label": "Branch of Service",                   "field_type": "select",   "required": true,  "source": "profile",  "profile_field": "branch", "options": ["Army","Navy","Marine Corps","Air Force","Space Force","Coast Guard"] },
+        { "key": "branch",             "label": "Branch of Service",                   "field_type": "select",   "required": true,  "source": "profile",  "profile_field": "branch", "options": ["Army","Navy","Marine Corps","Air Force","Space Force","Coast Guard"], "source_documents": ["DD-214","MILITARY_ID","VA_LETTER"] },
         { "key": "service_start",      "label": "Service Start Date",                  "field_type": "date",     "required": true,  "source": "profile",  "profile_field": "service_start", "source_documents": ["DD-214"] },
         { "key": "service_end",        "label": "Service End Date",                    "field_type": "date",     "required": true,  "source": "profile",  "profile_field": "service_end",   "source_documents": ["DD-214"] },
         { "key": "discharge_type",     "label": "Type of Discharge",                   "field_type": "select",   "required": true,  "source": "profile",  "profile_field": "discharge_type", "options": ["Honorable","General","Other Than Honorable","Bad Conduct","Dishonorable"], "source_documents": ["DD-214"] },
         { "key": "rank",               "label": "Rank / Grade at Discharge",           "field_type": "text",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["DD-214"] },
 
-        { "key": "enrolled_va_hc",     "label": "Currently enrolled in VA Health Care?","field_type": "select",  "required": true,  "source": "profile",  "profile_field": "enrolled_va_healthcare", "options": ["Yes","No"] },
-        { "key": "insurance_provider", "label": "Current Health Insurance Provider",   "field_type": "text",     "required": false, "source": "ask",      "profile_field": null },
-        { "key": "insurance_policy",   "label": "Health Insurance Policy Number",      "field_type": "text",     "required": false, "source": "ask",      "profile_field": null },
-        { "key": "medicare_enrolled",  "label": "Enrolled in Medicare?",               "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"] },
-        { "key": "medicaid_enrolled",  "label": "Enrolled in Medicaid?",               "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"] },
+        { "key": "enrolled_va_hc",     "label": "Currently enrolled in VA Health Care?","field_type": "select",  "required": true,  "source": "profile",  "profile_field": "enrolled_va_healthcare", "options": ["Yes","No"], "source_documents": ["VA_LETTER","MEDICAL_RECORD"] },
+        { "key": "insurance_provider", "label": "Current Health Insurance Provider",   "field_type": "text",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["INSURANCE_CARD"] },
+        { "key": "insurance_policy",   "label": "Health Insurance Policy Number",      "field_type": "text",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["INSURANCE_CARD"] },
+        { "key": "medicare_enrolled",  "label": "Enrolled in Medicare?",               "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"], "source_documents": ["INSURANCE_CARD","MEDICARE_CARD"] },
+        { "key": "medicaid_enrolled",  "label": "Enrolled in Medicaid?",               "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"], "source_documents": ["INSURANCE_CARD","MEDICAID_CARD"] },
 
-        { "key": "income_annual",      "label": "Prior Year Gross Annual Income",      "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "income_annual" },
-        { "key": "income_spouse",      "label": "Spouse's Prior Year Gross Income (if applicable)", "field_type": "text", "required": false, "source": "ask", "profile_field": null },
-        { "key": "dependents",         "label": "Number of Dependents",                "field_type": "text",     "required": false, "source": "profile",  "profile_field": "dependents" },
-        { "key": "net_worth",          "label": "Total Net Worth (assets minus debts)", "field_type": "text",    "required": false, "source": "ask",      "profile_field": null },
+        { "key": "income_annual",      "label": "Prior Year Gross Annual Income",      "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "income_annual", "source_documents": ["TAX_RETURN","W2","PAY_STUB"] },
+        { "key": "income_spouse",      "label": "Spouse's Prior Year Gross Income (if applicable)", "field_type": "text", "required": false, "source": "ask", "profile_field": null, "source_documents": ["TAX_RETURN","W2","PAY_STUB"] },
+        { "key": "dependents",         "label": "Number of Dependents",                "field_type": "text",     "required": false, "source": "profile",  "profile_field": "dependents", "source_documents": ["TAX_RETURN"] },
+        { "key": "net_worth",          "label": "Total Net Worth (assets minus debts)", "field_type": "text",    "required": false, "source": "ask",      "profile_field": null, "source_documents": ["BANK_RECORD","TAX_RETURN"] },
 
-        { "key": "combat_deployment",  "label": "Combat Deployment?",                  "field_type": "select",   "required": false, "source": "profile",  "profile_field": "combat_deployment", "options": ["Yes","No"] },
-        { "key": "service_connected",  "label": "Service-Connected Disability?",       "field_type": "select",   "required": false, "source": "profile",  "profile_field": "service_connected_disability", "options": ["Yes","No"] },
-        { "key": "pow",                "label": "Former Prisoner of War?",              "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"] },
-        { "key": "purple_heart",       "label": "Received Purple Heart?",              "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"] },
-        { "key": "agent_orange",       "label": "Exposed to Agent Orange?",            "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"] },
-        { "key": "radiation_exposure", "label": "Radiation Exposure During Service?",  "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"] },
+        { "key": "combat_deployment",  "label": "Combat Deployment?",                  "field_type": "select",   "required": false, "source": "profile",  "profile_field": "combat_deployment", "options": ["Yes","No"], "source_documents": ["DD-214","SERVICE_RECORD"] },
+        { "key": "service_connected",  "label": "Service-Connected Disability?",       "field_type": "select",   "required": false, "source": "profile",  "profile_field": "service_connected_disability", "options": ["Yes","No"], "source_documents": ["VA_LETTER"] },
+        { "key": "pow",                "label": "Former Prisoner of War?",              "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"], "source_documents": ["DD-214","SERVICE_RECORD"] },
+        { "key": "purple_heart",       "label": "Received Purple Heart?",              "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"], "source_documents": ["DD-214","SERVICE_RECORD"] },
+        { "key": "agent_orange",       "label": "Exposed to Agent Orange?",            "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"], "source_documents": ["SERVICE_RECORD","VA_LETTER"] },
+        { "key": "radiation_exposure", "label": "Radiation Exposure During Service?",  "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"], "source_documents": ["SERVICE_RECORD","VA_LETTER"] },
 
         { "key": "signature_date",     "label": "Date of Signature",                   "field_type": "date",     "required": true,  "source": "ask",      "profile_field": null }
       ]
@@ -63,42 +63,42 @@
       "info_url": "https://www.va.gov/disability/how-to-file-claim/",
       "required_fields": [
 
-        { "key": "name_first",         "label": "First Name",                          "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name" },
-        { "key": "name_last",          "label": "Last Name",                           "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name" },
-        { "key": "dob",                "label": "Date of Birth",                       "field_type": "date",     "required": true,  "source": "profile",  "profile_field": "dob" },
+        { "key": "name_first",         "label": "First Name",                          "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name", "source_documents": ["DD-214","MILITARY_ID","VA_LETTER","21-4142"] },
+        { "key": "name_last",          "label": "Last Name",                           "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name", "source_documents": ["DD-214","MILITARY_ID","VA_LETTER","21-4142"] },
+        { "key": "dob",                "label": "Date of Birth",                       "field_type": "date",     "required": true,  "source": "profile",  "profile_field": "dob", "source_documents": ["MILITARY_ID","21-4142"] },
         { "key": "ssn",                "label": "Social Security Number",              "field_type": "text",     "required": true,  "source": "ask",      "profile_field": null, "source_documents": ["21-4142"] },
-        { "key": "va_file_number",     "label": "VA File Number (if assigned)",        "field_type": "text",     "required": false, "source": "ask",      "profile_field": null },
-        { "key": "phone",              "label": "Daytime Phone Number",                "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "phone" },
-        { "key": "email",              "label": "Email Address",                       "field_type": "text",     "required": false, "source": "profile",  "profile_field": "email" },
+        { "key": "va_file_number",     "label": "VA File Number (if assigned)",        "field_type": "text",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["VA_LETTER"] },
+        { "key": "phone",              "label": "Daytime Phone Number",                "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "phone", "source_documents": ["21-4142","MEDICAL_RECORD","INSURANCE_CARD"] },
+        { "key": "email",              "label": "Email Address",                       "field_type": "text",     "required": false, "source": "profile",  "profile_field": "email", "source_documents": ["21-4142","MEDICAL_RECORD"] },
 
-        { "key": "address_street",     "label": "Street Address",                      "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.street" },
-        { "key": "address_city",       "label": "City",                                "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.city" },
-        { "key": "address_state",      "label": "State",                               "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.state" },
-        { "key": "address_zip",        "label": "ZIP Code",                            "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.zip" },
+        { "key": "address_street",     "label": "Street Address",                      "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.street", "source_documents": ["21-4142","VA_LETTER","BANK_RECORD"] },
+        { "key": "address_city",       "label": "City",                                "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.city", "source_documents": ["21-4142","VA_LETTER","BANK_RECORD"] },
+        { "key": "address_state",      "label": "State",                               "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.state", "source_documents": ["21-4142","VA_LETTER","BANK_RECORD"] },
+        { "key": "address_zip",        "label": "ZIP Code",                            "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.zip", "source_documents": ["21-4142","VA_LETTER","BANK_RECORD"] },
 
-        { "key": "branch",             "label": "Branch of Service",                   "field_type": "select",   "required": true,  "source": "profile",  "profile_field": "branch", "options": ["Army","Navy","Marine Corps","Air Force","Space Force","Coast Guard"] },
+        { "key": "branch",             "label": "Branch of Service",                   "field_type": "select",   "required": true,  "source": "profile",  "profile_field": "branch", "options": ["Army","Navy","Marine Corps","Air Force","Space Force","Coast Guard"], "source_documents": ["DD-214","MILITARY_ID","VA_LETTER"] },
         { "key": "service_start",      "label": "Service Start Date",                  "field_type": "date",     "required": true,  "source": "profile",  "profile_field": "service_start", "source_documents": ["DD-214"] },
         { "key": "service_end",        "label": "Service End Date",                    "field_type": "date",     "required": true,  "source": "profile",  "profile_field": "service_end",   "source_documents": ["DD-214"] },
         { "key": "discharge_type",     "label": "Type of Discharge",                   "field_type": "select",   "required": true,  "source": "profile",  "profile_field": "discharge_type", "options": ["Honorable","General","Other Than Honorable","Bad Conduct","Dishonorable"], "source_documents": ["DD-214"] },
         { "key": "rank",               "label": "Rank / Grade at Discharge",           "field_type": "text",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["DD-214"] },
         { "key": "mos",                "label": "Military Occupational Specialty (MOS / Rate / AFSC)", "field_type": "text", "required": false, "source": "ask", "profile_field": null, "source_documents": ["DD-214"] },
 
-        { "key": "disability_conditions", "label": "Claimed Disability Conditions",   "field_type": "textarea", "required": true,  "source": "profile",  "profile_field": "disability_conditions" },
-        { "key": "disability_onset",   "label": "When did conditions begin? (approximate date)", "field_type": "date", "required": false, "source": "ask", "profile_field": null },
-        { "key": "in_service_event",   "label": "Describe how each condition is related to your service", "field_type": "textarea", "required": true, "source": "ask", "profile_field": null },
-        { "key": "current_treatment",  "label": "Are you currently receiving treatment?", "field_type": "select", "required": false, "source": "ask", "profile_field": null, "options": ["Yes — VA","Yes — private provider","Yes — both","No"] },
-        { "key": "treatment_history",  "label": "VA or other federal treatment records (list facilities)", "field_type": "textarea", "required": false, "source": "ask", "profile_field": null },
-        { "key": "private_records",    "label": "Private medical records available?",  "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"] },
+        { "key": "disability_conditions", "label": "Claimed Disability Conditions",   "field_type": "textarea", "required": true,  "source": "profile",  "profile_field": "disability_conditions", "source_documents": ["VA_LETTER","MEDICAL_RECORD"] },
+        { "key": "disability_onset",   "label": "When did conditions begin? (approximate date)", "field_type": "date", "required": false, "source": "ask", "profile_field": null, "source_documents": ["MEDICAL_RECORD","PRIVATE_MEDICAL_RECORD"] },
+        { "key": "in_service_event",   "label": "Describe how each condition is related to your service", "field_type": "textarea", "required": true, "source": "ask", "profile_field": null, "source_documents": ["DD-214","SERVICE_RECORD","BUDDY_STATEMENT","MEDICAL_RECORD"] },
+        { "key": "current_treatment",  "label": "Are you currently receiving treatment?", "field_type": "select", "required": false, "source": "ask", "profile_field": null, "options": ["Yes — VA","Yes — private provider","Yes — both","No"], "source_documents": ["MEDICAL_RECORD","PRIVATE_MEDICAL_RECORD"] },
+        { "key": "treatment_history",  "label": "VA or other federal treatment records (list facilities)", "field_type": "textarea", "required": false, "source": "ask", "profile_field": null, "source_documents": ["MEDICAL_RECORD","PRIVATE_MEDICAL_RECORD"] },
+        { "key": "private_records",    "label": "Private medical records available?",  "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"], "source_documents": ["PRIVATE_MEDICAL_RECORD"] },
 
-        { "key": "currently_employed", "label": "Currently employed?",                 "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"] },
-        { "key": "unable_to_work",     "label": "Unable to work due to disability?",   "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"] },
+        { "key": "currently_employed", "label": "Currently employed?",                 "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"], "source_documents": ["PAY_STUB","EMPLOYMENT_RECORD"] },
+        { "key": "unable_to_work",     "label": "Unable to work due to disability?",   "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"], "source_documents": ["MEDICAL_RECORD","EMPLOYMENT_RECORD"] },
 
-        { "key": "receiving_comp",     "label": "Currently receiving disability compensation?", "field_type": "select", "required": true, "source": "profile", "profile_field": "receiving_disability_comp", "options": ["Yes","No"] },
-        { "key": "receiving_retirement","label": "Receiving military retirement pay?", "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"] },
+        { "key": "receiving_comp",     "label": "Currently receiving disability compensation?", "field_type": "select", "required": true, "source": "profile", "profile_field": "receiving_disability_comp", "options": ["Yes","No"], "source_documents": ["VA_LETTER"] },
+        { "key": "receiving_retirement","label": "Receiving military retirement pay?", "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"], "source_documents": ["RETIREMENT_PAY_STATEMENT"] },
 
-        { "key": "direct_deposit_bank","label": "Bank Name (for direct deposit)",      "field_type": "text",     "required": false, "source": "ask",      "profile_field": null },
-        { "key": "direct_deposit_routing","label": "Routing Number",                   "field_type": "text",     "required": false, "source": "ask",      "profile_field": null },
-        { "key": "direct_deposit_account","label": "Account Number",                   "field_type": "text",     "required": false, "source": "ask",      "profile_field": null },
+        { "key": "direct_deposit_bank","label": "Bank Name (for direct deposit)",      "field_type": "text",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["BANK_RECORD"] },
+        { "key": "direct_deposit_routing","label": "Routing Number",                   "field_type": "text",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["BANK_RECORD"] },
+        { "key": "direct_deposit_account","label": "Account Number",                   "field_type": "text",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["BANK_RECORD"] },
 
         { "key": "signature_date",     "label": "Date of Signature",                   "field_type": "date",     "required": true,  "source": "ask",      "profile_field": null }
       ]
@@ -115,23 +115,23 @@
       "info_url": "https://www.va.gov/forms/21-0781/",
       "required_fields": [
 
-        { "key": "name_first",         "label": "First Name",                          "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name" },
-        { "key": "name_last",          "label": "Last Name",                           "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name" },
+        { "key": "name_first",         "label": "First Name",                          "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name", "source_documents": ["DD-214","MILITARY_ID","VA_LETTER","21-4142"] },
+        { "key": "name_last",          "label": "Last Name",                           "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name", "source_documents": ["DD-214","MILITARY_ID","VA_LETTER","21-4142"] },
         { "key": "ssn",                "label": "Social Security Number",              "field_type": "text",     "required": true,  "source": "ask",      "profile_field": null, "source_documents": ["21-4142"] },
-        { "key": "dob",                "label": "Date of Birth",                       "field_type": "date",     "required": true,  "source": "profile",  "profile_field": "dob" },
-        { "key": "branch",             "label": "Branch of Service",                   "field_type": "select",   "required": true,  "source": "profile",  "profile_field": "branch", "options": ["Army","Navy","Marine Corps","Air Force","Space Force","Coast Guard"] },
+        { "key": "dob",                "label": "Date of Birth",                       "field_type": "date",     "required": true,  "source": "profile",  "profile_field": "dob", "source_documents": ["MILITARY_ID","21-4142"] },
+        { "key": "branch",             "label": "Branch of Service",                   "field_type": "select",   "required": true,  "source": "profile",  "profile_field": "branch", "options": ["Army","Navy","Marine Corps","Air Force","Space Force","Coast Guard"], "source_documents": ["DD-214","MILITARY_ID","VA_LETTER"] },
 
-        { "key": "traumatic_event_description", "label": "Describe the traumatic in-service event", "field_type": "textarea", "required": true, "source": "ask", "profile_field": null },
-        { "key": "event_date",         "label": "Approximate date of traumatic event", "field_type": "date",     "required": true,  "source": "ask",      "profile_field": null },
-        { "key": "event_location",     "label": "Location of traumatic event (city, country, base)", "field_type": "text", "required": true, "source": "ask", "profile_field": null },
+        { "key": "traumatic_event_description", "label": "Describe the traumatic in-service event", "field_type": "textarea", "required": true, "source": "ask", "profile_field": null, "source_documents": ["BUDDY_STATEMENT","SERVICE_RECORD","MEDICAL_RECORD"] },
+        { "key": "event_date",         "label": "Approximate date of traumatic event", "field_type": "date",     "required": true,  "source": "ask",      "profile_field": null, "source_documents": ["BUDDY_STATEMENT","SERVICE_RECORD","MEDICAL_RECORD"] },
+        { "key": "event_location",     "label": "Location of traumatic event (city, country, base)", "field_type": "text", "required": true, "source": "ask", "profile_field": null, "source_documents": ["BUDDY_STATEMENT","SERVICE_RECORD","DD-214"] },
         { "key": "event_type",         "label": "Type of event",                       "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Combat","Military sexual trauma (MST)","Non-combat personal trauma","Natural disaster or accident","Other"] },
         { "key": "unit_assignment",    "label": "Unit assignment at time of event",    "field_type": "text",     "required": true,  "source": "ask",      "profile_field": null, "source_documents": ["DD-214"] },
-        { "key": "commanding_officer", "label": "Commanding Officer's name at time of event (if known)", "field_type": "text", "required": false, "source": "ask", "profile_field": null },
-        { "key": "buddy_statement",    "label": "Are you including a buddy statement?", "field_type": "select",  "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"] },
+        { "key": "commanding_officer", "label": "Commanding Officer's name at time of event (if known)", "field_type": "text", "required": false, "source": "ask", "profile_field": null, "source_documents": ["BUDDY_STATEMENT","SERVICE_RECORD"] },
+        { "key": "buddy_statement",    "label": "Are you including a buddy statement?", "field_type": "select",  "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"], "source_documents": ["BUDDY_STATEMENT"] },
 
-        { "key": "mental_health_diagnosis", "label": "Diagnosed mental health condition(s)", "field_type": "text", "required": true, "source": "profile", "profile_field": "disability_conditions" },
-        { "key": "treatment_provider", "label": "Mental health treatment provider (if any)", "field_type": "text", "required": false, "source": "ask", "profile_field": null },
-        { "key": "first_treatment_date","label": "Date of first mental health treatment", "field_type": "date",  "required": false, "source": "ask",      "profile_field": null },
+        { "key": "mental_health_diagnosis", "label": "Diagnosed mental health condition(s)", "field_type": "text", "required": true, "source": "profile", "profile_field": "disability_conditions", "source_documents": ["VA_LETTER","MEDICAL_RECORD","PRIVATE_MEDICAL_RECORD"] },
+        { "key": "treatment_provider", "label": "Mental health treatment provider (if any)", "field_type": "text", "required": false, "source": "ask", "profile_field": null, "source_documents": ["MEDICAL_RECORD","PRIVATE_MEDICAL_RECORD"] },
+        { "key": "first_treatment_date","label": "Date of first mental health treatment", "field_type": "date",  "required": false, "source": "ask",      "profile_field": null, "source_documents": ["MEDICAL_RECORD","PRIVATE_MEDICAL_RECORD"] },
 
         { "key": "signature_date",     "label": "Date of Signature",                   "field_type": "date",     "required": true,  "source": "ask",      "profile_field": null }
       ]
@@ -146,33 +146,33 @@
       "info_url": "https://www.va.gov/education/apply-for-education-benefits/application/1990/",
       "required_fields": [
 
-        { "key": "name_first",         "label": "First Name",                          "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name" },
-        { "key": "name_last",          "label": "Last Name",                           "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name" },
-        { "key": "dob",                "label": "Date of Birth",                       "field_type": "date",     "required": true,  "source": "profile",  "profile_field": "dob" },
+        { "key": "name_first",         "label": "First Name",                          "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name", "source_documents": ["DD-214","MILITARY_ID","VA_LETTER","21-4142"] },
+        { "key": "name_last",          "label": "Last Name",                           "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name", "source_documents": ["DD-214","MILITARY_ID","VA_LETTER","21-4142"] },
+        { "key": "dob",                "label": "Date of Birth",                       "field_type": "date",     "required": true,  "source": "profile",  "profile_field": "dob", "source_documents": ["MILITARY_ID","21-4142"] },
         { "key": "ssn",                "label": "Social Security Number",              "field_type": "text",     "required": true,  "source": "ask",      "profile_field": null, "source_documents": ["21-4142"] },
-        { "key": "address_street",     "label": "Street Address",                      "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.street" },
-        { "key": "address_city",       "label": "City",                                "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.city" },
-        { "key": "address_state",      "label": "State",                               "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.state" },
-        { "key": "address_zip",        "label": "ZIP Code",                            "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.zip" },
-        { "key": "phone",              "label": "Phone Number",                        "field_type": "text",     "required": false, "source": "profile",  "profile_field": "phone" },
-        { "key": "email",              "label": "Email Address",                       "field_type": "text",     "required": false, "source": "profile",  "profile_field": "email" },
+        { "key": "address_street",     "label": "Street Address",                      "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.street", "source_documents": ["21-4142","VA_LETTER","BANK_RECORD"] },
+        { "key": "address_city",       "label": "City",                                "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.city", "source_documents": ["21-4142","VA_LETTER","BANK_RECORD"] },
+        { "key": "address_state",      "label": "State",                               "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.state", "source_documents": ["21-4142","VA_LETTER","BANK_RECORD"] },
+        { "key": "address_zip",        "label": "ZIP Code",                            "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.zip", "source_documents": ["21-4142","VA_LETTER","BANK_RECORD"] },
+        { "key": "phone",              "label": "Phone Number",                        "field_type": "text",     "required": false, "source": "profile",  "profile_field": "phone", "source_documents": ["21-4142","MEDICAL_RECORD","INSURANCE_CARD"] },
+        { "key": "email",              "label": "Email Address",                       "field_type": "text",     "required": false, "source": "profile",  "profile_field": "email", "source_documents": ["21-4142","MEDICAL_RECORD"] },
 
-        { "key": "branch",             "label": "Branch of Service",                   "field_type": "select",   "required": true,  "source": "profile",  "profile_field": "branch", "options": ["Army","Navy","Marine Corps","Air Force","Space Force","Coast Guard"] },
+        { "key": "branch",             "label": "Branch of Service",                   "field_type": "select",   "required": true,  "source": "profile",  "profile_field": "branch", "options": ["Army","Navy","Marine Corps","Air Force","Space Force","Coast Guard"], "source_documents": ["DD-214","MILITARY_ID","VA_LETTER"] },
         { "key": "service_start",      "label": "Service Start Date",                  "field_type": "date",     "required": true,  "source": "profile",  "profile_field": "service_start", "source_documents": ["DD-214"] },
         { "key": "service_end",        "label": "Service End Date",                    "field_type": "date",     "required": true,  "source": "profile",  "profile_field": "service_end",   "source_documents": ["DD-214"] },
         { "key": "discharge_type",     "label": "Type of Discharge",                   "field_type": "select",   "required": true,  "source": "profile",  "profile_field": "discharge_type", "options": ["Honorable","General","Other Than Honorable","Bad Conduct","Dishonorable"], "source_documents": ["DD-214"] },
 
-        { "key": "benefit_type",       "label": "Which GI Bill benefit are you applying for?", "field_type": "select", "required": true, "source": "ask", "profile_field": null, "options": ["Post-9/11 GI Bill (Chapter 33)","Montgomery GI Bill — Active Duty (Chapter 30)","Montgomery GI Bill — Selected Reserve (Chapter 1606)","Reserve Educational Assistance Program (Chapter 1607)","Survivors' and Dependents' Educational Assistance (Chapter 35)"] },
-        { "key": "school_name",        "label": "Name of school or training program",  "field_type": "text",     "required": true,  "source": "ask",      "profile_field": null },
-        { "key": "school_address",     "label": "School address",                      "field_type": "text",     "required": false, "source": "ask",      "profile_field": null },
-        { "key": "program_of_study",   "label": "Program of study or training objective", "field_type": "text",  "required": true,  "source": "ask",      "profile_field": null },
-        { "key": "enrollment_status",  "label": "Enrollment status",                   "field_type": "select",   "required": true,  "source": "ask",      "profile_field": null, "options": ["Full-time","Three-quarter time","Half-time","Less than half-time"] },
-        { "key": "training_start",     "label": "Expected training start date",        "field_type": "date",     "required": false, "source": "ask",      "profile_field": null },
-        { "key": "prior_education_benefits", "label": "Previously used VA education benefits?", "field_type": "select", "required": true, "source": "ask", "profile_field": null, "options": ["Yes","No"] },
+        { "key": "benefit_type",       "label": "Which GI Bill benefit are you applying for?", "field_type": "select", "required": true, "source": "ask", "profile_field": null, "options": ["Post-9/11 GI Bill (Chapter 33)","Montgomery GI Bill — Active Duty (Chapter 30)","Montgomery GI Bill — Selected Reserve (Chapter 1606)","Reserve Educational Assistance Program (Chapter 1607)","Survivors' and Dependents' Educational Assistance (Chapter 35)"], "source_documents": ["VA_LETTER","SCHOOL_RECORD"] },
+        { "key": "school_name",        "label": "Name of school or training program",  "field_type": "text",     "required": true,  "source": "ask",      "profile_field": null, "source_documents": ["SCHOOL_RECORD"] },
+        { "key": "school_address",     "label": "School address",                      "field_type": "text",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["SCHOOL_RECORD"] },
+        { "key": "program_of_study",   "label": "Program of study or training objective", "field_type": "text",  "required": true,  "source": "ask",      "profile_field": null, "source_documents": ["SCHOOL_RECORD"] },
+        { "key": "enrollment_status",  "label": "Enrollment status",                   "field_type": "select",   "required": true,  "source": "ask",      "profile_field": null, "options": ["Full-time","Three-quarter time","Half-time","Less than half-time"], "source_documents": ["SCHOOL_RECORD"] },
+        { "key": "training_start",     "label": "Expected training start date",        "field_type": "date",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["SCHOOL_RECORD"] },
+        { "key": "prior_education_benefits", "label": "Previously used VA education benefits?", "field_type": "select", "required": true, "source": "ask", "profile_field": null, "options": ["Yes","No"], "source_documents": ["VA_LETTER","SCHOOL_RECORD"] },
 
-        { "key": "direct_deposit_bank","label": "Bank Name (for housing allowance)",   "field_type": "text",     "required": false, "source": "ask",      "profile_field": null },
-        { "key": "direct_deposit_routing","label": "Routing Number",                   "field_type": "text",     "required": false, "source": "ask",      "profile_field": null },
-        { "key": "direct_deposit_account","label": "Account Number",                   "field_type": "text",     "required": false, "source": "ask",      "profile_field": null },
+        { "key": "direct_deposit_bank","label": "Bank Name (for housing allowance)",   "field_type": "text",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["BANK_RECORD"] },
+        { "key": "direct_deposit_routing","label": "Routing Number",                   "field_type": "text",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["BANK_RECORD"] },
+        { "key": "direct_deposit_account","label": "Account Number",                   "field_type": "text",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["BANK_RECORD"] },
 
         { "key": "signature_date",     "label": "Date of Signature",                   "field_type": "date",     "required": true,  "source": "ask",      "profile_field": null }
       ]
@@ -187,31 +187,31 @@
       "info_url": "https://www.va.gov/housing-assistance/home-loans/how-to-apply/",
       "required_fields": [
 
-        { "key": "name_first",         "label": "First Name",                          "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name" },
-        { "key": "name_last",          "label": "Last Name",                           "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name" },
-        { "key": "dob",                "label": "Date of Birth",                       "field_type": "date",     "required": true,  "source": "profile",  "profile_field": "dob" },
+        { "key": "name_first",         "label": "First Name",                          "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name", "source_documents": ["DD-214","MILITARY_ID","VA_LETTER","21-4142"] },
+        { "key": "name_last",          "label": "Last Name",                           "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "name", "source_documents": ["DD-214","MILITARY_ID","VA_LETTER","21-4142"] },
+        { "key": "dob",                "label": "Date of Birth",                       "field_type": "date",     "required": true,  "source": "profile",  "profile_field": "dob", "source_documents": ["MILITARY_ID","21-4142"] },
         { "key": "ssn",                "label": "Social Security Number",              "field_type": "text",     "required": true,  "source": "ask",      "profile_field": null, "source_documents": ["21-4142"] },
-        { "key": "va_file_number",     "label": "VA File Number (if known)",           "field_type": "text",     "required": false, "source": "ask",      "profile_field": null },
-        { "key": "address_street",     "label": "Street Address",                      "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.street" },
-        { "key": "address_city",       "label": "City",                                "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.city" },
-        { "key": "address_state",      "label": "State",                               "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.state" },
-        { "key": "address_zip",        "label": "ZIP Code",                            "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.zip" },
-        { "key": "phone",              "label": "Phone Number",                        "field_type": "text",     "required": false, "source": "profile",  "profile_field": "phone" },
+        { "key": "va_file_number",     "label": "VA File Number (if known)",           "field_type": "text",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["VA_LETTER"] },
+        { "key": "address_street",     "label": "Street Address",                      "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.street", "source_documents": ["21-4142","VA_LETTER","BANK_RECORD"] },
+        { "key": "address_city",       "label": "City",                                "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.city", "source_documents": ["21-4142","VA_LETTER","BANK_RECORD"] },
+        { "key": "address_state",      "label": "State",                               "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.state", "source_documents": ["21-4142","VA_LETTER","BANK_RECORD"] },
+        { "key": "address_zip",        "label": "ZIP Code",                            "field_type": "text",     "required": true,  "source": "profile",  "profile_field": "address.zip", "source_documents": ["21-4142","VA_LETTER","BANK_RECORD"] },
+        { "key": "phone",              "label": "Phone Number",                        "field_type": "text",     "required": false, "source": "profile",  "profile_field": "phone", "source_documents": ["21-4142","MEDICAL_RECORD","INSURANCE_CARD"] },
 
-        { "key": "branch",             "label": "Branch of Service",                   "field_type": "select",   "required": true,  "source": "profile",  "profile_field": "branch", "options": ["Army","Navy","Marine Corps","Air Force","Space Force","Coast Guard"] },
+        { "key": "branch",             "label": "Branch of Service",                   "field_type": "select",   "required": true,  "source": "profile",  "profile_field": "branch", "options": ["Army","Navy","Marine Corps","Air Force","Space Force","Coast Guard"], "source_documents": ["DD-214","MILITARY_ID","VA_LETTER"] },
         { "key": "service_start",      "label": "Service Start Date",                  "field_type": "date",     "required": true,  "source": "profile",  "profile_field": "service_start", "source_documents": ["DD-214"] },
         { "key": "service_end",        "label": "Service End Date",                    "field_type": "date",     "required": true,  "source": "profile",  "profile_field": "service_end",   "source_documents": ["DD-214"] },
         { "key": "discharge_type",     "label": "Type of Discharge",                   "field_type": "select",   "required": true,  "source": "profile",  "profile_field": "discharge_type", "options": ["Honorable","General","Other Than Honorable","Bad Conduct","Dishonorable"], "source_documents": ["DD-214"] },
         { "key": "rank",               "label": "Rank / Grade at Discharge",           "field_type": "text",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["DD-214"] },
 
-        { "key": "prior_va_loans",     "label": "Prior VA Home Loan?",                 "field_type": "select",   "required": true,  "source": "ask",      "profile_field": null, "options": ["Yes","No"] },
-        { "key": "prior_loan_address", "label": "Address of prior VA-financed property (if yes)", "field_type": "text", "required": false, "source": "ask", "profile_field": null },
-        { "key": "loan_purpose",       "label": "Loan purpose",                        "field_type": "select",   "required": true,  "source": "ask",      "profile_field": null, "options": ["Purchase","Construction","Cash-out refinance","Interest rate reduction refinance (IRRRL)","Other"] },
-        { "key": "property_address",   "label": "Address of property to be purchased (if known)", "field_type": "text", "required": false, "source": "ask", "profile_field": null },
-        { "key": "property_state",     "label": "State where property is located",     "field_type": "text",     "required": false, "source": "ask",      "profile_field": null },
+        { "key": "prior_va_loans",     "label": "Prior VA Home Loan?",                 "field_type": "select",   "required": true,  "source": "ask",      "profile_field": null, "options": ["Yes","No"], "source_documents": ["LOAN_DOCUMENT","VA_LETTER"] },
+        { "key": "prior_loan_address", "label": "Address of prior VA-financed property (if yes)", "field_type": "text", "required": false, "source": "ask", "profile_field": null, "source_documents": ["LOAN_DOCUMENT","PROPERTY_RECORD"] },
+        { "key": "loan_purpose",       "label": "Loan purpose",                        "field_type": "select",   "required": true,  "source": "ask",      "profile_field": null, "options": ["Purchase","Construction","Cash-out refinance","Interest rate reduction refinance (IRRRL)","Other"], "source_documents": ["LOAN_DOCUMENT"] },
+        { "key": "property_address",   "label": "Address of property to be purchased (if known)", "field_type": "text", "required": false, "source": "ask", "profile_field": null, "source_documents": ["LOAN_DOCUMENT","PROPERTY_RECORD"] },
+        { "key": "property_state",     "label": "State where property is located",     "field_type": "text",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["LOAN_DOCUMENT","PROPERTY_RECORD"] },
 
-        { "key": "lender_name",        "label": "Lender or mortgage company name",     "field_type": "text",     "required": false, "source": "ask",      "profile_field": null },
-        { "key": "entitlement_action", "label": "Entitlement action requested",        "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Request Certificate of Eligibility","Request substitution of entitlement","Request restoration of entitlement"] },
+        { "key": "lender_name",        "label": "Lender or mortgage company name",     "field_type": "text",     "required": false, "source": "ask",      "profile_field": null, "source_documents": ["LOAN_DOCUMENT"] },
+        { "key": "entitlement_action", "label": "Entitlement action requested",        "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Request Certificate of Eligibility","Request substitution of entitlement","Request restoration of entitlement"], "source_documents": ["LOAN_DOCUMENT"] },
 
         { "key": "signature_date",     "label": "Date of Signature",                   "field_type": "date",     "required": true,  "source": "ask",      "profile_field": null }
       ]
@@ -237,7 +237,133 @@
       "mockup_image": "forms_to_verify/VA_21-4142_authorization_to_disclose_mockup.png",
       "mockup_note": "While a fillable PDF version exists, veterans often receive this as a printed form at a VA office or from a VSO. Mockup shows realistic field layout. Source: https://www.vba.va.gov/pubs/forms/vba-21-4142-are.pdf",
       "info_url": "https://www.va.gov/find-forms/about-form-21-4142/",
-      "fields_extracted_for_prefill": ["name","ssn","dob","address_street","address_city","address_state","address_zip","phone","email"]
+      "fields_extracted_for_prefill": ["name","name_first","name_middle","name_last","ssn","dob","address_street","address_city","address_state","address_zip","phone","email"]
+    },
+    {
+      "id": "VA_LETTER",
+      "title": "VA Award Letter or Rating Decision",
+      "description": "VA correspondence that may include VA file number, disability rating, rated conditions, service-connected status, and sometimes service dates.",
+      "digitized": false,
+      "fields_extracted_for_prefill": ["name","name_first","name_last","va_file_number","branch","service_start","service_end","disability_rating","disability_conditions","service_connected","receiving_comp","address_street","address_city","address_state","address_zip"]
+    },
+    {
+      "id": "MEDICAL_RECORD",
+      "title": "VA or Federal Medical Record",
+      "description": "Treatment notes, visit summaries, problem lists, or diagnosis records that can help fill treatment and condition fields.",
+      "digitized": false,
+      "fields_extracted_for_prefill": ["disability_conditions","mental_health_diagnosis","disability_onset","current_treatment","treatment_history","treatment_provider","first_treatment_date","phone","email"]
+    },
+    {
+      "id": "PRIVATE_MEDICAL_RECORD",
+      "title": "Private Medical Record",
+      "description": "Private provider records, diagnosis notes, visit summaries, or treatment plans that may support disability and treatment fields.",
+      "digitized": false,
+      "fields_extracted_for_prefill": ["disability_conditions","mental_health_diagnosis","disability_onset","current_treatment","treatment_history","private_records","treatment_provider","first_treatment_date"]
+    },
+    {
+      "id": "INSURANCE_CARD",
+      "title": "Health Insurance Card",
+      "description": "Insurance card or coverage letter that may contain provider, policy, Medicare, or Medicaid information.",
+      "digitized": false,
+      "fields_extracted_for_prefill": ["insurance_provider","insurance_policy","medicare_enrolled","medicaid_enrolled","phone"]
+    },
+    {
+      "id": "BANK_RECORD",
+      "title": "Bank Statement or Direct Deposit Record",
+      "description": "A bank statement, direct deposit form, or voided check that may contain bank name, routing number, account number, address, or net worth details.",
+      "digitized": false,
+      "fields_extracted_for_prefill": ["direct_deposit_bank","direct_deposit_routing","direct_deposit_account","address_street","address_city","address_state","address_zip","net_worth"]
+    },
+    {
+      "id": "SCHOOL_RECORD",
+      "title": "School Enrollment or Acceptance Record",
+      "description": "Enrollment confirmation, acceptance letter, schedule, or school billing document that may contain education benefit details.",
+      "digitized": false,
+      "fields_extracted_for_prefill": ["benefit_type","school_name","school_address","program_of_study","enrollment_status","training_start","prior_education_benefits"]
+    },
+    {
+      "id": "LOAN_DOCUMENT",
+      "title": "Mortgage or Lender Document",
+      "description": "Loan estimate, preapproval, lender letter, closing disclosure, or prior VA loan document that may contain home-loan form details.",
+      "digitized": false,
+      "fields_extracted_for_prefill": ["prior_va_loans","prior_loan_address","loan_purpose","property_address","property_state","lender_name","entitlement_action"]
+    },
+    {
+      "id": "BUDDY_STATEMENT",
+      "title": "Buddy Statement or Lay Statement",
+      "description": "Written statement from the veteran or someone who witnessed the event, often useful for PTSD or in-service event details.",
+      "digitized": false,
+      "fields_extracted_for_prefill": ["traumatic_event_description","event_date","event_location","commanding_officer","buddy_statement","in_service_event"]
+    },
+    {
+      "id": "SERVICE_RECORD",
+      "title": "Service Record or Orders",
+      "description": "Military personnel records, orders, awards, deployment records, or unit documents that may support service-event details.",
+      "digitized": false,
+      "fields_extracted_for_prefill": ["combat_deployment","pow","purple_heart","agent_orange","radiation_exposure","in_service_event","traumatic_event_description","event_date","event_location","unit_assignment","commanding_officer"]
+    },
+    {
+      "id": "MILITARY_ID",
+      "title": "Military ID or CAC",
+      "description": "A military identification card may provide name, branch, rank, date of birth, and sometimes gender marker.",
+      "digitized": false,
+      "fields_extracted_for_prefill": ["name","name_first","name_middle","name_last","branch","rank","dob","gender"]
+    },
+    {
+      "id": "MEDICARE_CARD",
+      "title": "Medicare Card",
+      "description": "A Medicare card or coverage notice can confirm Medicare enrollment and member information.",
+      "digitized": false,
+      "fields_extracted_for_prefill": ["medicare_enrolled","insurance_provider","insurance_policy"]
+    },
+    {
+      "id": "MEDICAID_CARD",
+      "title": "Medicaid Card",
+      "description": "A Medicaid card or coverage notice can confirm Medicaid enrollment and member information.",
+      "digitized": false,
+      "fields_extracted_for_prefill": ["medicaid_enrolled","insurance_provider","insurance_policy"]
+    },
+    {
+      "id": "TAX_RETURN",
+      "title": "Tax Return",
+      "description": "A tax return or transcript can help fill income, spouse income, dependent count, and some asset details.",
+      "digitized": false,
+      "fields_extracted_for_prefill": ["income_annual","income_spouse","dependents","net_worth"]
+    },
+    {
+      "id": "W2",
+      "title": "W-2 Wage Statement",
+      "description": "A W-2 or wage statement can help fill prior-year employment income.",
+      "digitized": false,
+      "fields_extracted_for_prefill": ["income_annual","income_spouse"]
+    },
+    {
+      "id": "PAY_STUB",
+      "title": "Pay Stub",
+      "description": "A current pay stub can help with employment status and year-to-date income.",
+      "digitized": false,
+      "fields_extracted_for_prefill": ["income_annual","income_spouse","currently_employed"]
+    },
+    {
+      "id": "EMPLOYMENT_RECORD",
+      "title": "Employment Record",
+      "description": "An employer letter, work status record, or leave record may indicate employment or work limitations.",
+      "digitized": false,
+      "fields_extracted_for_prefill": ["currently_employed","unable_to_work"]
+    },
+    {
+      "id": "RETIREMENT_PAY_STATEMENT",
+      "title": "Military Retirement Pay Statement",
+      "description": "A military retirement pay statement can confirm whether retirement pay is being received.",
+      "digitized": false,
+      "fields_extracted_for_prefill": ["receiving_retirement"]
+    },
+    {
+      "id": "PROPERTY_RECORD",
+      "title": "Property Record",
+      "description": "A purchase agreement, tax bill, or property record may contain a property address and state.",
+      "digitized": false,
+      "fields_extracted_for_prefill": ["prior_loan_address","property_address","property_state"]
     }
   ]
 }
