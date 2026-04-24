@@ -334,6 +334,34 @@
     /* Red border — required field still empty when they try to confirm */
     .field-input.is-error  { border-color: var(--color-error-border); background: var(--color-error-bg); }
 
+    .field-input-with-actions {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.45rem;
+      align-items: center;
+    }
+    .field-image-actions {
+      display: flex;
+      gap: 0.3rem;
+      align-items: center;
+      white-space: nowrap;
+    }
+    .field-image-btn {
+      min-height: 34px;
+      padding: 0.25rem 0.55rem;
+      border-radius: 5px;
+      border: 1.5px solid var(--color-va-blue);
+      background: var(--color-white);
+      color: var(--color-va-blue);
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      line-height: 1.2;
+    }
+    .field-image-btn:hover {
+      background: var(--color-blue-subtle);
+    }
+
     /* ------------------------------------------------------------------
        Spinner — inline animated indicator for real async operations.
        WHY CSS animation not a GIF: no external asset needed, scales cleanly.
@@ -398,93 +426,25 @@
     .progress-bar  { height: 100%; background: var(--color-green); border-radius: 4px; transition: width 0.3s; }
     .progress-label { font-size: 0.78rem; color: var(--color-text-secondary); margin-bottom: 0.3rem; }
 
-    /* ------------------------------------------------------------------
-       Document suggestions panel
-       Shows which nearby written records can fill the missing fields.
-    ------------------------------------------------------------------ */
-    .doc-suggestions-panel {
-      margin: 0.85rem 0 1rem;
-      padding: 0.9rem;
-      border: 1px solid var(--color-border-section);
-      border-left: 4px solid var(--color-va-blue);
-      border-radius: 8px;
-      background: var(--color-chat-bg);
-    }
-    .doc-suggestions-title {
-      color: var(--color-va-blue);
-      font-size: 0.9rem;
-      font-weight: 700;
-      margin-bottom: 0.2rem;
-    }
-    .doc-suggestions-copy {
+    .doc-suggestions-line {
+      margin: -0.2rem 0 0.75rem;
       color: var(--color-text-body-muted);
       font-size: 0.8rem;
       line-height: 1.45;
     }
-    .doc-suggestion-list {
-      display: grid;
-      gap: 0.65rem;
-      margin-top: 0.75rem;
+    .doc-suggestions-line p {
+      margin-bottom: 0.25rem;
     }
-    .doc-suggestion-card {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 0.85rem;
-      align-items: center;
-      padding: 0.75rem;
-      border: 1px solid var(--color-border-light);
-      border-radius: 7px;
-      background: var(--color-white);
+    .doc-suggestions-list {
+      margin-left: 1.15rem;
+      padding-left: 0;
     }
-    .doc-suggestion-title {
+    .doc-suggestions-list li {
+      margin: 0.15rem 0;
+    }
+    .doc-suggestions-line strong {
       color: var(--color-text-heading);
-      font-size: 0.86rem;
-      font-weight: 700;
-      margin-bottom: 0.2rem;
     }
-    .doc-suggestion-desc {
-      color: var(--color-text-body-muted);
-      font-size: 0.78rem;
-      line-height: 1.4;
-      margin-bottom: 0.45rem;
-    }
-    .doc-field-chip-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.3rem;
-    }
-    .doc-field-chip {
-      display: inline-flex;
-      align-items: center;
-      min-height: 22px;
-      padding: 0.15rem 0.45rem;
-      border-radius: 4px;
-      background: var(--color-blue-subtle);
-      color: var(--color-va-blue);
-      font-size: 0.7rem;
-      font-weight: 600;
-    }
-    .doc-field-chip.more {
-      background: var(--color-bg-muted);
-      color: var(--color-text-secondary);
-    }
-    .doc-suggestion-actions {
-      display: flex;
-      gap: 0.45rem;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-    .doc-scan-btn {
-      white-space: nowrap;
-      min-width: 104px;
-    }
-    .doc-suggestion-status {
-      min-height: 18px;
-      margin-top: 0.45rem;
-      font-size: 0.76rem;
-      color: var(--color-va-blue);
-    }
-    .doc-suggestion-status.is-error { color: var(--color-error-text); }
 
     /* ------------------------------------------------------------------
        Confirm All button row
@@ -813,15 +773,3 @@
     .textarea-resize { resize: vertical; }
     .hidden-file-input { display: none; }
     .modal-empty-state { color: var(--color-text-subtle); }
-
-    @media (max-width: 720px) {
-      .doc-suggestion-card {
-        grid-template-columns: 1fr;
-      }
-      .doc-suggestion-actions {
-        justify-content: stretch;
-      }
-      .doc-scan-btn {
-        flex: 1;
-      }
-    }

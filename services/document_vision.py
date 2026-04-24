@@ -404,14 +404,18 @@ def _build_extraction_prompt(document_type: str, requested_fields: list[str]) ->
     """
     doc_def = DOCUMENT_FIELD_DEFINITIONS.get(document_type, DOCUMENT_FIELD_DEFINITIONS["GENERIC"])
 
-    # Filter field definitions to only the ones we actually need
-    relevant_fields = {
-        field_key: field_desc
-        for field_key, field_desc in doc_def["fields"].items()
-        if field_key in requested_fields
-    }
+    # Filter field definitions to only the ones we actually need. If a form
+    # field is not in the known document map, still ask for that exact field
+    # instead of broadening extraction to every field in the document type.
+    relevant_fields = {}
+    for field_key in requested_fields:
+        relevant_fields[field_key] = doc_def["fields"].get(
+            field_key,
+            f"The value for the VA form field '{field_key}', but only if it is clearly visible in the document",
+        )
 
-    # If none of our known fields match, fall back to all fields for this doc type
+    # If the caller did not request specific fields, fall back to all fields
+    # for this document type.
     if not relevant_fields:
         relevant_fields = doc_def["fields"]
 

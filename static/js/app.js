@@ -495,10 +495,9 @@ function renderFormDetail(form) {
 // ---------------------------------------------------------------------------
 // Render grouped source-document suggestions for the fields still needed.
 //
-// WHY grouped suggestions:
-//   A veteran should not have to notice several small "From DD-214" buttons
-//   scattered through the field list. This panel says which record is worth
-//   finding first and exactly which missing fields it may fill.
+// WHY a paragraph instead of upload cards:
+//   The missing-fields table is already dense. A short guidance line gives
+//   the veteran useful document hints without adding another action-heavy UI.
 // ---------------------------------------------------------------------------
 function renderDocumentSuggestions(neededFields) {
   const container = document.getElementById("document-suggestions");
@@ -510,28 +509,20 @@ function renderDocumentSuggestions(neededFields) {
     return;
   }
 
-  const totalDocFillable = new Set(
-    suggestions.flatMap(s => s.fields.map(field => field.key))
-  ).size;
-  const totalNeeded = neededFields.length;
-  const manualCount = Math.max(totalNeeded - totalDocFillable, 0);
+  const documentItems = suggestions
+    .map(s => {
+      const fieldLabels = s.fields.map(field => escHtml(field.label)).join(", ");
+      return `<li><strong>${escHtml(s.meta.title)}</strong>: ${fieldLabels}</li>`;
+    })
+    .join("");
 
   container.innerHTML = `
-    <section class="doc-suggestions-panel" aria-label="Suggested records to scan">
-      <div class="doc-suggestions-header">
-        <div>
-          <div class="doc-suggestions-title">Suggested records to scan</div>
-          <p class="doc-suggestions-copy">
-            ${totalDocFillable} of ${totalNeeded} still-needed field${totalNeeded === 1 ? "" : "s"}
-            may be fillable from records you might already have nearby.
-            ${manualCount > 0 ? `${manualCount} field${manualCount === 1 ? "" : "s"} will still need your answer.` : ""}
-          </p>
-        </div>
-      </div>
-      <div class="doc-suggestion-list">
-        ${suggestions.map(s => buildDocumentSuggestionCard(s)).join("")}
-      </div>
-    </section>
+    <div class="doc-suggestions-line">
+      <p>Helpful records you could upload or reference:</p>
+      <ul class="doc-suggestions-list">
+        ${documentItems}
+      </ul>
+    </div>
   `;
 }
 
@@ -563,48 +554,6 @@ function buildDocumentSuggestionGroups(neededFields) {
     });
 }
 
-function buildDocumentSuggestionCard(suggestion) {
-  const fieldKeys = suggestion.fields.map(field => field.key).join(",");
-  const fieldLabels = suggestion.fields
-    .slice(0, 4)
-    .map(field => `<span class="doc-field-chip">${escHtml(field.label)}</span>`)
-    .join("");
-  const hiddenCount = suggestion.fields.length - 4;
-  const statusId = `doc-suggest-status-${safeDomId(suggestion.documentType)}`;
-
-  return `
-    <article class="doc-suggestion-card">
-      <div class="doc-suggestion-main">
-        <div class="doc-suggestion-title">${escHtml(suggestion.meta.title)}</div>
-        <p class="doc-suggestion-desc">${escHtml(suggestion.meta.description)}</p>
-        <div class="doc-field-chip-row">
-          ${fieldLabels}
-          ${hiddenCount > 0 ? `<span class="doc-field-chip more">+${hiddenCount} more</span>` : ""}
-        </div>
-        <div class="doc-suggestion-status" id="${statusId}" aria-live="polite"></div>
-      </div>
-      <div class="doc-suggestion-actions">
-        <button
-          type="button"
-          class="btn btn-primary doc-scan-btn"
-          data-doc-type="${escHtml(suggestion.documentType)}"
-          data-field-keys="${escHtml(fieldKeys)}"
-          onclick="triggerSuggestedDocUpload(this, 'camera', event)">
-          Take Photo
-        </button>
-        <button
-          type="button"
-          class="btn btn-outline doc-scan-btn"
-          data-doc-type="${escHtml(suggestion.documentType)}"
-          data-field-keys="${escHtml(fieldKeys)}"
-          onclick="triggerSuggestedDocUpload(this, 'file', event)">
-          Choose Image
-        </button>
-      </div>
-    </article>
-  `;
-}
-
 // ---------------------------------------------------------------------------
 // Build a single field row as an editable input
 //
@@ -629,10 +578,33 @@ function buildDocumentSuggestionCard(suggestion) {
 //   Displaying a value as plain text implies it's locked. Nothing is locked.
 // ---------------------------------------------------------------------------
 function buildFieldRow(field, inputClass) {
+  const sourceDocs  = field.source_documents || [];
   const fieldType   = field.field_type || "text";
   const options     = field.options || [];
   const isRequired  = field.required || (inputClass === "is-needed");
   const placeholder = inputClass === "is-needed" ? "Type your answer here…" : "";
+  const documentType = sourceDocs[0] || "GENERIC";
+  const imageControls = inputClass === "is-needed"
+    ? `
+      <div class="field-image-actions" aria-label="Image options for ${escHtml(field.label)}">
+        <button
+          type="button"
+          class="field-image-btn"
+          data-doc-type="${escHtml(documentType)}"
+          data-field-keys="${escHtml(field.key)}"
+          onclick="triggerFieldImageUpload(this, 'camera', event)">
+          Take
+        </button>
+        <button
+          type="button"
+          class="field-image-btn"
+          data-doc-type="${escHtml(documentType)}"
+          data-field-keys="${escHtml(field.key)}"
+          onclick="triggerFieldImageUpload(this, 'file', event)">
+          Upload
+        </button>
+      </div>`
+    : "";
 
   const requiredMark = isRequired
     ? `<span class="required-mark" title="Required">*</span>`
@@ -703,7 +675,10 @@ function buildFieldRow(field, inputClass) {
           ${escHtml(field.label)}${requiredMark}
         </label>
       </div>
-      ${inputHtml}
+      <div class="field-input-with-actions">
+        ${inputHtml}
+        ${imageControls}
+      </div>
     </div>`;
 }
 
@@ -1476,7 +1451,7 @@ if (visionModal) {
   });
 }
 
-function triggerSuggestedDocUpload(button, inputType, event) {
+function triggerFieldImageUpload(button, inputType, event) {
   const docType = button.dataset.docType;
   const fieldKeys = (button.dataset.fieldKeys || "")
     .split(",")
@@ -1487,7 +1462,6 @@ function triggerSuggestedDocUpload(button, inputType, event) {
   state.pendingDocumentType = docType;
   state.pendingUploadFieldKeys = fieldKeys;
   state.visionModalTrigger = event?.currentTarget || button;
-  setDocumentSuggestionStatus(docType, "Waiting for document image...");
 
   const inputId = inputType === "camera" ? "doc-camera-input" : "doc-upload-input";
   document.getElementById(inputId)?.click();
@@ -1509,7 +1483,6 @@ async function handleDocUpload(event) {
     trigInput.placeholder = "Reading document…";
     trigInput.disabled = true;
   }
-  setDocumentSuggestionStatus(documentType, "Reading document... this takes a few seconds.", false, true);
 
   // Collect all still-needed field keys from the screen (amber inputs)
   // WHY all missing fields, not just the one clicked:
@@ -1554,11 +1527,9 @@ async function handleDocUpload(event) {
         trigInput.placeholder = `⚠ ${result.note}`;
         trigInput.classList.add("is-error");
       }
-      setDocumentSuggestionStatus(documentType, result.note || "Document reading was unavailable.", true);
       return;
     }
 
-    setDocumentSuggestionStatus(documentType, "Values found. Review them before they populate the form.");
     // Show the confirmation modal with extracted fields
     openVisionModal(result);
 
@@ -1571,20 +1542,9 @@ async function handleDocUpload(event) {
       trigInput.classList.add("is-error");
       trigInput.disabled = false;
     }
-    setDocumentSuggestionStatus(documentType, err.message || "Upload failed.", true);
   } finally {
     state.pendingUploadFieldKeys = null;
   }
-}
-
-function setDocumentSuggestionStatus(documentType, message, isError = false, isLoading = false) {
-  if (!documentType) return;
-  const status = document.getElementById(`doc-suggest-status-${safeDomId(documentType)}`);
-  if (!status) return;
-  status.classList.toggle("is-error", isError);
-  status.innerHTML = message
-    ? `${isLoading ? '<span class="spinner"></span>' : ""}${escHtml(message)}`
-    : "";
 }
 
 function openVisionModal(result) {
