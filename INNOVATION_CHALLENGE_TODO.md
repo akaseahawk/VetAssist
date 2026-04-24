@@ -6,10 +6,11 @@ Scope: Requirements from the challenge overview, participation rules, submission
 
 ## Deadline And Logistics
 
-- [ ] Confirm final team roster.
-- [ ] Confirm each team member is a Wilcore employee and will remain active through Friday, May 1, 2026.
-- [ ] Confirm the team has no more than 6 people.
-- [ ] Confirm each team member is only participating on this one team.
+- [x] Confirm final team roster.
+    Akash, Matt Otto, Tyson Newell, Selia Straus
+- [x] Confirm each team member is a Wilcore employee and will remain active through Friday, May 1, 2026.
+- [x] Confirm the team has no more than 6 people.
+- [x] Confirm each team member is only participating on this one team.
 - [ ] Select a live presentation time slot for the April 28-May 1, 2026 presentation window.
 - [ ] Prepare final materials before Monday, April 27, 2026 at 11:59 PM ET.
 - [ ] Send submission email to `innovate@wilcore.io` before the deadline.
