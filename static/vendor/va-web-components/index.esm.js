@@ -1,0 +1,1 @@
+export{C as CONTACTS,c as contactsMap}from"./p-6a3cf3d7.js";export{i as initIconSpriteLocation}from"./p-d3af5a3f.js";export{i as i18next}from"./p-a836c3e1.js";

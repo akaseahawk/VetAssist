@@ -1,0 +1,1 @@
+function i(){const i="__VA_ICON_SPRITE_LOCATION__";globalThis.setVaIconSpriteLocation=l=>{globalThis[i]=l},globalThis.getVaIconSpriteLocation=()=>globalThis[i]||"/img/sprite.svg"}export{i}

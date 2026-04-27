@@ -15,6 +15,15 @@ const state = {
   scanCameraStream:    null,   // active MediaStream while the scan camera is open
 };
 
+const FORM_DRAFT_STORAGE_PREFIX = "vetassist-form-draft";
+const FLOW_STEPS = [
+  "Select profile",
+  "Review benefits",
+  "Choose and review form",
+  "Review and complete",
+  "Any remaining gaps",
+];
+
 // ---------------------------------------------------------------------------
 // Source-document metadata for the selected-form suggestions panel.
 // The catalog tells us which field can come from which document; this lookup
@@ -127,6 +136,8 @@ const SOURCE_DOCUMENT_META = {
 // Step 1: Load veteran list on page load
 // ---------------------------------------------------------------------------
 async function init() {
+  setStep(1);
+
   try {
     const res = await fetch("/api/veterans");
     const veterans = await res.json();
@@ -240,12 +251,19 @@ function renderProfile(v) {
 
 // ---------------------------------------------------------------------------
 // Render: benefits worth exploring
-// Each card shows: title, plain-language reason, VA.gov link, important note
+// Each card shows short, predictable sections instead of one long paragraph.
 // ---------------------------------------------------------------------------
 function renderBenefits(benefits, disclaimer, mode) {
-  // Show disclaimer banner
+  // Show semantic alert banner
   const disc = document.getElementById("benefit-disclaimer");
-  if (disc) disc.style.display = "block";
+  if (disc) {
+    const detail = document.getElementById("benefit-disclaimer-detail");
+    if (detail) {
+      detail.textContent = disclaimer || "Think of this as preparation for a VSO or VA conversation.";
+    }
+
+    disc.hidden = false;
+  }
 
   // Show mode badge so a developer or judge can see which mode is running
   const badge = document.getElementById("mode-badge");
@@ -258,37 +276,135 @@ function renderBenefits(benefits, disclaimer, mode) {
   const grid = document.getElementById("benefit-grid");
 
   if (!benefits || benefits.length === 0) {
-    grid.innerHTML = `<p class="benefit-empty">
+    grid.innerHTML = `<li class="benefit-empty">
       No specific benefits were identified based on your profile.
       This does not mean you have no benefits — please speak with a VSO.
-    </p>`;
+    </li>`;
     return;
   }
 
-  // Each benefit gets a card (not just a badge) so the veteran can read the reason
-  // and click through to VA.gov before deciding whether to fill out a form
+  // Each benefit is a list item containing a VA card so screen readers announce
+  // the collection cleanly without making the whole card act like a link.
   grid.innerHTML = benefits.map(b => `
-    <div class="benefit-card">
-      <div class="benefit-card-inner">
-        <div>
-          <div class="benefit-title">
-            ✓ ${escHtml(b.title)}
-          </div>
-          <div class="benefit-reason">
-            ${escHtml(b.reason)}
-          </div>
-          <div class="benefit-note">
-            ${escHtml(b.important_note)}
-          </div>
+    <li class="benefit-card-item">
+      <va-card class="benefit-card">
+        <div class="benefit-card-inner">
+          <h3 class="benefit-title">
+            ${escHtml(b.title)}
+          </h3>
+          ${renderBenefitSections(b)}
+          ${b.info_url ? `
+            <a href="${escHtml(b.info_url)}" target="_blank" rel="noopener"
+               class="benefit-link"
+               aria-label="${escHtml(buildBenefitLinkText(b).replace("(opens in new tab)", "opens in a new tab"))}">
+              ${escHtml(buildBenefitLinkText(b))}
+            </a>` : ""}
         </div>
-        ${b.info_url ? `
-          <a href="${escHtml(b.info_url)}" target="_blank" rel="noopener"
-             class="benefit-link">
-            Learn more ↗
-          </a>` : ""}
-      </div>
-    </div>
+      </va-card>
+    </li>
   `).join("");
+}
+
+function renderBenefitSections(benefit) {
+  const reasonItems = splitBenefitText(benefit.reason);
+  const questions = normalizeBenefitList(benefit.vso_questions, [
+    "What evidence should I bring?",
+    "Which forms apply to this benefit?",
+    "What should I verify before filing?"
+  ]);
+  const nextStep = benefit.next_step || "Ask your VSO what to gather before you file.";
+  const note = benefit.important_note || "This is not an eligibility determination.";
+
+  return `
+    <div class="benefit-card-sections">
+      <section class="benefit-card-section">
+        <h4>Why this came up</h4>
+        ${renderShortTextList(reasonItems, "benefit-reason")}
+      </section>
+      <section class="benefit-card-section">
+        <h4>What to ask your VSO</h4>
+        ${renderShortTextList(questions, "benefit-question-list")}
+      </section>
+      <section class="benefit-card-section">
+        <h4>Possible next step</h4>
+        <p>${escHtml(nextStep)}</p>
+      </section>
+      <p class="benefit-note"><strong>Reminder:</strong> ${escHtml(note)}</p>
+    </div>
+  `;
+}
+
+function splitBenefitText(text) {
+  const cleaned = String(text || "Ask your VSO why this may apply to your profile.")
+    .replace(/\s+/g, " ")
+    .trim();
+  const sentences = cleaned.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [cleaned];
+  return sentences
+    .map(sentence => sentence.trim())
+    .filter(Boolean)
+    .slice(0, 3);
+}
+
+function normalizeBenefitList(items, fallback) {
+  const source = Array.isArray(items) && items.length > 0 ? items : fallback;
+  return source
+    .map(item => String(item || "").replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .slice(0, 3);
+}
+
+function renderShortTextList(items, className) {
+  if (items.length <= 1) {
+    return `<p class="${className}">${escHtml(items[0] || "")}</p>`;
+  }
+
+  return `
+    <ul class="${className}">
+      ${items.map(item => `<li>${escHtml(item)}</li>`).join("")}
+    </ul>
+  `;
+}
+
+function buildBenefitLinkText(benefit) {
+  const title = String(benefit.title || "this benefit").replace(/\s+/g, " ").trim();
+  const baseText = benefit.link_text || `Learn about ${title} on VA.gov`;
+  return /opens in (a )?new tab/i.test(baseText)
+    ? baseText
+    : `${baseText} (opens in new tab)`;
+}
+
+function buildFormTab(form, benefitId = "") {
+  const tabId = benefitId ? `tab-${form.form_id}-${benefitId}` : `tab-${form.form_id}`;
+  const multiNote = (form.benefit_ids || []).length > 1
+    ? `<span class="multi-benefit-note">covers multiple benefits</span>`
+    : "";
+
+  return `
+    <button
+      type="button"
+      class="form-tab"
+      id="${escHtml(tabId)}"
+      onclick="selectForm('${escHtml(form.form_id)}')"
+      title="${escHtml(form.form_title)}"
+      aria-pressed="false"
+    >
+      <span class="form-tab-id">VA ${escHtml(form.form_id)}</span>
+      <span class="form-tab-title">
+        ${escHtml(form.form_title)}
+      </span>
+      ${multiNote}
+      ${!form.digitized ? '<span class="not-digital">PAPER FORM</span>' : ''}
+    </button>
+  `;
+}
+
+function buildFieldStatusTag(inputClass) {
+  const isKnown = inputClass === "is-known";
+  return `
+    <span class="field-status-tag ${isKnown ? "field-status-known" : "field-status-needed"}">
+      ${isKnown ? "Known information" : "Information needed"}
+    </span>
+  `;
 }
 
 // ---------------------------------------------------------------------------
@@ -344,30 +460,13 @@ function renderFormTabs(forms) {
 
     html += `
       <div class="benefit-form-group">
-        <div class="benefit-form-group-header">${escHtml(benefit.title)}</div>
-        <div class="form-tabs">
+        <h3 class="benefit-form-group-header">${escHtml(benefit.title)}</h3>
+        <div class="form-tabs" role="group" aria-label="Forms for ${escHtml(benefit.title)}">
           ${matchedForms.map(f => {
-            // WHY check benefit_ids.length > 1: if a form covers multiple
+            // WHY check benefit_ids.length > 1 in buildFormTab(): if a form covers multiple
             // benefits, show a subtle note so the veteran knows one form
             // serves both — they don't have to fill it out twice.
-            const multiNote = (f.benefit_ids || []).length > 1
-              ? `<span class="multi-benefit-note">covers multiple benefits</span>`
-              : '';
-            return `
-              <div
-                class="form-tab"
-                id="tab-${f.form_id}-${benefit.id}"
-                onclick="selectForm('${f.form_id}')"
-                title="${escHtml(f.form_title)}"
-              >
-                <div class="form-tab-id">VA ${escHtml(f.form_id)}</div>
-                <div class="form-tab-title">
-                  ${escHtml(f.form_title)}
-                </div>
-                ${multiNote}
-                ${!f.digitized ? '<span class="not-digital">PAPER FORM</span>' : ''}
-              </div>
-            `;
+            return buildFormTab(f, benefit.id);
           }).join("")}
         </div>
       </div>
@@ -380,14 +479,8 @@ function renderFormTabs(forms) {
   // loadProfileAndBenefits() guarantees this, but a safe fallback prevents
   // a blank forms section if something changes later.
   if (!html) {
-    html = `<div class="form-tabs">${
-      forms.map(f => `
-        <div class="form-tab" id="tab-${f.form_id}" onclick="selectForm('${f.form_id}')">
-          <div class="form-tab-id">VA ${escHtml(f.form_id)}</div>
-          <div class="form-tab-title">${escHtml(f.form_title)}</div>
-          ${!f.digitized ? '<span class="not-digital">PAPER FORM</span>' : ''}
-        </div>
-      `).join("")
+    html = `<div class="form-tabs" role="group" aria-label="Available forms">${
+      forms.map(f => buildFormTab(f)).join("")
     }</div>`;
   }
 
@@ -405,12 +498,19 @@ function selectForm(formId) {
   // appear under multiple benefit groups, so there may be more than one tab).
   // WHY querySelectorAll + startsWith: tab IDs are now "tab-{formId}-{benefitId}"
   // so we can't do a single getElementById lookup anymore.
-  document.querySelectorAll(".form-tab").forEach(t => t.classList.remove("active"));
   document.querySelectorAll(".form-tab").forEach(t => {
-    if (t.id.startsWith(`tab-${formId}`)) t.classList.add("active");
+    t.classList.remove("active");
+    t.setAttribute("aria-pressed", "false");
+  });
+  document.querySelectorAll(".form-tab").forEach(t => {
+    if (t.id.startsWith(`tab-${formId}`)) {
+      t.classList.add("active");
+      t.setAttribute("aria-pressed", "true");
+    }
   });
 
   if (!state.activeForm) return;
+  loadSavedFormDraft(formId);
   renderFormDetail(state.activeForm);
   show("form-detail");
   setStep(3);
@@ -424,7 +524,7 @@ function selectForm(formId) {
 //   still need" are different jobs. Mixing them in one table causes confusion.
 //
 // HOW it works:
-//   - Every field is an <input> — pre-populated (green) or blank (amber)
+  //   - Every field is an <input> — pre-populated or blank
 //   - Veteran can edit any pre-populated value before confirming
 //   - Veteran fills in missing fields directly — or uses the photo upload
 //   - One "Confirm All" button at the bottom collects everything at once
@@ -434,9 +534,11 @@ function renderFormDetail(form) {
 
   // Form header with VA.gov link and paper-form warning if applicable
   document.getElementById("form-header").innerHTML = `
-    <strong>VA Form ${escHtml(f.form_id)}</strong> — ${escHtml(f.form_title)}
-    ${!f.digitized ? '<span class="not-digital-badge">Paper / Non-Digitized Form</span>' : ''}
-    &nbsp;<a class="va-link" href="${escHtml(f.info_url)}" target="_blank" rel="noopener">[VA.gov info ↗]</a>
+    <h3 class="form-title">
+      VA Form ${escHtml(f.form_id)} — ${escHtml(f.form_title)}
+      ${!f.digitized ? '<span class="not-digital-badge">Paper / Non-Digitized Form</span>' : ''}
+    </h3>
+    <a class="va-link" href="${escHtml(f.info_url)}" target="_blank" rel="noopener">VA.gov form information</a>
   `;
 
   // Progress bar
@@ -488,8 +590,9 @@ function renderFormDetail(form) {
     neededDiv.innerHTML = "";
   }
 
-  // Reset error state
+  // Reset action messages
   document.getElementById("confirm-error").style.display = "none";
+  document.getElementById("confirm-save-status").style.display = "none";
 }
 
 // ---------------------------------------------------------------------------
@@ -563,7 +666,7 @@ function buildDocumentSuggestionGroups(neededFields) {
 //
 // Args:
 //   field      — field object from the API
-//   inputClass — "is-known" (green) or "is-needed" (amber)
+//   inputClass — "is-known" or "is-needed"
 //
 // WHY each field_type gets its own control:
 //   - date fields use type="date" so the browser provides a date picker.
@@ -584,24 +687,27 @@ function buildFieldRow(field, inputClass) {
   const isRequired  = field.required || (inputClass === "is-needed");
   const placeholder = inputClass === "is-needed" ? "Type your answer here…" : "";
   const documentType = sourceDocs[0] || "GENERIC";
+  const statusTag = buildFieldStatusTag(inputClass);
   const imageControls = inputClass === "is-needed"
     ? `
       <div class="field-image-actions" aria-label="Image options for ${escHtml(field.label)}">
         <button
           type="button"
           class="field-image-btn"
+          aria-label="Take a photo for ${escHtml(field.label)}"
           data-doc-type="${escHtml(documentType)}"
           data-field-keys="${escHtml(field.key)}"
           onclick="triggerFieldImageUpload(this, 'camera', event)">
-          Take
+          Take photo
         </button>
         <button
           type="button"
           class="field-image-btn"
+          aria-label="Upload a file for ${escHtml(field.label)}"
           data-doc-type="${escHtml(documentType)}"
           data-field-keys="${escHtml(field.key)}"
           onclick="triggerFieldImageUpload(this, 'file', event)">
-          Upload
+          Upload file
         </button>
       </div>`
     : "";
@@ -674,6 +780,7 @@ function buildFieldRow(field, inputClass) {
         <label class="field-label" for="input-${field.key}">
           ${escHtml(field.label)}${requiredMark}
         </label>
+        ${statusTag}
       </div>
       <div class="field-input-with-actions">
         ${inputHtml}
@@ -683,39 +790,104 @@ function buildFieldRow(field, inputClass) {
 }
 
 // ---------------------------------------------------------------------------
-// Confirm All: collect every input at once, validate, then proceed to chat
+// Form actions: save a draft, or submit with validation and proceed to chat
 //
 // WHY collect all at once:
 //   The veteran has reviewed everything on screen. We shouldn’t drip-feed
 //   them questions for things they’ve already filled in right in front of them.
 //   Chat is only for anything that genuinely couldn’t be filled here.
 // ---------------------------------------------------------------------------
-function confirmFields() {
-  const errorEl = document.getElementById("confirm-error");
-  errorEl.style.display = "none";
-
-  // Collect all field inputs on screen
+function collectVisibleFieldValues({ validateRequired = false } = {}) {
   const allInputs = document.querySelectorAll(".field-input[data-field-key]");
   let hasError = false;
+  const values = {};
+  const blankKeys = [];
 
   allInputs.forEach(input => {
     const key   = input.dataset.fieldKey;
     const val   = input.value.trim();
     const isReq = input.dataset.required === "true";
 
-    if (isReq && val === "") {
-      // Flag empty required fields in red — don’t proceed
+    if (validateRequired && isReq && val === "") {
       input.classList.add("is-error");
       hasError = true;
     } else {
-      // Store everything the veteran has provided or confirmed
-      // WHY store even known fields: veteran may have edited them
-      if (val !== "") {
-        state.verifiedFields[key] = val;
-      }
       input.classList.remove("is-error");
     }
+
+    if (val !== "") {
+      values[key] = val;
+    } else {
+      blankKeys.push(key);
+    }
   });
+
+  return { values, blankKeys, hasError };
+}
+
+function rememberFieldValues(values, blankKeys = []) {
+  blankKeys.forEach(key => {
+    delete state.verifiedFields[key];
+  });
+
+  // WHY store even known fields: veteran may have edited prefilled values.
+  Object.entries(values).forEach(([key, val]) => {
+    state.verifiedFields[key] = val;
+  });
+}
+
+function getSavedFormDraftKey(formId = state.activeFormId) {
+  const veteranKey = state.veteranId || state.veteran?.id || "unknown-veteran";
+  const formKey = formId || "unknown-form";
+  return `${FORM_DRAFT_STORAGE_PREFIX}:${veteranKey}:${formKey}`;
+}
+
+function loadSavedFormDraft(formId) {
+  try {
+    const rawDraft = window.localStorage.getItem(getSavedFormDraftKey(formId));
+    if (!rawDraft) return;
+
+    const draft = JSON.parse(rawDraft);
+    if (draft && draft.values && typeof draft.values === "object") {
+      rememberFieldValues(draft.values);
+    }
+  } catch (e) {
+    console.warn("Unable to load saved form draft:", e);
+  }
+}
+
+function saveFormForLater() {
+  const errorEl = document.getElementById("confirm-error");
+  const statusEl = document.getElementById("confirm-save-status");
+  errorEl.style.display = "none";
+  statusEl.style.display = "none";
+
+  const { values, blankKeys } = collectVisibleFieldValues();
+  rememberFieldValues(values, blankKeys);
+
+  try {
+    window.localStorage.setItem(getSavedFormDraftKey(), JSON.stringify({
+      veteran_id: state.veteranId,
+      form_id: state.activeFormId,
+      saved_at: new Date().toISOString(),
+      values,
+    }));
+    statusEl.textContent = "Your draft has been saved in this browser. Return to this profile and form to continue.";
+  } catch (e) {
+    statusEl.textContent = "Your draft is saved for this session, but this browser blocked local storage.";
+  }
+
+  statusEl.style.display = "block";
+}
+
+function confirmFields() {
+  const errorEl = document.getElementById("confirm-error");
+  const statusEl = document.getElementById("confirm-save-status");
+  errorEl.style.display = "none";
+  statusEl.style.display = "none";
+
+  const { values, blankKeys, hasError } = collectVisibleFieldValues({ validateRequired: true });
+  rememberFieldValues(values, blankKeys);
 
   if (hasError) {
     errorEl.style.display = "block";
@@ -843,16 +1015,17 @@ function addMessage(role, text) {
 }
 
 // ---------------------------------------------------------------------------
-// Utility: update the step indicator bar
+// Utility: update the VA Design System segmented progress bar
 // ---------------------------------------------------------------------------
 function setStep(n) {
-  for (let i = 1; i <= 5; i++) {
-    const el = document.getElementById(`step-${i}`);
-    if (!el) continue;
-    el.classList.remove("active", "done");
-    if (i === n)  el.classList.add("active");
-    if (i < n)    el.classList.add("done");
-  }
+  const progressBar = document.getElementById("flow-progress-bar");
+  if (!progressBar) return;
+
+  const currentStep = Math.min(Math.max(Number(n) || 1, 1), FLOW_STEPS.length);
+  progressBar.setAttribute("current", String(currentStep));
+  progressBar.setAttribute("total", String(FLOW_STEPS.length));
+  progressBar.setAttribute("labels", FLOW_STEPS.join(";"));
+  progressBar.setAttribute("heading-text", FLOW_STEPS[currentStep - 1]);
 }
 
 // ---------------------------------------------------------------------------
@@ -900,6 +1073,9 @@ function setProfileMode(mode, keepOwnValues = false) {
   document.getElementById("btn-mode-demo").classList.toggle("active", isDemo);
   document.getElementById("btn-mode-own").classList.toggle("active",  isOwn);
   document.getElementById("btn-mode-scan").classList.toggle("active", isScan);
+  document.getElementById("btn-mode-demo").setAttribute("aria-pressed", String(isDemo));
+  document.getElementById("btn-mode-own").setAttribute("aria-pressed", String(isOwn));
+  document.getElementById("btn-mode-scan").setAttribute("aria-pressed", String(isScan));
   if (!isScan) closeScanCamera();
 
   // When switching to own-info form without keepOwnValues, clear any prior values
@@ -1186,7 +1362,7 @@ async function scanDocument() {
     // Always restore UI whether scan succeeded or failed
     loading.style.display  = "none";
     btnSubmit.disabled     = false;
-    btnSubmit.textContent  = "📷 Extract Fields from Photo";
+    btnSubmit.textContent  = "Extract fields from photo";
   }
 }
 
@@ -1421,7 +1597,7 @@ async function downloadPackage() {
     console.error("downloadPackage error:", err);
   } finally {
     // Always restore button state whether download succeeded or failed
-    btns.forEach(b => { b.disabled = false; b.textContent = "⬇ Download My Preparation Package (PDF)"; });
+    btns.forEach(b => { b.disabled = false; b.textContent = "Download my preparation package (PDF)"; });
   }
 }
 
@@ -1484,7 +1660,7 @@ async function handleDocUpload(event) {
     trigInput.disabled = true;
   }
 
-  // Collect all still-needed field keys from the screen (amber inputs)
+  // Collect all still-needed field keys from the screen.
   // WHY all missing fields, not just the one clicked:
   // If the veteran has their DD-214 open, one upload can fill multiple fields at once.
   // We send everything that’s still blank — Claude extracts what it can find.
@@ -1524,7 +1700,7 @@ async function handleDocUpload(event) {
     if (!result.success) {
       // Show error inline under the field
       if (trigInput) {
-        trigInput.placeholder = `⚠ ${result.note}`;
+        trigInput.placeholder = `Upload problem: ${result.note}`;
         trigInput.classList.add("is-error");
       }
       return;
@@ -1538,7 +1714,7 @@ async function handleDocUpload(event) {
     // WHY trigInput: field rows are editable <input> elements, not table cells.
     // We update the input that triggered the upload so the veteran sees the error inline.
     if (trigInput) {
-      trigInput.placeholder = `⚠ ${err.message}`;
+      trigInput.placeholder = `Upload problem: ${err.message}`;
       trigInput.classList.add("is-error");
       trigInput.disabled = false;
     }
@@ -1638,7 +1814,7 @@ function confirmVisionFields() {
   // After vision confirm, two things happen:
   // 1. Update any visible input fields on screen with the extracted values
   //    (so the veteran sees the filled-in values right away without a full re-render)
-  // 2. Flip those rows from amber (is-needed) to green (is-known)
+  // 2. Flip those rows from needed to known status
   Object.entries(state.verifiedFields).forEach(([key, val]) => {
     const input = document.getElementById(`input-${key}`);
     if (input) {

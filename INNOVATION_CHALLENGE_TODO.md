@@ -156,6 +156,53 @@ Scope: Requirements from the challenge overview, participation rules, submission
 - [ ] Record a clean demo video after final app polish.
 - [ ] Save the final deck, write-up, demo video, and supporting materials in one shareable location.
 
+## Accessibility Overhaul From Screenshot Review
+
+Source: annotated screenshot review on April 27, 2026, cross-checked against current VA Design System guidance for segmented progress bars, buttons, selects, alerts, process lists, cards, headings, and bulleted lists.
+
+Reference pages: <https://design.va.gov/components/form/progress-bar-segmented>, <https://design.va.gov/components/button/>, <https://design.va.gov/components/form/select>, <https://design.va.gov/components/alert/>, <https://design.va.gov/components/process-list>, <https://design.va.gov/components/card/>, <https://design.va.gov/content-style-guide/page-titles-and-section-titles>, and <https://design.va.gov/content-style-guide/bulleted-lists>.
+
+Priority order: fix semantic/accessibility blockers first, then component alignment, then content polish.
+
+### P0: Demo-Blocking Accessibility Fixes
+
+- [x] Fix heading hierarchy across the single-page flow.
+    Address by keeping one page-level `h1` for VetAssist, using `h2` for major steps, `h3` for subsections inside cards/modals, and avoiding skipped heading levels. Apply this in `templates/index.html` and dynamic headings rendered from `static/js/app.js`.
+- [x] Replace the custom visual step bar with an accessible progress pattern.
+    Addressed by using VA `va-segmented-progress-bar` with `counters="small"` for the current 5-step form flow. The component appears directly under the process title and before the active form content.
+- [x] Make profile selection controls follow VA form layout.
+    Address by moving labels above selects, keeping `label`/`for` associations, and converting the demo profile selector to a VA `va-select` pattern or equivalent native markup. The "Demo profile" label should not sit beside the select on narrow layouts.
+- [x] Convert the benefits disclaimer into an accessible warning/informational alert.
+    Addressed by replacing the custom disclaimer box with the VA `va-alert` web component, preserving the "not an eligibility determination" message, avoiding auto-dismiss behavior, and using `role="status"` for polite announcement after benefits render.
+- [x] Move benefit-card actions below content instead of beside long text.
+    Address by changing each benefit card to a stacked layout: title, scannable content, disclaimer/note, then the VA.gov link. This supports 200%+ zoom and prevents the "Learn more" link from being pushed into the side gutter.
+
+### P1: VA Component Alignment
+
+- [x] Replace custom primary and secondary buttons with VA button patterns.
+    Addressed by keeping semantic native buttons for reliable inline handlers while restyling primary/secondary actions with VA Design System button tokens. Primary styling is now reserved for the main next/submit/download actions, with secondary styling on alternate actions.
+- [x] Remove decorative icons from most buttons and links.
+    Addressed by replacing camera/download/checkmark/arrow glyphs with plain action labels across static markup and JS-rendered loading/error states.
+- [x] Convert benefit cards to VA card/list semantics.
+    Addressed by rendering the benefit collection as a `ul`, each benefit as an `li`, and each item inside a `va-card`. The VA.gov action remains a link inside the card; the whole card is not clickable.
+- [x] Use a process list only where it explains the full journey.
+    Addressed by adding one static `va-process-list` intro section titled "How VetAssist helps you prepare" with explanatory content for each journey step. The active flow still uses the segmented progress bar.
+- [x] Replace custom status colors with semantic status text plus VA tokens.
+    Addressed by changing field section headers to visible "Known information" and "Information needed" language, adding per-field status tags, and moving status/background/focus colors to VA Design System tokens.
+
+### P2: Cognitive Accessibility And Content Polish
+
+- [x] Rewrite long benefit explanations into scannable chunks.
+    Addressed by rendering each benefit card as short sections: "Why this came up," "What to ask your VSO," "Possible next step," and a reminder note.
+- [x] Replace generic "Learn more" text with descriptive VA.gov links.
+    Addressed by adding benefit-specific VA.gov link text in `data/benefits_rules.json` and disclosing that each external link opens in a new tab.
+- [x] Keep lists short and parallel.
+    Addressed by limiting VSO question lists to three short items, normalizing fallback lists, and avoiding nested bullets inside benefit cards.
+- [x] Verify responsive zoom behavior.
+    Addressed with Playwright checks at desktop, 390px mobile, and 195px effective 200% zoom widths. Profile summary, benefit cards, action links, step progress, and form field actions reflow without horizontal page scroll.
+- [x] Capture before/after screenshots for the deck and demo backup.
+    Addressed by saving before/after desktop and mobile screenshots under `static/screenshots/` with notes in `static/screenshots/README.md`.
+
 ## Q&A Prep
 
 - [x] Prepare a one-sentence answer to "What is VetAssist?"

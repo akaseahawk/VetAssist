@@ -3,68 +3,91 @@
        WHY minimal styles: easy for a frontend collaborator to restyle without untangling a
        complex CSS framework. Every rule here has a clear purpose.
     ------------------------------------------------------------------ */
+    @font-face {
+      font-family: "Source Sans Pro Web";
+      font-style: normal;
+      font-weight: 400;
+      src: url("../vendor/va-css-library/fonts/sourcesanspro-regular-webfont.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Source Sans Pro Web";
+      font-style: normal;
+      font-weight: 700;
+      src: url("../vendor/va-css-library/fonts/sourcesanspro-bold-webfont.woff2") format("woff2");
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --color-bg-page: #f0f2f5;
-      --color-text-primary: #1a1a2e;
-      --color-text-heading: #333;
-      --color-text-label: #444;
-      --color-text-body-muted: #555;
-      --color-text-secondary: #666;
-      --color-text-subtle: #888;
-      --color-text-muted: #999;
-      --color-bg-muted: #f5f5f5;
-      --color-white: #fff;
-      --color-va-blue: #1a3a6b;
-      --color-va-blue-dark: #14305a;
-      --color-va-red: #c8102e;
-      --color-red-light: #ffb3b3;
-      --color-green: #2e7d32;
-      --color-green-dark: #245e27;
-      --color-green-strong: #1b5e20;
-      --color-green-bg: #e8f5e9;
-      --color-green-border: #a5d6a7;
-      --color-known-bg: #f6fef7;
-      --color-benefit-bg: #f1f8f1;
-      --color-benefit-text: #2d4a2d;
-      --color-amber-text: #b45309;
-      --color-amber-border: #fcd34d;
-      --color-needed-bg: #fffdf0;
-      --color-warning-bg: #fff8e1;
-      --color-warning-border: #f9a825;
-      --color-warning-text: #5d4037;
-      --color-orange-bg: #fff3e0;
-      --color-orange-text: #bf360c;
-      --color-note-brown: #795548;
-      --color-error-red: #c00;
-      --color-error-text: #c62828;
-      --color-error-border: #ef5350;
-      --color-error-bg: #fff5f5;
-      --color-border-light: #ddd;
-      --color-border-muted: #ccc;
-      --color-border-control: #bbb;
-      --color-border-field: #d0d5dd;
-      --color-border-section: #e0e4ef;
-      --color-divider: #e8ecf1;
-      --color-progress-bg: #e0e0e0;
-      --color-chat-bg: #f9fafb;
-      --color-blue-subtle: #e8edf7;
-      --color-blue-hover-bg: #f0f4ff;
-      --color-spinner-border: #c0cce0;
-      --focus-ring: rgba(26,58,107,0.12);
+      --color-bg-page: var(--vads-color-base-lightest, #f0f0f0);
+      --color-text-primary: var(--vads-color-base, #1b1b1b);
+      --color-text-heading: var(--vads-color-base-darkest, #1b1b1b);
+      --color-text-label: var(--vads-color-base-darker, #3d4551);
+      --color-text-body-muted: var(--vads-color-base-dark, #565c65);
+      --color-text-secondary: var(--vads-color-base-dark, #565c65);
+      --color-text-subtle: var(--vads-color-gray-medium, #757575);
+      --color-text-muted: var(--vads-color-gray-medium, #757575);
+      --color-bg-muted: var(--vads-color-base-lightest, #f0f0f0);
+      --color-white: var(--vads-color-white, #fff);
+      --color-va-blue: var(--vads-color-primary, #005ea2);
+      --color-va-blue-dark: var(--vads-color-primary-dark, #1a4480);
+      --color-va-red: var(--vads-color-secondary-dark, #b50909);
+      --color-red-light: var(--vads-color-secondary-lightest, #f8dfe2);
+      --color-success: var(--vads-color-success-darker, #216e1f);
+      --color-success-dark: var(--vads-color-success-dark, #008817);
+      --color-success-bg: var(--vads-color-success-lighter, #ecf3ec);
+      --color-success-border: var(--vads-color-success, #00a91c);
+      --color-known-bg: var(--vads-color-success-lighter, #ecf3ec);
+      --color-benefit-bg: var(--vads-color-white, #fff);
+      --color-benefit-text: var(--vads-color-base, #1b1b1b);
+      --color-warning-text: var(--vads-color-warning-darker, #936f38);
+      --color-warning-border: var(--vads-color-warning, #ffbe2e);
+      --color-needed-bg: var(--vads-color-warning-lighter, #faf3d1);
+      --color-orange-bg: var(--vads-color-warning-lighter, #faf3d1);
+      --color-orange-text: var(--vads-color-warning-darker, #936f38);
+      --color-note-text: var(--vads-color-base-dark, #565c65);
+      --color-error-red: var(--vads-color-secondary-dark, #b50909);
+      --color-error-text: var(--vads-color-secondary-dark, #b50909);
+      --color-error-border: var(--vads-color-secondary-dark, #b50909);
+      --color-error-bg: var(--vads-color-error-lighter, #f4e3db);
+      --color-border-light: var(--vads-color-base-lighter, #dfe1e2);
+      --color-border-muted: var(--vads-color-base-light, #a9aeb1);
+      --color-border-control: var(--vads-input-border-color-on-light, #565c65);
+      --color-border-field: var(--vads-color-base-light, #a9aeb1);
+      --color-border-section: var(--vads-color-base-lighter, #dfe1e2);
+      --color-divider: var(--vads-color-base-lighter, #dfe1e2);
+      --color-progress-bg: var(--vads-color-base-lighter, #dfe1e2);
+      --color-chat-bg: var(--vads-color-base-lightest, #f0f0f0);
+      --color-blue-subtle: var(--vads-color-primary-lighter, #d9e8f6);
+      --color-blue-hover-bg: var(--vads-color-primary-lighter, #d9e8f6);
+      --color-spinner-border: var(--vads-color-primary-lighter, #d9e8f6);
+      --focus-ring: rgba(0, 94, 162, 0.18);
       --shadow-card: rgba(0,0,0,0.10);
       --shadow-modal: rgba(0,0,0,0.20);
       --backdrop-modal: rgba(0,0,0,0.55);
     }
 
     body {
-      font-family: "Segoe UI", Arial, sans-serif;
+      font-family: "Source Sans Pro Web", "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
       background: var(--color-bg-page);
       color: var(--color-text-primary);
       min-height: 100vh;
       font-size: 15px;
     }
+    .skip-link {
+      position: absolute;
+      left: 1rem;
+      top: 0;
+      transform: translateY(-120%);
+      background: var(--color-white);
+      color: var(--color-va-blue);
+      border: 2px solid var(--color-va-blue);
+      border-radius: 4px;
+      padding: 0.5rem 0.75rem;
+      font-weight: 700;
+      z-index: 1000;
+    }
+    .skip-link:focus { transform: translateY(1rem); outline: 3px solid var(--color-va-red); }
 
     /* ------------------------------------------------------------------
        Header
@@ -89,31 +112,18 @@
     }
 
     /* ------------------------------------------------------------------
-       Flow steps indicator
-       Shows the veteran where they are in the process
+       VA Design System segmented progress bar
     ------------------------------------------------------------------ */
-    .step-bar {
-      display: flex;
-      align-items: center;
-      gap: 0;
+    .flow-progress {
       background: var(--color-white);
       border-bottom: 1px solid var(--color-border-light);
-      padding: 0.6rem 2rem;
-      font-size: 0.78rem;
-      overflow-x: auto;
+      padding: 1.25rem 2rem 0;
     }
-    .step {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      color: var(--color-text-muted);
-      white-space: nowrap;
-      padding: 0.25rem 0.75rem;
-      border-radius: 20px;
+    .flow-progress va-segmented-progress-bar {
+      display: block;
+      max-width: 920px;
+      margin: 0 auto;
     }
-    .step.active { color: var(--color-va-blue); font-weight: 700; background: var(--color-blue-subtle); }
-    .step.done   { color: var(--color-green); }
-    .step-arrow  { color: var(--color-border-muted); padding: 0 0.25rem; }
 
     /* ------------------------------------------------------------------
        Main layout
@@ -125,7 +135,7 @@
     ------------------------------------------------------------------ */
     .card {
       background: var(--color-white);
-      border-radius: 10px;
+      border-radius: 8px;
       box-shadow: 0 1px 4px var(--shadow-card);
       padding: 1.4rem 1.6rem;
       margin-bottom: 1.25rem;
@@ -151,10 +161,44 @@
       flex-shrink: 0;
     }
 
+    .journey-overview {
+      background: var(--color-white);
+      border: 1px solid var(--color-border-light);
+      border-radius: 8px;
+      margin-bottom: 1.25rem;
+      padding: 1.2rem 1.4rem;
+    }
+    .journey-overview h2 {
+      color: var(--color-va-blue);
+      font-size: 1.2rem;
+      margin-bottom: 0.35rem;
+    }
+    .journey-process {
+      display: block;
+      margin-top: 0.35rem;
+    }
+    .journey-process p {
+      color: var(--color-text-body-muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin: 0;
+      max-width: 64ch;
+    }
+
     /* ------------------------------------------------------------------
        Veteran selector
     ------------------------------------------------------------------ */
-    .select-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .demo-profile-control {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.75rem;
+      align-items: end;
+    }
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
     select, input[type="text"] {
       padding: 0.5rem 0.75rem;
       border-radius: 6px;
@@ -162,38 +206,50 @@
       font-size: 0.9rem;
       background: var(--color-white);
     }
+    .profile-select { width: 100%; min-height: 44px; }
+    .demo-profile-control .btn { min-height: 44px; }
     select:focus, input[type="text"]:focus { outline: 2px solid var(--color-va-blue); border-color: transparent; }
 
     /* ------------------------------------------------------------------
        Buttons
     ------------------------------------------------------------------ */
     .btn {
-      padding: 0.45rem 1.1rem;
-      border-radius: 6px;
-      border: none;
-      font-size: 0.88rem;
-      font-weight: 600;
+      appearance: none;
+      border: 0;
+      border-radius: 5px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0.625rem 1.25rem;
+      color: var(--vads-button-color-text-primary-on-light, #fff);
+      font-family: "Source Sans Pro Web", "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1;
+      text-align: center;
+      text-decoration: none;
       cursor: pointer;
-      transition: background 0.15s, opacity 0.15s;
+      transition: background 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s;
+      white-space: normal;
     }
-    .btn-primary { background: var(--color-va-blue); color: var(--color-white); }
+    .btn:focus {
+      outline: 2px solid var(--vads-color-action-focus-on-light, #face00);
+      outline-offset: 2px;
+    }
+    .btn-primary {
+      background: var(--vads-button-color-background-primary-on-light, var(--color-va-blue));
+      color: var(--vads-button-color-text-primary-on-light, var(--color-white));
+    }
     .btn-primary:hover { background: var(--color-va-blue-dark); }
-    .btn-success { background: var(--color-green); color: var(--color-white); }
-    .btn-success:hover { background: var(--color-green-dark); }
-    .btn-outline {
-      background: transparent;
+    .btn-secondary {
+      background: var(--color-white);
       color: var(--color-va-blue);
-      border: 1.5px solid var(--color-va-blue);
+      border: 1px solid var(--color-va-blue);
     }
-    .btn-outline:hover { background: var(--color-blue-subtle); }
-    .btn-edit {
-      background: transparent;
-      color: var(--color-text-secondary);
-      border: 1px solid var(--color-border-muted);
-      font-size: 0.78rem;
-      padding: 0.2rem 0.5rem;
+    .btn-secondary:hover {
+      background: var(--color-blue-subtle);
     }
-    .btn-edit:hover { background: var(--color-bg-muted); }
     .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
     /* ------------------------------------------------------------------
@@ -213,10 +269,11 @@
        Benefit badges
     ------------------------------------------------------------------ */
     .benefit-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
+      display: grid;
+      gap: 0.75rem;
+      list-style: none;
       margin-top: 0.5rem;
+      padding: 0;
     }
     .benefit-badge {
       padding: 0.4rem 0.9rem;
@@ -227,9 +284,9 @@
       border: 2px solid transparent;
       transition: border-color 0.15s;
     }
-    .benefit-badge.eligible   { background: var(--color-green-bg); color: var(--color-green-strong); border-color: var(--color-green-border); }
+    .benefit-badge.eligible   { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success-border); }
     .benefit-badge.ineligible { background: var(--color-bg-muted); color: var(--color-text-muted); }
-    .benefit-badge.eligible:hover { border-color: var(--color-green); }
+    .benefit-badge.eligible:hover { border-color: var(--color-success-dark); }
 
     /* ------------------------------------------------------------------
        Form selector — grouped by benefit
@@ -247,8 +304,8 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--color-green-strong);
-      border-left: 3px solid var(--color-green-border);
+      color: var(--color-va-blue);
+      border-left: 3px solid var(--color-va-blue);
       padding-left: 0.55rem;
       margin-bottom: 0.45rem;
     }
@@ -266,6 +323,8 @@
       cursor: pointer;
       background: var(--color-white);
       color: var(--color-text-body-muted);
+      font-family: inherit;
+      text-align: left;
       transition: all 0.15s;
     }
     .form-tab:hover  { border-color: var(--color-va-blue); color: var(--color-va-blue); }
@@ -294,8 +353,8 @@
       align-items: center;
       gap: 0.4rem;
     }
-    .field-section-header.known  { color: var(--color-green); border-color: var(--color-green-border); }
-    .field-section-header.needed { color: var(--color-amber-text); border-color: var(--color-amber-border); }
+    .field-section-header.known  { color: var(--color-success); border-color: var(--color-success-border); }
+    .field-section-header.needed { color: var(--color-warning-text); border-color: var(--color-warning-border); }
 
     /* Two-column layout per field: label left, input + optional upload right */
     .field-row {
@@ -327,10 +386,8 @@
       box-sizing: border-box;
     }
     .field-input:focus  { border-color: var(--color-va-blue); outline: none; box-shadow: 0 0 0 2px var(--focus-ring); }
-    /* Green tint — we already have this value */
-    .field-input.is-known  { border-color: var(--color-green-border); background: var(--color-known-bg); }
-    /* Amber tint — veteran still needs to fill this */
-    .field-input.is-needed { border-color: var(--color-amber-border); background: var(--color-needed-bg); }
+    .field-input.is-known  { border-color: var(--color-success-border); background: var(--color-known-bg); }
+    .field-input.is-needed { border-color: var(--color-warning-border); background: var(--color-needed-bg); }
     /* Red border — required field still empty when they try to confirm */
     .field-input.is-error  { border-color: var(--color-error-border); background: var(--color-error-bg); }
 
@@ -339,6 +396,26 @@
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 0.45rem;
       align-items: center;
+    }
+    .field-status-tag {
+      display: inline-block;
+      width: fit-content;
+      margin-top: 0.25rem;
+      border-radius: 2px;
+      padding: 0.1rem 0.35rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+    .field-status-known {
+      background: var(--color-success-bg);
+      color: var(--color-success);
+      border: 1px solid var(--color-success-border);
+    }
+    .field-status-needed {
+      background: var(--color-needed-bg);
+      color: var(--color-warning-text);
+      border: 1px solid var(--color-warning-border);
     }
     .field-image-actions {
       display: flex;
@@ -350,7 +427,7 @@
       min-height: 34px;
       padding: 0.25rem 0.55rem;
       border-radius: 5px;
-      border: 1.5px solid var(--color-va-blue);
+      border: 1px solid var(--color-va-blue);
       background: var(--color-white);
       color: var(--color-va-blue);
       font-size: 0.76rem;
@@ -384,9 +461,10 @@
     ------------------------------------------------------------------ */
     .profile-mode-btn { font-size: 0.85rem; padding: 0.4rem 1rem; }
     .profile-mode-btn.active {
-      background: var(--color-va-blue);
-      color: var(--color-white);
+      background: var(--color-blue-subtle);
+      color: var(--color-va-blue);
       border-color: var(--color-va-blue);
+      box-shadow: inset 0 0 0 1px var(--color-va-blue);
     }
 
     /* ------------------------------------------------------------------
@@ -423,7 +501,7 @@
 
     /* Progress bar */
     .progress-wrap { height: 8px; background: var(--color-progress-bg); border-radius: 4px; overflow: hidden; margin: 0.5rem 0; }
-    .progress-bar  { height: 100%; background: var(--color-green); border-radius: 4px; transition: width 0.3s; }
+    .progress-bar  { height: 100%; background: var(--color-va-blue); border-radius: 4px; transition: width 0.3s; }
     .progress-label { font-size: 0.78rem; color: var(--color-text-secondary); margin-bottom: 0.3rem; }
 
     .doc-suggestions-line {
@@ -447,7 +525,7 @@
     }
 
     /* ------------------------------------------------------------------
-       Confirm All button row
+       Form action row
     ------------------------------------------------------------------ */
     .confirm-row {
       margin-top: 1.25rem;
@@ -456,6 +534,12 @@
     }
     #confirm-error {
       color: var(--color-error-text);
+      font-size: 0.82rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+    #confirm-save-status {
+      color: var(--color-success);
       font-size: 0.82rem;
       margin-top: 0.5rem;
       display: none;
@@ -568,7 +652,12 @@
 
     /* Extracted styles for static and JS-rendered markup */
     .profile-mode-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
-    .demo-profile-label { font-size: 0.88rem; font-weight: 600; }
+    .demo-profile-label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--color-text-label);
+    }
     .note-spaced-lg { margin-bottom: 1rem; }
     .note-spaced-md { margin-bottom: 0.75rem; }
     .note-chat { margin-bottom: 0.6rem; }
@@ -658,10 +747,10 @@
       margin-top: 0.75rem;
       padding: 0.6rem 0.75rem;
       border-radius: 6px;
-      border: 1px solid var(--color-green-border);
+      border: 1px solid var(--color-success-border);
       background: var(--color-benefit-bg);
       font-size: 0.85rem;
-      color: var(--color-green);
+      color: var(--color-success);
     }
     .scan-to-form-prompt { display: none; margin-top: 0.75rem; }
     .scan-review-copy { font-size: 0.85rem; color: var(--color-text-label); margin-bottom: 0.5rem; }
@@ -672,26 +761,52 @@
       font-weight: 600;
       margin-bottom: 0.6rem;
     }
-    .disclaimer-alert {
-      background: var(--color-warning-bg);
-      border-left: 4px solid var(--color-warning-border);
-      border-radius: 4px;
-      padding: 0.65rem 0.9rem;
-      font-size: 0.82rem;
-      color: var(--color-warning-text);
+    #benefit-disclaimer {
       margin-bottom: 0.85rem;
+    }
+    #benefit-disclaimer[hidden] {
       display: none;
     }
-    .mode-badge { margin-left: 0.5rem; font-size: 0.75rem; color: var(--color-text-subtle); }
+    #benefit-disclaimer:focus {
+      outline: 3px solid var(--color-va-blue);
+      outline-offset: 2px;
+    }
+    #benefit-disclaimer > p {
+      margin-top: 0.35rem;
+    }
+    #benefit-disclaimer > p:first-of-type {
+      margin-top: 0;
+    }
+    .mode-badge {
+      display: block;
+      font-size: 0.95rem;
+      font-style: italic;
+      margin-bottom: 0;
+    }
     .form-header { margin-bottom: 0.6rem; }
-    .progress-bar { width: 0%; }
-    .confirm-button { width: 100%; font-size: 1rem; padding: 0.75rem; letter-spacing: 0.01em; }
-    .download-panel { display: none; margin-top: 0.6rem; }
-    .download-btn-outline {
-      width: 100%;
-      background: var(--color-white);
+    .form-title {
       color: var(--color-va-blue);
-      border: 1.5px solid var(--color-va-blue);
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+    .progress-bar { width: 0%; }
+    .form-action-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(112px, 0.7fr);
+      gap: 0.5rem;
+      align-items: stretch;
+    }
+    .form-action-button {
+      width: 100%;
+      min-height: 44px;
+      padding: 0.65rem 0.75rem;
+      line-height: 1.2;
+      white-space: normal;
+    }
+    .submit-button { font-size: 1rem; }
+    .download-panel { display: none; margin-top: 0.6rem; }
+    .download-package-btn {
+      width: 100%;
       font-size: 0.9rem;
       padding: 0.6rem;
     }
@@ -714,13 +829,8 @@
     }
     .chat-download-btn {
       width: 100%;
-      background: var(--color-va-blue);
-      color: var(--color-white);
-      border: none;
       font-size: 0.95rem;
       padding: 0.7rem;
-      border-radius: 6px;
-      cursor: pointer;
     }
     .chat-download-helper {
       font-size: 0.75rem;
@@ -729,37 +839,131 @@
       text-align: center;
     }
     .benefit-empty { color: var(--color-text-subtle); font-size: 0.88rem; }
+    .benefit-card-item {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
     .benefit-card {
       background: var(--color-benefit-bg);
-      border: 1.5px solid var(--color-green-border);
-      border-radius: 8px;
+      border: 1px solid var(--color-border-muted);
+      border-radius: 4px;
       padding: 0.85rem 1rem;
       width: 100%;
-      margin-bottom: 0.5rem;
     }
     .benefit-card-inner {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 1rem;
+      display: grid;
+      gap: 0.75rem;
+      min-width: 0;
     }
     .benefit-title {
       font-weight: 700;
-      color: var(--color-green-strong);
+      color: var(--color-text-heading);
       font-size: 0.93rem;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0;
     }
-    .benefit-reason { font-size: 0.83rem; color: var(--color-benefit-text); margin-bottom: 0.4rem; }
-    .benefit-note { font-size: 0.78rem; color: var(--color-note-brown); font-style: italic; }
+    .benefit-card-sections {
+      display: grid;
+      gap: 0.65rem;
+    }
+    .benefit-card-section {
+      display: grid;
+      gap: 0.25rem;
+    }
+    .benefit-card-section h4 {
+      color: var(--color-text-heading);
+      font-size: 0.86rem;
+      line-height: 1.25;
+      margin: 0;
+    }
+    .benefit-card-section p,
+    .benefit-card-section li {
+      color: var(--color-benefit-text);
+      font-size: 0.9rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+    .benefit-card-section ul {
+      margin: 0;
+      padding-left: 1.15rem;
+    }
+    .benefit-card-section li + li {
+      margin-top: 0.2rem;
+    }
+    .benefit-reason {
+      font-size: 0.9rem;
+      color: var(--color-benefit-text);
+      margin-bottom: 0;
+    }
+    .benefit-question-list {
+      margin: 0;
+    }
+    .benefit-note {
+      font-size: 0.82rem;
+      color: var(--color-note-text);
+      font-style: italic;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+    .benefit-note strong {
+      color: var(--color-text-heading);
+      font-style: normal;
+    }
     .benefit-link {
-      white-space: nowrap;
-      font-size: 0.78rem;
+      display: inline-block;
+      width: fit-content;
+      max-width: 100%;
+      white-space: normal;
+      font-size: 0.95rem;
+      font-weight: 700;
       color: var(--color-va-blue);
-      text-decoration: none;
-      border: 1px solid var(--color-va-blue);
-      border-radius: 4px;
-      padding: 0.25rem 0.6rem;
-      flex-shrink: 0;
+      text-decoration: underline;
+      padding: 0.25rem 0;
+      margin-top: 0.15rem;
+      overflow-wrap: anywhere;
+    }
+    @media (max-width: 760px) {
+      header { flex-direction: column; }
+      header .wilcore-badge {
+        margin-left: 0;
+        text-align: left;
+      }
+      .flow-progress { padding: 1rem 1rem 0; }
+      .demo-profile-control { grid-template-columns: 1fr; }
+      .demo-profile-control .btn { width: 100%; }
+      .form-action-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .container { padding: 0 0.5rem; }
+      .card,
+      .journey-overview { padding: 1rem; }
+      .flow-progress {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+      }
+      .profile-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .profile-item,
+      .profile-item .value {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      .field-row {
+        grid-template-columns: 1fr;
+        align-items: start;
+      }
+      .field-input-with-actions {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+      }
+      .field-image-actions {
+        flex-wrap: wrap;
+        white-space: normal;
+      }
+      .field-image-btn {
+        flex: 1 1 7rem;
+      }
     }
     .multi-benefit-note {
       font-size: 0.68rem;
@@ -767,8 +971,12 @@
       display: block;
       margin-top: 3px;
     }
-    .form-tab-id { font-weight: 700; font-size: 0.82rem; }
-    .form-tab-title { font-size: 0.73rem; color: var(--color-text-body-muted); margin-top: 2px; line-height: 1.3; }
+    .form-tab-id { display: block; font-weight: 700; font-size: 0.82rem; }
+    .form-tab-title { display: block; font-size: 0.73rem; color: var(--color-text-body-muted); margin-top: 2px; line-height: 1.3; }
+    .form-tab.active .form-tab-title,
+    .form-tab.active .multi-benefit-note {
+      color: rgba(255, 255, 255, 0.9);
+    }
     .required-mark { color: var(--color-error-red); margin-left: 2px; }
     .textarea-resize { resize: vertical; }
     .hidden-file-input { display: none; }

@@ -177,6 +177,9 @@ Return only the JSON array, no other text."""
                 "reason":              item.get("plain_language_reason", ""),
                 "important_note":      item.get("important_note", "Talk to your VSO or the VA to confirm."),
                 "info_url":            catalog_entry.get("info_url", ""),
+                "link_text":           catalog_entry.get("link_text", ""),
+                "vso_questions":       catalog_entry.get("vso_questions", []),
+                "next_step":           catalog_entry.get("next_step", ""),
                 "source":              "claude",
             })
 
@@ -225,6 +228,9 @@ def _discover_with_rules(veteran: dict, benefits_catalog: list) -> list:
                 "Talk to your VSO or the VA to confirm whether this applies to your situation."
             ),
             "info_url":        r.get("info_url", ""),
+            "link_text":       r.get("link_text", ""),
+            "vso_questions":   r.get("vso_questions", []),
+            "next_step":       r.get("next_step", ""),
             "source":          "rules_fallback",
         })
 

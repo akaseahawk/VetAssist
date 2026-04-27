@@ -282,6 +282,9 @@ def check_eligibility(veteran: dict, benefits_catalog: list) -> list:
                 "eligible":    False,
                 "reason":      f"[DEV NOTE] No eligibility rule implemented for '{bid}' yet. Add it to RULE_REGISTRY in eligibility.py.",
                 "info_url":    benefit.get("info_url", ""),
+                "link_text":   benefit.get("link_text", ""),
+                "vso_questions": benefit.get("vso_questions", []),
+                "next_step":   benefit.get("next_step", ""),
             })
             continue
 
@@ -295,6 +298,9 @@ def check_eligibility(veteran: dict, benefits_catalog: list) -> list:
             "eligible":    eligible,
             "reason":      reason,
             "info_url":    benefit.get("info_url", ""),
+            "link_text":   benefit.get("link_text", ""),
+            "vso_questions": benefit.get("vso_questions", []),
+            "next_step":   benefit.get("next_step", ""),
         })
 
     return results

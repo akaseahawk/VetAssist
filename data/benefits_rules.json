@@ -17,7 +17,14 @@
         ]
       },
       "likely_if": "honorable discharge AND (combat deployment OR disability rating OR income below threshold)",
-      "info_url": "https://www.va.gov/health-care/eligibility/"
+      "info_url": "https://www.va.gov/health-care/eligibility/",
+      "link_text": "Learn about VA health care eligibility on VA.gov (opens in new tab)",
+      "vso_questions": [
+        "Whether your service record meets VA health care enrollment criteria.",
+        "Which priority group may apply to you.",
+        "What records to bring if you are not already enrolled."
+      ],
+      "next_step": "Bring your DD-214 and any VA or private medical records to a VSO or VA enrollment office."
     },
     {
       "id": "disability_compensation",
@@ -32,7 +39,14 @@
         ]
       },
       "likely_if": "service-connected disability AND not yet receiving compensation",
-      "info_url": "https://www.va.gov/disability/"
+      "info_url": "https://www.va.gov/disability/",
+      "link_text": "Learn about disability compensation on VA.gov (opens in new tab)",
+      "vso_questions": [
+        "Whether each condition can be connected to your service.",
+        "Which evidence best supports the claim.",
+        "Whether to file a new claim or a supplemental claim."
+      ],
+      "next_step": "Gather medical records, service records, and any buddy statements before starting VA Form 21-526EZ."
     },
     {
       "id": "ptsd_benefits",
@@ -47,7 +61,14 @@
         ]
       },
       "likely_if": "combat deployment OR PTSD listed as a disability condition",
-      "info_url": "https://www.va.gov/disability/eligibility/ptsd/"
+      "info_url": "https://www.va.gov/disability/eligibility/ptsd/",
+      "link_text": "Learn about PTSD disability claims on VA.gov (opens in new tab)",
+      "vso_questions": [
+        "Whether the combat presumption or another stressor rule applies.",
+        "What evidence can support the mental health claim.",
+        "Whether VA Form 21-0781 is needed with the claim."
+      ],
+      "next_step": "Write down dates, locations, units, and treatment history before meeting with your VSO."
     },
     {
       "id": "education_gi_bill",
@@ -61,7 +82,14 @@
         ]
       },
       "likely_if": "service began after September 10, 2001 with honorable discharge",
-      "info_url": "https://www.va.gov/education/about-gi-bill-benefits/"
+      "info_url": "https://www.va.gov/education/about-gi-bill-benefits/",
+      "link_text": "Learn about Post-9/11 GI Bill benefits on VA.gov (opens in new tab)",
+      "vso_questions": [
+        "Which education benefit chapter fits your service.",
+        "How much entitlement may remain.",
+        "Whether your program is approved for VA education benefits."
+      ],
+      "next_step": "Bring service dates and any prior VA education benefit records before applying."
     },
     {
       "id": "home_loan_guarantee",
@@ -75,7 +103,14 @@
         ]
       },
       "likely_if": "honorable discharge with sufficient service length",
-      "info_url": "https://www.va.gov/housing-assistance/home-loans/"
+      "info_url": "https://www.va.gov/housing-assistance/home-loans/",
+      "link_text": "Learn about VA-backed home loans on VA.gov (opens in new tab)",
+      "vso_questions": [
+        "Whether your service period meets Certificate of Eligibility rules.",
+        "What home loan entitlement may be available.",
+        "Which lender or property details you need before applying."
+      ],
+      "next_step": "Ask about a Certificate of Eligibility or what records a VA-approved lender will need."
     }
   ]
 }

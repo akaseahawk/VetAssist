@@ -1,0 +1,1 @@
+System.register([],(function(i){"use strict";return{execute:function(){i("i",n);function n(){var i="__VA_ICON_SPRITE_LOCATION__";globalThis.setVaIconSpriteLocation=function(n){globalThis[i]=n};globalThis.getVaIconSpriteLocation=function(){return globalThis[i]||"/img/sprite.svg"}}}}}));

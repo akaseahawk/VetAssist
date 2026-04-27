@@ -4,9 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VetAssist — Benefits & Forms Assistant</title>
+  <link rel="stylesheet" href="../static/vendor/va-web-components/component-library.css" />
   <link rel="stylesheet" href="../static/css/vetassist.css" />
 </head>
 <body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
 
 <!-- =========================================================
      HEADER
@@ -21,24 +23,38 @@
 
 <!-- =========================================================
      FLOW STEP INDICATOR
-     Shows the veteran where they are. JS updates .active class.
+     Uses the VA Design System segmented progress bar web component.
 ========================================================= -->
-<div class="step-bar">
-  <div class="step active" id="step-1">① Select Profile</div>
-  <div class="step-arrow">›</div>
-  <div class="step" id="step-2">② Review Benefits</div>
-  <div class="step-arrow">›</div>
-  <div class="step" id="step-3">③ Choose &amp; Review Form</div>
-  <div class="step-arrow">›</div>
-  <div class="step" id="step-4">④ Review &amp; Complete</div>
-  <div class="step-arrow">›</div>
-  <div class="step" id="step-5">⑤ Any Remaining Gaps</div>
-</div>
+<section class="flow-progress">
+  <va-segmented-progress-bar
+    id="flow-progress-bar"
+    current="1"
+    total="5"
+    counters="small"
+    header-level="2"
+    labels="Select profile;Review benefits;Choose and review form;Review and complete;Any remaining gaps">
+  </va-segmented-progress-bar>
+</section>
 
 <!-- =========================================================
      MAIN CONTENT
 ========================================================= -->
-<div class="container">
+<main class="container" id="main-content">
+
+  <section class="journey-overview" aria-labelledby="journey-overview-title">
+    <h2 id="journey-overview-title">How VetAssist helps you prepare</h2>
+    <va-process-list class="journey-process">
+      <va-process-list-item header="Share what you know" level="3">
+        <p>Choose a demo profile, enter your own information, or scan a document to start with the facts you have.</p>
+      </va-process-list-item>
+      <va-process-list-item header="Review possible benefits and forms" level="3">
+        <p>See benefits worth discussing with a VSO, then choose the VA form connected to that benefit.</p>
+      </va-process-list-item>
+      <va-process-list-item header="Confirm and prepare" level="3">
+        <p>Review known information, fill any needed fields, and download a preparation package for your VSO appointment.</p>
+      </va-process-list-item>
+    </va-process-list>
+  </section>
 
   <!-- STEP 1: Select Veteran Profile -->
   <div class="card" id="card-select">
@@ -51,28 +67,33 @@
       own data without being forced to pick from a fake name.
     -->
     <div class="profile-mode-row">
-      <button class="btn btn-outline profile-mode-btn active" id="btn-mode-demo"
+      <button type="button" class="btn btn-secondary profile-mode-btn active" id="btn-mode-demo"
+        aria-pressed="true"
         onclick="setProfileMode('demo')">
         Use a demo profile
       </button>
-      <button class="btn btn-outline profile-mode-btn" id="btn-mode-own"
+      <button type="button" class="btn btn-secondary profile-mode-btn" id="btn-mode-own"
+        aria-pressed="false"
         onclick="setProfileMode('own')">
         Enter my own information
       </button>
-      <button class="btn btn-outline profile-mode-btn" id="btn-mode-scan"
+      <button type="button" class="btn btn-secondary profile-mode-btn" id="btn-mode-scan"
+        aria-pressed="false"
         onclick="setProfileMode('scan')">
-        📷 Scan a document
+        Scan a document
       </button>
     </div>
 
     <!-- DEMO MODE: select from synthetic profiles -->
     <div id="profile-demo-section">
-      <div class="select-row">
-        <label class="demo-profile-label" for="veteran-select">Demo profile:</label>
-        <select id="veteran-select">
-          <option value="">— choose a profile —</option>
-        </select>
-        <button class="btn btn-primary" id="btn-load-demo" onclick="loadVeteran()">Load Profile</button>
+      <div class="demo-profile-control">
+        <div class="form-field demo-profile-field">
+          <label class="demo-profile-label" for="veteran-select">Demo profile</label>
+          <select id="veteran-select" class="profile-select">
+            <option value="">— choose a profile —</option>
+          </select>
+        </div>
+        <button type="button" class="btn btn-primary" id="btn-load-demo" onclick="loadVeteran()">Load profile</button>
       </div>
       <p class="note">
         These are synthetic profiles for demonstration only. No real veteran data is stored or transmitted.
@@ -148,8 +169,8 @@
         <div class="own-field"><label for="own-email">Email Address</label><input type="email" id="own-email" placeholder="your@email.com" /></div>
       </div>
       <p class="required-note">* Required to find relevant benefits</p>
-      <button class="btn btn-primary mt-1" onclick="loadOwnProfile()">
-        Continue with My Information
+      <button type="button" class="btn btn-primary mt-1" onclick="loadOwnProfile()">
+        Continue with my information
       </button>
       <div id="own-error" class="inline-error"></div>
     </div>
@@ -194,11 +215,11 @@
       <div class="scan-control-group">
         <span class="scan-control-label">Add your document image:</span>
         <div class="scan-image-actions">
-          <button type="button" class="btn btn-outline" id="btn-scan-camera" onclick="openScanCamera()">
-            Take Photo
+          <button type="button" class="btn btn-secondary" id="btn-scan-camera" onclick="openScanCamera()">
+            Take photo
           </button>
-          <label class="btn btn-outline scan-file-label" for="scan-file-input">
-            Choose Image File
+          <label class="btn btn-secondary scan-file-label" for="scan-file-input">
+            Choose image file
           </label>
         </div>
         <input
@@ -221,9 +242,9 @@
           <canvas id="scan-camera-canvas" class="scan-camera-canvas"></canvas>
           <div class="scan-camera-actions">
             <button type="button" class="btn btn-primary" onclick="captureScanPhoto()">
-              Capture Photo
+              Capture photo
             </button>
-            <button type="button" class="btn btn-outline" onclick="closeScanCamera()">
+            <button type="button" class="btn btn-secondary" onclick="closeScanCamera()">
               Cancel
             </button>
           </div>
@@ -236,8 +257,8 @@
       </div>
 
       <!-- Step C: submit -->
-      <button class="btn btn-primary full-width" onclick="scanDocument()" id="btn-scan-submit">
-        📷 Extract Fields from Photo
+      <button type="button" class="btn btn-primary full-width" onclick="scanDocument()" id="btn-scan-submit">
+        Extract fields from photo
       </button>
 
       <!-- Scanning indicator -->
@@ -262,8 +283,8 @@
           <strong>Please review every value</strong> — correct anything that looks wrong —
           then click Continue.
         </p>
-        <button class="btn btn-outline full-width" onclick="setProfileMode('own', true)">
-          Review and Edit Extracted Fields →
+        <button type="button" class="btn btn-secondary full-width" onclick="setProfileMode('own', true)">
+          Review and edit extracted fields
         </button>
       </div>
     </div>
@@ -285,19 +306,31 @@
   <div class="card hidden" id="card-benefits">
     <h2><span class="step-num">2</span> Benefits Worth Exploring</h2>
 
-    <!-- Disclaimer — always visible, prominent but not alarming -->
-    <div id="benefit-disclaimer" class="disclaimer-alert">
-      <strong>Heads up before you read these:</strong> Based on your profile, here are some things
-      that may be <strong>worth asking your VSO about</strong>. This is not a determination —
-      VetAssist doesn't decide your eligibility, and neither should this page.
-      Your VSO and the VA do that. Think of this as preparation for that conversation.
-      <span id="mode-badge" class="mode-badge"></span>
-    </div>
+    <!-- Disclaimer — VA alert web component, announced when benefits are shown -->
+    <va-alert
+      id="benefit-disclaimer"
+      status="info"
+      role="status"
+      aria-labelledby="benefit-disclaimer-title"
+      aria-describedby="benefit-disclaimer-copy benefit-disclaimer-detail mode-badge"
+      hidden
+    >
+      <h3 id="benefit-disclaimer-title" slot="headline" tabindex="-1">Before you read these</h3>
+      <p id="benefit-disclaimer-copy">
+        Based on your profile, these are benefits worth asking your VSO about.
+        This is not an eligibility determination. VetAssist does not decide your eligibility;
+        your VSO and the VA do that.
+      </p>
+      <p id="benefit-disclaimer-detail">
+        Think of this as preparation for that conversation.
+      </p>
+      <p id="mode-badge" class="mode-badge"></p>
+    </va-alert>
 
     <div id="benefit-spinner" class="loading-status-compact">
       <span class="spinner"></span> Reviewing your profile and finding benefits...
     </div>
-    <div class="benefit-grid" id="benefit-grid"></div>
+    <ul class="benefit-grid" id="benefit-grid"></ul>
   </div>
 
   <!-- STEP 3: Choose a Form -->
@@ -329,9 +362,9 @@
         WHY editable: we never assume our data is correct. Address changes, typos,
         profile mismatches — the veteran is the source of truth.
       -->
-      <div class="field-section-header known hidden" id="section-known-header">
-        ✓ Information we already have — correct anything that looks wrong
-      </div>
+      <h3 class="field-section-header known hidden" id="section-known-header">
+        Known information — correct anything that looks wrong
+      </h3>
       <div id="fields-known"></div>
 
       <!--
@@ -339,17 +372,25 @@
         Where we know which documents may have answers, we show a short
         paragraph under the header. Veteran can also type directly.
       -->
-      <div class="field-section-header needed hidden" id="section-needed-header">
-        ⚠️ Still needed from you — fill in or upload a document photo
-      </div>
+      <h3 class="field-section-header needed hidden" id="section-needed-header">
+        Information needed — fill in or upload a document photo
+      </h3>
       <div id="document-suggestions"></div>
       <div id="fields-needed"></div>
 
-      <!-- Single confirm button — collects all inputs at once -->
+      <!-- Form actions: save a draft without validation, or submit with validation. -->
       <div class="confirm-row">
-        <button class="btn btn-success confirm-button" onclick="confirmFields()">
-          ✓ Confirm All &amp; Continue
-        </button>
+        <div class="form-action-row">
+          <button type="button" class="btn btn-secondary form-action-button" onclick="saveFormForLater()">
+            Save and continue later
+          </button>
+          <button type="button" class="btn btn-primary form-action-button submit-button" onclick="confirmFields()">
+            Submit
+          </button>
+        </div>
+        <div id="confirm-save-status" role="status" aria-live="polite">
+          Your draft has been saved in this browser. Return to this profile and form to continue.
+        </div>
         <div id="confirm-error">Please fill in the fields highlighted above before continuing.</div>
       </div>
 
@@ -360,8 +401,8 @@
         We show it hidden and reveal it after confirmFields() succeeds.
       -->
       <div id="download-btn-forms" class="download-panel">
-        <button class="btn download-btn-outline" onclick="downloadPackage()">
-          ⬇ Download My Preparation Package (PDF)
+        <button type="button" class="btn btn-primary download-package-btn" onclick="downloadPackage()">
+          Download my preparation package (PDF)
         </button>
         <p class="download-helper">
           Includes a cover page with your VSO contacts and a field summary for each form.
@@ -394,7 +435,7 @@
       />
       <!-- WHY the button text changes: showing 'Thinking...' with the spinner
            gives the veteran real feedback that the AI is working, not broken. -->
-      <button class="btn btn-primary" id="chat-send-btn" onclick="sendChat()">Send</button>
+      <button type="button" class="btn btn-primary" id="chat-send-btn" onclick="sendChat()">Send</button>
     </div>
     <div id="chat-thinking" class="chat-thinking">
       <span class="spinner"></span> Thinking...
@@ -403,8 +444,8 @@
 
     <!-- Download button at end of chat flow — the logical 'I'm done' moment -->
     <div class="chat-download-wrap">
-      <button class="btn chat-download-btn" onclick="downloadPackage()">
-        ⬇ Download My Preparation Package (PDF)
+      <button type="button" class="btn btn-primary chat-download-btn" onclick="downloadPackage()">
+        Download my preparation package (PDF)
       </button>
       <p class="chat-download-helper">
         Cover page with your VSO contacts + field summary for every form you reviewed.
@@ -413,7 +454,7 @@
     </div>
   </div>
 
-</div><!-- /.container -->
+</main><!-- /.container -->
 <!-- Hidden file input for document photo uploads -->
 <!-- WHY hidden: we trigger it programmatically from the upload button in the field table -->
 <input
@@ -444,12 +485,14 @@
     </p>
     <div id="vision-modal-fields"></div>
     <div class="vision-modal-actions">
-      <button class="btn btn-outline" onclick="closeVisionModal()">Cancel</button>
-      <button class="btn" id="vision-modal-confirm" onclick="confirmVisionFields()">Confirm &amp; Populate Fields</button>
+      <button type="button" class="btn btn-secondary" onclick="closeVisionModal()">Cancel</button>
+      <button type="button" class="btn btn-primary" id="vision-modal-confirm" onclick="confirmVisionFields()">Confirm and populate fields</button>
     </div>
   </div>
 </dialog>
 
+<script type="module" src="../static/vendor/va-web-components/component-library.esm.js"></script>
+<script nomodule src="../static/vendor/va-web-components/component-library.js"></script>
 <script src="../static/js/app.js"></script>
 
 </body>

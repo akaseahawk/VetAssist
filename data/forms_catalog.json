@@ -48,6 +48,7 @@
         { "key": "pow",                "label": "Former Prisoner of War?",              "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"], "source_documents": ["DD-214","SERVICE_RECORD"] },
         { "key": "purple_heart",       "label": "Received Purple Heart?",              "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"], "source_documents": ["DD-214","SERVICE_RECORD"] },
         { "key": "agent_orange",       "label": "Exposed to Agent Orange?",            "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"], "source_documents": ["SERVICE_RECORD","VA_LETTER"] },
+        { "key": "burn_pit_exposure",  "label": "Burn Pit Exposure?",                  "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"], "source_documents": ["SERVICE_RECORD","VA_LETTER"] },
         { "key": "radiation_exposure", "label": "Radiation Exposure During Service?",  "field_type": "select",   "required": false, "source": "ask",      "profile_field": null, "options": ["Yes","No"], "source_documents": ["SERVICE_RECORD","VA_LETTER"] },
 
         { "key": "signature_date",     "label": "Date of Signature",                   "field_type": "date",     "required": true,  "source": "ask",      "profile_field": null }
@@ -300,7 +301,7 @@
       "title": "Service Record or Orders",
       "description": "Military personnel records, orders, awards, deployment records, or unit documents that may support service-event details.",
       "digitized": false,
-      "fields_extracted_for_prefill": ["combat_deployment","pow","purple_heart","agent_orange","radiation_exposure","in_service_event","traumatic_event_description","event_date","event_location","unit_assignment","commanding_officer"]
+      "fields_extracted_for_prefill": ["combat_deployment","pow","purple_heart","agent_orange","burn_pit_exposure","radiation_exposure","in_service_event","traumatic_event_description","event_date","event_location","unit_assignment","commanding_officer"]
     },
     {
       "id": "MILITARY_ID",

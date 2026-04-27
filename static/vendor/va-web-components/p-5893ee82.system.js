@@ -1,0 +1,1 @@
+System.register(["./p-cc884e58.system.js","./p-702c5e66.system.js","./p-34896e08.system.js"],(function(t){"use strict";return{setters:[function(e){var n={};n.CONTACTS=e.C;n.contactsMap=e.c;t(n)},function(e){t("initIconSpriteLocation",e.i)},function(e){t("i18next",e.i)}],execute:function(){}}}));
